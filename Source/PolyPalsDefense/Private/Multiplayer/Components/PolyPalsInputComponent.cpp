@@ -4,6 +4,9 @@
 #include "Multiplayer/Components/PolyPalsInputComponent.h"
 #include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/InputConfig.h"
+#include "Tower/PreviewBuilding.h"
+
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UPolyPalsInputComponent::UPolyPalsInputComponent()
@@ -45,11 +48,17 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 	UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PolyPalsController->InputComponent);
 	if (Input)
 	{
-		Input->BindAction(InputConfig->InputTest, ETriggerEvent::Triggered, this, &UPolyPalsInputComponent::InputTest);
+		Input->BindAction(InputConfig->InputTest, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTest);
 	}
 }
 
 void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("PolyPals: InputTest"));
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	APreviewBuilding* Building = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	Building->ExteranlInitialize(PolyPalsController);
 }

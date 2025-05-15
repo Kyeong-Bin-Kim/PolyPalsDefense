@@ -20,5 +20,6 @@ void APolyPalsController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	if (IsLocalController())
+		bShowMouseCursor = true;
 }
