@@ -20,22 +20,46 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-protected:
-	UPROPERTY(EditDefaulsOnly)
-	FVector OffsetLocation;
+	inline bool IsPossessed() const { return bIsPossessed; }
 
 private:
-	UPROPERTY()
+	UFUNCTION()
+	void OnRep_PolyPalsController();
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	FVector SpectateLocation;
+
+private:
+	UPROPERTY(Replicated)
+	bool bIsPossessed = false;
+
+private:
+	// Cach data
+	UPROPERTY(ReplicatedUsing = OnRep_PolyPalsController)
+	TObjectPtr<class APolyPalsController> PolyPalsController;
+
+private:
+	// Components
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USceneComponent> RootSceneComponent;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USpringArmComponent> SpringArm;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UCameraComponent> PolyPalsPlayCamera;
+	
+private:
+	// ActorComponents
+	UPROPERTY()
+	TObjectPtr<class UBuildTowerComponent> BuildTowerComponent;
 
 };

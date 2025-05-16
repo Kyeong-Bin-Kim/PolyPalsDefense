@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Multiplayer/Components/PolyPalsInputComponent.h"
+#include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
 #include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/InputConfig.h"
 #include "Tower/PreviewBuilding.h"
@@ -15,7 +15,7 @@ UPolyPalsInputComponent::UPolyPalsInputComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
-	ConstructorHelpers::FObjectFinder<UInputConfig> InputConfigData(TEXT("/Game/Frameworks/Input/Data_InputConfig.Data_InputConfig"));
+	ConstructorHelpers::FObjectFinder<UInputConfig> InputConfigData(TEXT("/Game/Multiplayer/Input/Data_InputConfig.Data_InputConfig"));
 	if (InputConfigData.Succeeded())
 		InputConfig = InputConfigData.Object;
 
@@ -58,16 +58,17 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 
 void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("PolyPals: InputTest"));
+	OnInputTest.ExecuteIfBound();
+	//UE_LOG(LogTemp, Log, TEXT("PolyPals: InputTest"));
 
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	//FActorSpawnParameters SpawnParams;
+	//SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APreviewBuilding* Building = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	Building->ExteranlInitialize(PolyPalsController);
+	//APreviewBuilding* Building = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	//Building->ExteranlInitialize(PolyPalsController);
 }
 
 void UPolyPalsInputComponent::InputClick(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("PolyPals: InputClick"));
+	//UE_LOG(LogTemp, Log, TEXT("PolyPals: InputClick"));
 }

@@ -2,12 +2,18 @@
 
 
 #include "Multiplayer/PolyPalsController.h"
-#include "Multiplayer/Components/PolyPalsInputComponent.h"
+#include "Multiplayer/PolyPalsGamePawn.h"
+#include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "Multiplayer/Components/PolyPalsController/GamePawnComponent.h"
 #include "Multiplayer/InputConfig.h"
+
+#include "Net/UnrealNetwork.h"
 
 APolyPalsController::APolyPalsController()
 {
 	PolyPalsInputComponent = CreateDefaultSubobject<UPolyPalsInputComponent>(TEXT("PolyPalsInputComponent"));
+	GamePawnComponent = CreateDefaultSubobject<UGamePawnComponent>(TEXT("GamePawnComponent"));
+	GamePawnComponent->SetIsReplicated(true);
 }
 
 void APolyPalsController::SetupInputComponent()
@@ -23,3 +29,10 @@ void APolyPalsController::BeginPlay()
 	if (IsLocalController())
 		bShowMouseCursor = true;
 }
+
+void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+}
+

@@ -6,9 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "PolyPalsController.generated.h"
 
-/**
- * 
- */
+class UPolyPalsInputComponent;
+class UGamePawnComponent;
+
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsController : public APlayerController
 {
@@ -18,13 +18,21 @@ class POLYPALSDEFENSE_API APolyPalsController : public APlayerController
 public:
 	APolyPalsController();
 
-
 protected:
 	virtual void SetupInputComponent() override;
 
 	virtual void BeginPlay() override;
 
+public:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
+	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }
+
 protected:
 	UPROPERTY()
-	TObjectPtr<class UPolyPalsInputComponent> PolyPalsInputComponent;
+	TObjectPtr<UPolyPalsInputComponent> PolyPalsInputComponent;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UGamePawnComponent> GamePawnComponent;
+
 };
