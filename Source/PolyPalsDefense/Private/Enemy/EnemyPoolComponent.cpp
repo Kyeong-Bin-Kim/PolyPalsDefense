@@ -12,8 +12,7 @@ void UEnemyPoolComponent::BeginPlay()
 {
     Super::BeginPlay();
 }
-
-AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId)
+AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
 {
     if (EnemyPool.Contains(AssetId) && EnemyPool[AssetId].Num() > 0)
     {
@@ -35,11 +34,11 @@ void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
     Enemy->SetActorEnableCollision(false);
     Enemy->SetActorTickEnabled(false);
 
-    // 나중에 위치도 초기화 가능
     EnemyPool.FindOrAdd(Enemy->GetPrimaryAssetId()).Add(Enemy);
 }
 
-AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId)
+AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
+
 {
     if (!EnemyClass) return nullptr;
 
@@ -54,7 +53,8 @@ AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId)
 
     if (NewEnemy)
     {
-        NewEnemy->InitializeFromAssetId(AssetId, nullptr);
+        NewEnemy->bIsBoss = bIsBoss;
+        NewEnemy->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier);
     }
 
     return NewEnemy;

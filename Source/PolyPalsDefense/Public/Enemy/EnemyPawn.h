@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Enemy/EnemyRuntimeStats.h"
 #include "EnemyPawn.generated.h"
 
 class USplineComponent;
@@ -22,13 +23,20 @@ public:
 
     virtual void BeginPlay() override;
 
-    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline);
+    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier);
 
-    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline);
+    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier);
 
     void ApplySlow(float Ratio, float Duration);
 
     void ApplyStun(float Duration);
+
+    void ReachGoal();
+
+    bool IsBoss() const;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+    bool bIsBoss = false;
 
 protected:
     UFUNCTION()
@@ -59,4 +67,5 @@ protected:
     FVector MeshScale = FVector(1.f);
 
     float BaseMoveSpeed;
+    FEnemyRuntimeStats RuntimeStats;
 };

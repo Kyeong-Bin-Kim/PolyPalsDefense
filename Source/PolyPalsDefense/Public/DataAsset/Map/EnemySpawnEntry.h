@@ -12,5 +12,14 @@ struct FEnemySpawnEntry
     FPrimaryAssetId EnemyId;
 
     UPROPERTY(EditAnywhere)
-    int32 Count = 10;
+    int32 Count = 1;
+
+    UPROPERTY(EditAnywhere)
+    bool bIsBoss = false;
+
+    UPROPERTY(EditAnywhere)
+    float HealthMultiplier = 1.0f;
+
+    UPROPERTY(EditAnywhere)
+    float SpeedMultiplier = 1.0f;
 };

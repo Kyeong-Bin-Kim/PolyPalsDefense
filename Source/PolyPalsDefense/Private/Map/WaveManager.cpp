@@ -1,27 +1,70 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+#include "WaveManager.h"
+#include "WaveSpawner.h"
+#include "Enemy/EnemyPawn.h"
+#include "TimerManager.h"
+#include "Engine/World.h"
 
-
-#include "Map/WaveManager.h"
-
-// Sets default values
 AWaveManager::AWaveManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+    PrimaryActorTick.bCanEverTick = false;
 }
 
-// Called when the game starts or when spawned
 void AWaveManager::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+    StartNextRound();
 }
 
-// Called every frame
-void AWaveManager::Tick(float DeltaTime)
+void AWaveManager::StartNextRound()
 {
-	Super::Tick(DeltaTime);
+    CurrentRoundIndex++;
+    StartRound(CurrentRoundIndex);
 
+    GetWorld()->GetTimerManager().ClearTimer(RoundTimerHandle);
+    GetWorld()->GetTimerManager().SetTimer(
+        RoundTimerHandle, this, &AWaveManager::EndRound,
+        RoundDuration, false);
 }
 
+void AWaveManager::StartRound(int32 RoundIndex)
+{
+    for (AWaveSpawner* Spawner : Spawners)
+    {
+        if (Spawner)
+        {
+            Spawner->StartWave(RoundIndex);
+        }
+    }
+}
+
+void AWaveManager::EndRound()
+{
+    StartNextRound();
+}
+
+void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
+{
+    if (!Enemy) return;
+
+    int32 Damage;
+
+    if (Enemy->IsBoss()) // IsBoss()는 EnemyPawn에 추가 필요
+    {
+        Damage = BossLifePenalty;
+    }
+    else
+    {
+        Damage = BasicDamage;
+    }
+
+    PlayerLife -= Damage;
+    UE_LOG(LogTemp, Warning, TEXT("Player Life: %d"), PlayerLife);
+
+    if (PlayerLife <= 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Game Over!"));
+        // 게임 오버 처리 (UI, 재시작 등)
+    }
+
+    Enemy->Destroy();
+}
