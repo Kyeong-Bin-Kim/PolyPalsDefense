@@ -17,13 +17,15 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public/DataAsset"),
             Path.Combine(ModuleDirectory, "Public/Multiplayer"),
             Path.Combine(ModuleDirectory, "Public/Multiplayer/Components"),
+            Path.Combine(ModuleDirectory, "Public/Multiplayer/Components/PolyPalsController"),
+            Path.Combine(ModuleDirectory, "Public/Multiplayer/Components/PolyPalsGamePawn"),
             Path.Combine(ModuleDirectory, "Public/Enemy"),
             Path.Combine(ModuleDirectory, "Public/Tower"),
             Path.Combine(ModuleDirectory, "Public/UI"),
             Path.Combine(ModuleDirectory, "Public/Map")
 });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NavigationSystem" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem"  });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
