@@ -65,6 +65,7 @@ PolyPalsDefense/
             │   ├── Core/                	# 공통 유틸, 베이스 클래스
             │   ├── AssetManagement/     	# 데이터 에셋 매니저
             │   │   └── PolyPalsAssetManager.h
+            │   ├── DataAsset/
             │   ├── Multiplayer/         	# Server RPC, GameMode/GameState/PlayerState
             │   ├── Enemy/	
             │   ├── Tower/

@@ -14,6 +14,7 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public"),
             Path.Combine(ModuleDirectory, "Public/Core"),
             Path.Combine(ModuleDirectory, "Public/AssetManagement"),
+            Path.Combine(ModuleDirectory, "Public/DataAsset"),
             Path.Combine(ModuleDirectory, "Public/Multiplayer"),
             Path.Combine(ModuleDirectory, "Public/Multiplayer/Components"),
             Path.Combine(ModuleDirectory, "Public/Enemy"),
@@ -22,7 +23,7 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public/Map")
 });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NavigationSystem" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

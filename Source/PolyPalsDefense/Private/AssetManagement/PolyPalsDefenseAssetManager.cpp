@@ -57,7 +57,7 @@ UPolyPalsDefenseAssetManager::Get().ClearCachedAsset(TowerId);
     )
 )
 
-// DefaultGame.ini에서는 스캔 설정이 충분하므로 PrimaryAssetLabels 섹션은 별도 추가 불필요합니다.
+// DefaultEngine.ini에서는 스캔 설정이 충분하므로 PrimaryAssetLabels 섹션은 별도 추가 불필요합니다.
 */
 
 // 프로젝트 시작 시 초기 로딩 과정을 담당하는 함수
