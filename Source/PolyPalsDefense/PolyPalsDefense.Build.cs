@@ -14,6 +14,7 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public"),
             Path.Combine(ModuleDirectory, "Public/Core"),
             Path.Combine(ModuleDirectory, "Public/AssetManagement"),
+            Path.Combine(ModuleDirectory, "Public/DataAsset"),
             Path.Combine(ModuleDirectory, "Public/Multiplayer"),
             Path.Combine(ModuleDirectory, "Public/Enemy"),
             Path.Combine(ModuleDirectory, "Public/Tower"),
