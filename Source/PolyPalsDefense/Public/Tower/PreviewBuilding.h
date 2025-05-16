@@ -39,6 +39,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<APolyPalsController> PolyPalsController;
 
+	FVector OffsetLocation = FVector(0.f, 0.f, 5000.f);
+
 private:
 	FTimerHandle LineTraceHandle;
 };
+//https://chatgpt.com/share/6825a9e6-8228-8003-b472-b11a7ad97975

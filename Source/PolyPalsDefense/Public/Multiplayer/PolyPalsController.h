@@ -25,6 +25,6 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	UPROPERTY()
 	TObjectPtr<class UPolyPalsInputComponent> PolyPalsInputComponent;
 };

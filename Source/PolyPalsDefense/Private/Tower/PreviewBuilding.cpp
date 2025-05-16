@@ -12,7 +12,7 @@ APreviewBuilding::APreviewBuilding()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> TowerMesh(TEXT("/Game/_ExternalAssets/KenneyTowerdefenceKit/tower-round-roof-b.tower-round-roof-b"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TowerMesh(TEXT("/Game/Meshs/Static/AssembledTower/SM_DefaultTower.SM_DefaultTower"));
 	if (TowerMesh.Succeeded())
 		MeshComponent->SetStaticMesh(TowerMesh.Object);
 
@@ -23,8 +23,8 @@ void APreviewBuilding::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetActorHiddenInGame(true);
-	SetActorTickEnabled(false);
+	//SetActorHiddenInGame(true);
+	//SetActorTickEnabled(false);
 }
 
 // Called every frame

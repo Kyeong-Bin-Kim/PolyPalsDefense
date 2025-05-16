@@ -15,7 +15,10 @@ UPolyPalsInputComponent::UPolyPalsInputComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+	ConstructorHelpers::FObjectFinder<UInputConfig> InputConfigData(TEXT("/Game/Frameworks/Input/Data_InputConfig.Data_InputConfig"));
+	if (InputConfigData.Succeeded())
+		InputConfig = InputConfigData.Object;
+
 }
 
 
@@ -49,6 +52,7 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 	if (Input)
 	{
 		Input->BindAction(InputConfig->InputTest, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTest);
+		Input->BindAction(InputConfig->InputClick, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputClick);
 	}
 }
 
@@ -61,4 +65,9 @@ void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 
 	APreviewBuilding* Building = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 	Building->ExteranlInitialize(PolyPalsController);
+}
+
+void UPolyPalsInputComponent::InputClick(const FInputActionValue& Value)
+{
+	UE_LOG(LogTemp, Log, TEXT("PolyPals: InputClick"));
 }

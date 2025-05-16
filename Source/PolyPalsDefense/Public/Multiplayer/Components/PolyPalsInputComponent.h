@@ -34,13 +34,14 @@ public:
 private:
 	
 	void InputTest(const FInputActionValue& Value);
+	void InputClick(const FInputActionValue& Value);
 
 
 public:
 	FOnInputTest OnInputTest;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY()
 	TObjectPtr<class UInputConfig> InputConfig;
 
 private:	
