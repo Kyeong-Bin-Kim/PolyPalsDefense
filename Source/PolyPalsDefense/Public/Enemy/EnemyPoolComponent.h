@@ -26,5 +26,7 @@ private:
    TMap<FPrimaryAssetId, TArray<AEnemyPawn*>> EnemyPool;  
 
    UPROPERTY(EditAnywhere)  
-   TSubclassOf<AEnemyPawn> EnemyClass;  
+   TSubclassOf<AEnemyPawn> EnemyClass;
+
+   AEnemyPawn* CreateNewEnemy(const FPrimaryAssetId& AssetId);
 };
