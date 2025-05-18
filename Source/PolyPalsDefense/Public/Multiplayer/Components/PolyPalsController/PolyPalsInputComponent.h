@@ -8,6 +8,7 @@
 #include "PolyPalsInputComponent.generated.h"
 
 DECLARE_DELEGATE(FOnInputTest)
+DECLARE_DELEGATE(FOnInputClick)
 
 class APolyPalsController;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -39,6 +40,7 @@ private:
 
 public:
 	FOnInputTest OnInputTest;
+	FOnInputClick OnInputClick;
 
 protected:
 	UPROPERTY()

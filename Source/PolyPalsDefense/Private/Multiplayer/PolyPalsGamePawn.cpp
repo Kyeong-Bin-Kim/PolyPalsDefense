@@ -78,11 +78,7 @@ void APolyPalsGamePawn::UnPossessed()
 	Super::UnPossessed();
 
 	bIsPossessed = false;
-	UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
-	if (polypalsInputcomp)
-	{
-		polypalsInputcomp->OnInputTest.Unbind();
-	}
+	UnbindInputDelegate();
 	PolyPalsController = nullptr;
 }
 
@@ -90,12 +86,18 @@ void APolyPalsGamePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
+	UnbindInputDelegate();
+}
+
+void APolyPalsGamePawn::UnbindInputDelegate()
+{
 	if (PolyPalsController)
 	{
 		UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.Unbind();
+			polypalsInputcomp->OnInputClick.Unbind();
 		}
 	}
 }
@@ -108,6 +110,9 @@ void APolyPalsGamePawn::OnRep_PolyPalsController()
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTest);
+			polypalsInputcomp->OnInputClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
 		}
+
+		BuildTowerComponent->ClientSpawnPreviewBuilding();
 	}
 }

@@ -7,6 +7,7 @@
 #include "PreviewBuilding.generated.h"
 
 class APolyPalsController;
+class UTowerDataManager;
 UCLASS()
 class POLYPALSDEFENSE_API APreviewBuilding : public AActor
 {
@@ -27,8 +28,10 @@ public:
 
 	void ExteranlInitialize(APolyPalsController* const InController);
 
-	void ShowPreviewBuilding(bool bShow);
-	
+	void ShowPreviewBuilding(bool bShow, uint8 InTowerId = 0);
+	void ChangeMeshMaterial(bool bIsBuildable);
+
+	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 private:
 	FVector GetSnappedLocation(const FVector& WorldLocation);
 	void UpdateLocationUnderCursor();
@@ -37,7 +40,13 @@ private:
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	UPROPERTY()
+	TObjectPtr<UTowerDataManager> TowerDataManager;
+	UPROPERTY()
 	TObjectPtr<APolyPalsController> PolyPalsController;
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> BuildableMat;
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> UnbuildableMat;
 
 	FVector OffsetLocation = FVector(0.f, 0.f, 5000.f);
 

@@ -32,6 +32,8 @@ public:
 	inline bool IsPossessed() const { return bIsPossessed; }
 
 private:
+	void UnbindInputDelegate();
+
 	UFUNCTION()
 	void OnRep_PolyPalsController();
 

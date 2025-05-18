@@ -3,6 +3,9 @@
 
 #include "Tower/PreviewBuilding.h"
 #include "Multiplayer/PolyPalsController.h"
+#include "Core/Subsystems/TowerDataManager.h"
+#include "DataAsset/Tower/TowerPropertyData.h"
+#include "DataAsset/Tower/TowerMaterialData.h"
 
 // Sets default values
 APreviewBuilding::APreviewBuilding()
@@ -12,7 +15,7 @@ APreviewBuilding::APreviewBuilding()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 
-	ConstructorHelpers::FObjectFinder<UStaticMesh> TowerMesh(TEXT("/Game/Meshs/Static/AssembledTower/SM_DefaultTower.SM_DefaultTower"));
+	ConstructorHelpers::FObjectFinder<UStaticMesh> TowerMesh(TEXT("/Game/Meshs/Static/AssembledTower/SM_NullTower.SM_NullTower"));
 	if (TowerMesh.Succeeded())
 		MeshComponent->SetStaticMesh(TowerMesh.Object);
 
@@ -23,8 +26,10 @@ void APreviewBuilding::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//SetActorHiddenInGame(true);
-	//SetActorTickEnabled(false);
+	TowerDataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
+	ShowPreviewBuilding(false);
+	PolyPalsController = Cast<APolyPalsController>(GetWorld()->GetFirstPlayerController());
+	SetOwner(PolyPalsController);
 }
 
 // Called every frame
@@ -49,15 +54,65 @@ void APreviewBuilding::ExteranlInitialize(APolyPalsController* const InControlle
 	PolyPalsController = InController;
 }
 
-void APreviewBuilding::ShowPreviewBuilding(bool bShow)
+void APreviewBuilding::ShowPreviewBuilding(bool bShow, uint8 InTowerId)
 {
 	SetActorHiddenInGame(!bShow);
 	SetActorTickEnabled(bShow);
+
+	if (!bShow)
+		SetActorLocation(OffsetLocation);
+
+	if (!TowerDataManager) return;
+
+	if (bShow)
+	{
+		UTowerPropertyData* PropertyData = TowerDataManager->GetTowerPropertyData(InTowerId);
+		MeshComponent->SetStaticMesh(PropertyData->TowerMesh);
+		if (!BuildableMat || !UnbuildableMat)
+		{
+			UTowerMaterialData* MaterialData = TowerDataManager->GetTowerMaterialData();
+			BuildableMat = MaterialData->Buildable;
+			UnbuildableMat = MaterialData->Unbuildable;
+		}
+		
+		uint8 MaterialCount = MeshComponent->GetNumMaterials();
+		for (uint8 Iter = 0; Iter < MaterialCount; Iter++)
+		{
+			MeshComponent->SetMaterial(Iter, BuildableMat);
+		}
+	}
+}
+
+void APreviewBuilding::ChangeMeshMaterial(bool bIsBuildable)
+{
+	if (!BuildableMat || !UnbuildableMat)
+	{
+		UTowerMaterialData* MaterialData = TowerDataManager->GetTowerMaterialData();
+		BuildableMat = MaterialData->Buildable;
+		UnbuildableMat = MaterialData->Unbuildable;
+	}
+
+	uint8 MaterialCount = MeshComponent->GetNumMaterials();
+
+	if (bIsBuildable)
+	{
+		for (uint8 Iter = 0; Iter < MaterialCount; Iter++)
+		{
+			MeshComponent->SetMaterial(Iter, BuildableMat);
+		}
+	}
+	else
+	{
+		for (uint8 Iter = 0; Iter < MaterialCount; Iter++)
+		{
+			MeshComponent->SetMaterial(Iter, UnbuildableMat);
+		}
+	}
 }
 
 FVector APreviewBuilding::GetSnappedLocation(const FVector& WorldLocation)
 {
-	float GridSize = 100.f;
+	float GridSize = 110.f;
 	FVector Snapped;
 	Snapped.X = FMath::RoundToFloat(WorldLocation.X / GridSize) * GridSize;
 	Snapped.Y = FMath::RoundToFloat(WorldLocation.Y / GridSize) * GridSize;
