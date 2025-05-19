@@ -5,6 +5,7 @@
 #include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "DataAsset/Tower/TowerEnums.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Components/SceneComponent.h"
@@ -71,6 +72,10 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
 	
+	EPlayerColor TargetColor = PolyPalsController->GetPlayerColor();
+	uint8 DebugColor = static_cast<uint8>(TargetColor);
+	UE_LOG(LogTemp, Log, TEXT("GamePawn debug color is : %d"), DebugColor);
+	BuildTowerComponent->ServerSetPlayerColor(TargetColor);
 }
 
 void APolyPalsGamePawn::UnPossessed()
@@ -80,6 +85,7 @@ void APolyPalsGamePawn::UnPossessed()
 	bIsPossessed = false;
 	UnbindInputDelegate();
 	PolyPalsController = nullptr;
+	//BuildTowerComponent->ServerSetPlayerColor(EPlayerColor::None);
 }
 
 void APolyPalsGamePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)

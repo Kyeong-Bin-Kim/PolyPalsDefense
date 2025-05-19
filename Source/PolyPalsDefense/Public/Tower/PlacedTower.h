@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "DataAsset/Tower/TowerEnums.h"
 #include "PlacedTower.generated.h"
 
 UCLASS()
@@ -22,13 +23,34 @@ protected:
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-private: // Components
-	UPROPERTY()
-	TObjectPtr<class USceneComponent> RootSceneComponent;
-	UPROPERTY()
+	void ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor);
+	UFUNCTION()
+	void OnRep_PlayerColor();
+	UFUNCTION()
+	void OnRep_TowerId();
+
+	void ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InColor);
+
+private:
+	void SetTowerCollision();
+
+	
+
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UBoxComponent> RootBoxComponent;
+	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> TowerMeshComponent;
+
+private: 
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerColor)
+	EPlayerColor PlayerColor = EPlayerColor::None;
+	UPROPERTY(ReplicatedUsing = OnRep_TowerId)
+	int16 TowerId = -1;
 
+	FTimerHandle VisualSetupHandle;
 };

@@ -55,6 +55,3 @@ void UGamePawnComponent::ServerSpawnGamepawn()
 
 	GetOwner<APolyPalsController>()->Possess(GamePawn);
 }
-
-
-

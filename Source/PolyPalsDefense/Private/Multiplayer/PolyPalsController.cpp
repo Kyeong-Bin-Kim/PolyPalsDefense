@@ -34,5 +34,12 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
+	DOREPLIFETIME(APolyPalsController, PlayerColor);
 }
 
+void APolyPalsController::SetPlayerColor(EPlayerColor InColor) { 
+	uint8 EnumToInt = static_cast<uint8>(InColor);
+	UE_LOG(LogTemp, Log, TEXT("APolyPalsController: Player color set to: %d"), EnumToInt);
+	PlayerColor = InColor; 
+
+}

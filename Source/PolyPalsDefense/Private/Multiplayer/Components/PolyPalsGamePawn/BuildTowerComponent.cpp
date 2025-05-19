@@ -4,7 +4,10 @@
 #include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Multiplayer/PolyPalsGamePawn.h"
 #include "Tower/PreviewBuilding.h"
+#include "Tower/PlacedTower.h"
 #include "Core/Subsystems/TowerDataManager.h"
+
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values for this component's properties
@@ -36,20 +39,33 @@ void UBuildTowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	// ...
 }
 
+void UBuildTowerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UBuildTowerComponent, PlayerColor);
+}
+
 void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 {
-	bool bIsLocalComponent = false;
-
 	APolyPalsGamePawn* gamePawn = GetOwner<APolyPalsGamePawn>();
 	if (!gamePawn) return;
 	if (gamePawn->HasAuthority()) return;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = GetOwner()->GetInstigator();
 
 	PreviewBuilding = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(),
 		FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 	PreviewBuilding->ShowPreviewBuilding(false);
+	PreviewBuilding->SetReplicates(false);
+}
+
+void UBuildTowerComponent::ServerSetPlayerColor(EPlayerColor InColor)
+{
+	if (!GetOwner()->HasAuthority()) return;
+	PlayerColor = InColor;
 }
 
 void UBuildTowerComponent::ClientOnInputTest()
@@ -61,10 +77,14 @@ void UBuildTowerComponent::ClientOnInputTest()
 void UBuildTowerComponent::ClientOnInputClick()
 {
 	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
+
+	if (BuildState == EBuildState::SerchingPlace)
+		SetBuildState(EBuildState::DecidePlacementLocation);
 }
 
 void UBuildTowerComponent::OnSelectTower(const uint8 InTowerId)
 {
+	TowerOnSerchingQue = InTowerId;
 	PreviewBuilding->ShowPreviewBuilding(true, InTowerId);
 	SetBuildState(EBuildState::SerchingPlace);
 }
@@ -96,5 +116,21 @@ void UBuildTowerComponent::OnSerchingPlace()
 
 void UBuildTowerComponent::OnDecidePlacementLocation()
 {
+	if (PreviewBuilding->IsBuildable())
+	{
+		SetBuildState(EBuildState::None);
+		FVector_NetQuantize placeLocation = PreviewBuilding->GetActorLocation();
+		Server_RequestSpawnTower(placeLocation, TowerOnSerchingQue);
+		TowerOnSerchingQue = 0;
+		PreviewBuilding->ShowPreviewBuilding(false);
+	}
 }
 
+void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector_NetQuantize InLocation, uint8 InTargetTower)
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(APlacedTower::StaticClass(), InLocation, FRotator::ZeroRotator, SpawnParams);
+	Tower->ExternalInitializeTower(InTargetTower, PlayerColor);
+}

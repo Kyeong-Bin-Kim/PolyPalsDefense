@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "DataAsset/Tower/TowerEnums.h"
 #include "BuildTowerComponent.generated.h"
 
 UENUM()
@@ -20,19 +21,20 @@ class POLYPALSDEFENSE_API UBuildTowerComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UBuildTowerComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// Call by gamepawn
 	void ClientSpawnPreviewBuilding();
+
+	EPlayerColor GetPlayerColor() const { return PlayerColor; }
+
+	void ServerSetPlayerColor(EPlayerColor InColor);
 private:
 	void ClientOnInputTest();
 	void ClientOnInputClick();
@@ -43,13 +45,21 @@ private:
 	void OnNormal();
 	void OnSerchingPlace();
 	void OnDecidePlacementLocation();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
+
 private:
 	UPROPERTY()
 	TObjectPtr<class UTowerDataManager> TowerDataManager;
 	UPROPERTY()
 	TObjectPtr<class APreviewBuilding> PreviewBuilding;
 
+	UPROPERTY(Replicated)
+	EPlayerColor PlayerColor = EPlayerColor::None;
+
+	uint8 TowerOnSerchingQue = 0;
 	EBuildState BuildState = EBuildState::None;
-		
+	
 	friend class APolyPalsGamePawn;
 };

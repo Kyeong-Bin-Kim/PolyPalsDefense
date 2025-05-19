@@ -32,12 +32,18 @@ public:
 	void ChangeMeshMaterial(bool bIsBuildable);
 
 	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
+	bool IsBuildable() const { return bIsBuildable; }
 private:
 	FVector GetSnappedLocation(const FVector& WorldLocation);
 	void UpdateLocationUnderCursor();
 
+	UFUNCTION()
+	void OnPlacedTowerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 private:
 	UPROPERTY()
+	TObjectPtr<class USceneComponent> RootScene;
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	UPROPERTY()
 	TObjectPtr<UTowerDataManager> TowerDataManager;
@@ -48,7 +54,9 @@ private:
 	UPROPERTY()
 	TObjectPtr<UMaterialInterface> UnbuildableMat;
 
-	FVector OffsetLocation = FVector(0.f, 0.f, 5000.f);
+	FVector LastSnappedLocation;
+	FVector OffsetLocation;
+	bool bIsBuildable = true;
 
 private:
 	FTimerHandle LineTraceHandle;

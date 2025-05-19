@@ -7,18 +7,28 @@
 #include "DataAsset/Tower/TowerPropertyData.h"
 #include "DataAsset/Tower/TowerMaterialData.h"
 
+#include "Components/SceneComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Engine/OverlapResult.h"
+
 // Sets default values
 APreviewBuilding::APreviewBuilding()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
+	SetRootComponent(RootScene);
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	MeshComponent->SetupAttachment(RootScene);
+	MeshComponent->SetRelativeScale3D(FVector(0.85f, 0.85f, 0.85f));
+	
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> TowerMesh(TEXT("/Game/Meshs/Static/AssembledTower/SM_NullTower.SM_NullTower"));
 	if (TowerMesh.Succeeded())
 		MeshComponent->SetStaticMesh(TowerMesh.Object);
 
+	OffsetLocation = FVector(0.f, 0.f, 5000.f);
 }
 
 // Called when the game starts or when spawned
@@ -30,6 +40,9 @@ void APreviewBuilding::BeginPlay()
 	ShowPreviewBuilding(false);
 	PolyPalsController = Cast<APolyPalsController>(GetWorld()->GetFirstPlayerController());
 	SetOwner(PolyPalsController);
+
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 }
 
 // Called every frame
@@ -83,7 +96,7 @@ void APreviewBuilding::ShowPreviewBuilding(bool bShow, uint8 InTowerId)
 	}
 }
 
-void APreviewBuilding::ChangeMeshMaterial(bool bIsBuildable)
+void APreviewBuilding::ChangeMeshMaterial(bool bIsCanBuild)
 {
 	if (!BuildableMat || !UnbuildableMat)
 	{
@@ -92,9 +105,11 @@ void APreviewBuilding::ChangeMeshMaterial(bool bIsBuildable)
 		UnbuildableMat = MaterialData->Unbuildable;
 	}
 
+	if (!BuildableMat || !UnbuildableMat) return;
+
 	uint8 MaterialCount = MeshComponent->GetNumMaterials();
 
-	if (bIsBuildable)
+	if (bIsCanBuild)
 	{
 		for (uint8 Iter = 0; Iter < MaterialCount; Iter++)
 		{
@@ -112,10 +127,10 @@ void APreviewBuilding::ChangeMeshMaterial(bool bIsBuildable)
 
 FVector APreviewBuilding::GetSnappedLocation(const FVector& WorldLocation)
 {
-	float GridSize = 110.f;
+	float GridSize = 100.f;
 	FVector Snapped;
-	Snapped.X = FMath::RoundToFloat(WorldLocation.X / GridSize) * GridSize;
-	Snapped.Y = FMath::RoundToFloat(WorldLocation.Y / GridSize) * GridSize;
+	Snapped.X = (FMath::RoundToFloat(WorldLocation.X / GridSize) * GridSize) + 50.f;
+	Snapped.Y = (FMath::RoundToFloat(WorldLocation.Y / GridSize) * GridSize) + 50.f;
 	Snapped.Z = WorldLocation.Z;
 
 	return Snapped;
@@ -126,7 +141,55 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 	FHitResult HitResult;
 	PolyPalsController->GetHitResultUnderCursor(ECollisionChannel::ECC_GameTraceChannel1, false, HitResult);
 	
-	FVector Snapped = GetSnappedLocation(HitResult.ImpactPoint);
-	SetActorLocation(Snapped);
+	FVector NewSnappedLocation = GetSnappedLocation(HitResult.ImpactPoint);
+
+	if (!NewSnappedLocation.Equals(LastSnappedLocation))
+	{
+		SetActorLocation(NewSnappedLocation, true);
+		LastSnappedLocation = NewSnappedLocation;
+
+		FVector BoxExtent = FVector(50.f, 50.f, 100.f);
+		FCollisionShape Box = FCollisionShape::MakeBox(BoxExtent);
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		FCollisionResponseParams ResParams;
+		ResParams.CollisionResponse = ECR_Block;
+
+		TArray<FOverlapResult> OverlapResults;
+
+		bool bOverlaps = GetWorld()->OverlapMultiByChannel(OverlapResults,
+			NewSnappedLocation, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
+			Box, Params, ResParams);
+		
+		bool bFlag = false;
+		if (!bOverlaps)
+			bFlag = true;
+
+		if (bFlag)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Flag: true"));
+			DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Green, false, 0.1f);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("Flag: false"));
+			DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Red, false, 0.1f);
+		}
+
+		if (bIsBuildable != bFlag)
+		{
+			bIsBuildable = bFlag;
+			ChangeMeshMaterial(bFlag);
+		}
+	}
+}
+
+void APreviewBuilding::OnPlacedTowerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag(FName("Tower")))
+	{
+		bIsBuildable = false;
+		ChangeMeshMaterial(false);
+	}
 }
 
