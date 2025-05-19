@@ -35,9 +35,9 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
 
     for (const FEnemySpawnEntry& Entry : Plan->SpawnList)
     {
-        for (int32 i = 0; i < Entry.Count; ++i)
+        for (int32 i = 0; i < Entry.Count; i++)
         {
-            CurrentSpawnList.Add(Entry.EnemyId);
+            CurrentSpawnList.Add(Entry);
         }
     }
 
@@ -56,13 +56,15 @@ void AWaveSpawner::SpawnNextEnemy()
         return;
     }
 
-    FPrimaryAssetId EnemyId = CurrentSpawnList[SpawnIndex++];
+    const FEnemySpawnEntry& Entry = CurrentSpawnList[SpawnIndex++];
 
-    AEnemyPawn* Enemy = EnemyPool->AcquireEnemy(EnemyId);
+    AEnemyPawn* Enemy = EnemyPool->AcquireEnemy(Entry.EnemyId);
     if (Enemy)
     {
         FVector SpawnLocation = SplinePath->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
         Enemy->SetActorLocation(SpawnLocation);
-        Enemy->InitializeFromAssetId(EnemyId, SplinePath);
+        Enemy->bIsBoss = Entry.bIsBoss;
+
+        Enemy->InitializeFromAssetId(Entry.EnemyId, SplinePath, Entry.HealthMultiplier, Entry.SpeedMultiplier);
     }
 }

@@ -8,6 +8,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Animation/AnimInstance.h"
 #include "AssetManagement/PolyPalsDefenseAssetManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "WaveManager.h"
 
 AEnemyPawn::AEnemyPawn()
 {
@@ -32,16 +34,19 @@ AEnemyPawn::AEnemyPawn()
 void AEnemyPawn::BeginPlay()
 {
     Super::BeginPlay();
-
-    if (EnemyData)
-    {
-        InitializeWithData(EnemyData, nullptr); // 데이터 에셋 테스트 용
-    }
 }
 
-void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline)
+void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier)
 {
+    if (!InDataAsset) return;
+
     EnemyData = InDataAsset;
+    RuntimeStats = FEnemyRuntimeStats(EnemyData->Stats);
+
+    if (bIsBoss)
+    {
+        RuntimeStats.ApplyMultiplier(HealthMultiplier, SpeedMultiplier);
+    }
 
     if (EnemyData->Visual.Mesh)
     {
@@ -53,17 +58,17 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
     }
 
-    BaseMoveSpeed = EnemyData ? EnemyData->Stats.BaseMoveSpeed : 300.f;
+    BaseMoveSpeed = RuntimeStats.MoveSpeed;
     SplineMovement->Initialize(InSpline, BaseMoveSpeed);
 
     if (Status)
     {
-        Status->Initialize(EnemyData->Stats.MaxHealth);
-        Status->OnEnemyDied.AddDynamic(this, &AEnemyPawn::HandleEnemyDeath); // 테스트용 사망 시 삭제
+        Status->Initialize(RuntimeStats.MaxHealth);
+        Status->OnEnemyDied.AddDynamic(this, &AEnemyPawn::HandleEnemyDeath);
     }
 }
 
-void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline)
+void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(AssetId);
 
@@ -75,7 +80,7 @@ void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineCo
 
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
-        InitializeWithData(Casted, InSpline);
+        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier);\
     }
     else
     {
@@ -102,4 +107,18 @@ void AEnemyPawn::ApplyStun(float Duration)
 void AEnemyPawn::HandleEnemyDeath()
 {
     Destroy(); // 향후 풀링 구조 도입 시 Release로 교체 가능
+}
+
+bool AEnemyPawn::IsBoss() const
+{
+    return bIsBoss;
+}
+
+void AEnemyPawn::ReachGoal()
+{
+    AWaveManager* Manager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
+    if (Manager)
+    {
+        Manager->HandleEnemyReachedGoal(this);
+    }
 }
