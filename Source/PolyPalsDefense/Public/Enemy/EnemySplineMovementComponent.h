@@ -16,7 +16,7 @@ public:
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    /** 이동 초기화 (스플라인, 속도) */
+    // 이동 초기화 (스플라인, 속도)
     void Initialize(USplineComponent* InSpline, float InMoveSpeed);
 
     /** 이동속도 변경 (슬로우 등) */
@@ -35,4 +35,7 @@ private:
     float CurrentDistance;
     float MoveSpeed;
     bool bIsPaused;
+
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float EndTolerance = 10.f;
 };

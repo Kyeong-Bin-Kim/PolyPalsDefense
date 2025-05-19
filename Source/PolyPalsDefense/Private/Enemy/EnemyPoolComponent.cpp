@@ -12,7 +12,8 @@ void UEnemyPoolComponent::BeginPlay()
 {
     Super::BeginPlay();
 }
-AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
+
+AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
 {
     if (EnemyPool.Contains(AssetId) && EnemyPool[AssetId].Num() > 0)
     {
@@ -20,10 +21,12 @@ AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, fl
         Pooled->SetActorHiddenInGame(false);
         Pooled->SetActorEnableCollision(true);
         Pooled->SetActorTickEnabled(true);
+        Pooled->bIsBoss = bIsBoss;
+        Pooled->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier);
         return Pooled;
     }
 
-    return CreateNewEnemy(AssetId);
+    return CreateNewEnemy(AssetId, HealthMultiplier, SpeedMultiplier, bIsBoss);
 }
 
 void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)

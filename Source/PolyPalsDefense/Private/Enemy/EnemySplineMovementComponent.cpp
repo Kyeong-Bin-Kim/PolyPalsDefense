@@ -2,7 +2,8 @@
 #include "Components/SplineComponent.h"  
 #include "EnemyAnimInstance.h"  
 #include "GameFramework/Actor.h"  
-#include "Components/SkeletalMeshComponent.h"  
+#include "Components/SkeletalMeshComponent.h" 
+#include "EnemyPawn.h"
 
 UEnemySplineMovementComponent::UEnemySplineMovementComponent()  
 {  
@@ -41,13 +42,24 @@ void UEnemySplineMovementComponent::TickComponent(float DeltaTime, ELevelTick Ti
 
    if (!Spline || bIsPaused) return;  
 
-   CurrentDistance += MoveSpeed * DeltaTime;  
+   CurrentDistance += MoveSpeed * DeltaTime;
+
+   const float SplineLength = Spline->GetSplineLength();
+
+   if (CurrentDistance >= SplineLength - EndTolerance)
+   {
+       if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(GetOwner()))
+       {
+           Enemy->ReachGoal();
+       }
+       return;
+   }
 
    FVector Location = Spline->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);  
    FVector Tangent = Spline->GetTangentAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);  
 
    AActor* Owner = GetOwner();  
-   if (!Owner) return;  
+   if (!Owner) return;
 
    Owner->SetActorLocation(Location);  
    Owner->SetActorRotation(Tangent.Rotation());  
