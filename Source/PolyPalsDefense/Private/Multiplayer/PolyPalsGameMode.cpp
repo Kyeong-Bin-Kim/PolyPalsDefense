@@ -30,7 +30,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		if (!PreparedColors.IsEmpty())
 		{
 			APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer);
-			ProjectController->SetPlayerColor(PreparedColors[0]);
+			ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 			PreparedColors.RemoveAt(0);
 		}
 	}

@@ -62,11 +62,7 @@ void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 	PreviewBuilding->SetReplicates(false);
 }
 
-void UBuildTowerComponent::ServerSetPlayerColor(EPlayerColor InColor)
-{
-	if (!GetOwner()->HasAuthority()) return;
-	PlayerColor = InColor;
-}
+void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { PlayerColor = InColor; }
 
 void UBuildTowerComponent::ClientOnInputTest()
 {

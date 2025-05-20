@@ -30,6 +30,7 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	inline bool IsPossessed() const { return bIsPossessed; }
+	class UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
 
 private:
 	void UnbindInputDelegate();
@@ -62,6 +63,6 @@ private:
 private:
 	// ActorComponents
 	UPROPERTY()
-	TObjectPtr<class UBuildTowerComponent> BuildTowerComponent;
+	TObjectPtr<UBuildTowerComponent> BuildTowerComponent;
 
 };

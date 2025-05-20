@@ -71,11 +71,6 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 	bIsPossessed = true;
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
-	
-	EPlayerColor TargetColor = PolyPalsController->GetPlayerColor();
-	uint8 DebugColor = static_cast<uint8>(TargetColor);
-	UE_LOG(LogTemp, Log, TEXT("GamePawn debug color is : %d"), DebugColor);
-	BuildTowerComponent->ServerSetPlayerColor(TargetColor);
 }
 
 void APolyPalsGamePawn::UnPossessed()

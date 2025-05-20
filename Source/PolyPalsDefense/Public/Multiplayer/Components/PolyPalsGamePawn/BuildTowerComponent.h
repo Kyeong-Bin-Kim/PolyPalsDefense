@@ -32,10 +32,9 @@ public:
 	// Call by gamepawn
 	void ClientSpawnPreviewBuilding();
 
-	EPlayerColor GetPlayerColor() const { return PlayerColor; }
-
-	void ServerSetPlayerColor(EPlayerColor InColor);
 private:
+	void SetPlayerColorByController(EPlayerColor InColor);
+
 	void ClientOnInputTest();
 	void ClientOnInputClick();
 
@@ -62,4 +61,5 @@ private:
 	EBuildState BuildState = EBuildState::None;
 	
 	friend class APolyPalsGamePawn;
+	friend class APolyPalsController;
 };

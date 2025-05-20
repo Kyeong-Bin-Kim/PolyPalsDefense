@@ -33,6 +33,9 @@ public:
 
 	void SetPlayerColor(EPlayerColor InColor);
 
+private:
+	void InitializeControllerDataByGameMode(EPlayerColor InColor);
+
 protected:
 	UPROPERTY()
 	TObjectPtr<UPolyPalsInputComponent> PolyPalsInputComponent;
@@ -41,4 +44,6 @@ protected:
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
+
+	friend class APolyPalsGameMode;
 };
