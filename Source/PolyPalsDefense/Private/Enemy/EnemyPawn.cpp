@@ -28,7 +28,6 @@ AEnemyPawn::AEnemyPawn()
     Status = CreateDefaultSubobject<UEnemyStatusComponent>(TEXT("Status"));
 
     Mesh->SetRelativeRotation(MeshRotation);
-    Mesh->SetRelativeScale3D(MeshScale);
 }
 
 void AEnemyPawn::BeginPlay()
@@ -36,7 +35,7 @@ void AEnemyPawn::BeginPlay()
     Super::BeginPlay();
 }
 
-void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier)
+void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     if (!InDataAsset) return;
 
@@ -58,6 +57,8 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
     }
 
+    Mesh->SetRelativeScale3D(Scale);
+
     BaseMoveSpeed = RuntimeStats.MoveSpeed;
     SplineMovement->Initialize(InSpline, BaseMoveSpeed);
 
@@ -68,7 +69,7 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     }
 }
 
-void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier)
+void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(AssetId);
 
@@ -80,7 +81,7 @@ void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineCo
 
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
-        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier);\
+        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {

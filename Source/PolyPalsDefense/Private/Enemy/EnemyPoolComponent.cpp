@@ -13,20 +13,22 @@ void UEnemyPoolComponent::BeginPlay()
     Super::BeginPlay();
 }
 
-AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
+AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale)
 {
     if (EnemyPool.Contains(AssetId) && EnemyPool[AssetId].Num() > 0)
     {
         AEnemyPawn* Pooled = EnemyPool[AssetId].Pop();
+
         Pooled->SetActorHiddenInGame(false);
         Pooled->SetActorEnableCollision(true);
         Pooled->SetActorTickEnabled(true);
+
         Pooled->bIsBoss = bIsBoss;
-        Pooled->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier);
+        Pooled->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier, Scale);
         return Pooled;
     }
 
-    return CreateNewEnemy(AssetId, HealthMultiplier, SpeedMultiplier, bIsBoss);
+    return CreateNewEnemy(AssetId, HealthMultiplier, SpeedMultiplier, bIsBoss, Scale);
 }
 
 void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
@@ -40,8 +42,7 @@ void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
     EnemyPool.FindOrAdd(Enemy->GetPrimaryAssetId()).Add(Enemy);
 }
 
-AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss)
-
+AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale)
 {
     if (!EnemyClass) return nullptr;
 
@@ -57,7 +58,7 @@ AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, 
     if (NewEnemy)
     {
         NewEnemy->bIsBoss = bIsBoss;
-        NewEnemy->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier);
+        NewEnemy->InitializeFromAssetId(AssetId, nullptr, HealthMultiplier, SpeedMultiplier, Scale);
     }
 
     return NewEnemy;

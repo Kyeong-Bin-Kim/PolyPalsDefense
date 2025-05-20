@@ -1,0 +1,11 @@
+---,RoundIndex,SpawnInterval,SpawnList
+Round_1,"1","50.000000","((EnemyId=""Enemy:PDA_Slime"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_2,"2","50.000000","((EnemyId=""Enemy:PDA_Mushroom_Smile"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_3,"3","50.000000","((EnemyId=""Enemy:PDA_TurtleShell"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_4,"4","50.000000","((EnemyId=""Enemy:PDA_ChestMonster"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_5,"5","1.000000","((EnemyId=""Enemy:PDA_Beholder"",Count=1,bIsBoss=True,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_6,"6","50.000000","((EnemyId=""Enemy:PDA_Slime"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_7,"7","50.000000","((EnemyId=""Enemy:PDA_Mushroom_Angry"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_8,"8","50.000000","((EnemyId=""Enemy:PDA_Twinkray"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_9,"9","50.000000","((EnemyId=""Enemy:PDA_Cactus"",Count=1,bIsBoss=False,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"
+Round_10,"10","1.000000","((EnemyId=""Enemy:PDA_Buzzlurk"",Count=1,bIsBoss=True,Scale=(X=0.250000,Y=0.250000,Z=0.250000),HealthMultiplier=1.000000,SpeedMultiplier=1.000000))"

@@ -32,10 +32,10 @@ protected:
     int32 PlayerLife = 50;
 
     UPROPERTY(EditAnywhere, Category = "Game")
-    int32 BasicDamage = 1;
+    int32 BasicDamageToLife = 1;
 
     UPROPERTY(EditAnywhere, Category = "Game")
-    int32 BossLifePenalty = 10;
+    int32 BossDamageToLife = 10;
 
 private:
     int32 CurrentRoundIndex = 0;

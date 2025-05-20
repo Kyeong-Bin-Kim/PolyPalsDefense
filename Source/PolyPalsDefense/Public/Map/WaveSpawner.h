@@ -3,7 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Map/EnemySpawnEntry.h"
-#include "Map/EnemySpawnPlan.h"
+#include "Map/WavePlanRow.h"
+#include "Map/StageActor.h"
 #include "WaveSpawner.generated.h"
 
 class UEnemyPoolComponent;
@@ -24,17 +25,19 @@ public:
 
 protected:
     UPROPERTY(EditAnywhere, Category = "Wave")
-    TArray<FEnemySpawnPlan> Rounds;
-
-    UPROPERTY(EditAnywhere, Category = "Wave")
-    USplineComponent* SplinePath;
+    AStageActor* StageRef;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyPoolComponent* EnemyPool;
 
+    UPROPERTY(EditAnywhere, Category = "Wave")
+    UDataTable* WavePlanTable;
+
 private:
+    USplineComponent* SplinePath;
+
     int32 SpawnIndex = 0;
-    TArray<FPrimaryAssetId> CurrentSpawnList;
+    TArray<FEnemySpawnEntry> CurrentSpawnList;
     FTimerHandle SpawnTimerHandle;
 
     void SpawnNextEnemy();

@@ -23,9 +23,9 @@ public:
 
     virtual void BeginPlay() override;
 
-    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier);
+    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
-    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier);
+    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
     void ApplySlow(float Ratio, float Duration);
 
@@ -62,9 +62,6 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
-    FVector MeshScale = FVector(1.f);
 
     float BaseMoveSpeed;
     FEnemyRuntimeStats RuntimeStats;

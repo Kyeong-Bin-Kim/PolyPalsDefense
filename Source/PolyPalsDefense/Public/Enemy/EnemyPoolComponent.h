@@ -15,7 +15,7 @@ class POLYPALSDEFENSE_API UEnemyPoolComponent : public UActorComponent
 public:  
    UEnemyPoolComponent();  
 
-   AEnemyPawn* CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss);
+   AEnemyPawn* AcquireEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale);
 
    void ReleaseEnemy(AEnemyPawn* Enemy);  
 
@@ -28,5 +28,5 @@ private:
    UPROPERTY(EditAnywhere)  
    TSubclassOf<AEnemyPawn> EnemyClass;
 
-   AEnemyPawn* CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss);
+   AEnemyPawn* CreateNewEnemy(const FPrimaryAssetId& AssetId, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale);
 };

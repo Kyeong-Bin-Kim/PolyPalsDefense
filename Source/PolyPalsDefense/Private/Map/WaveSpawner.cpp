@@ -15,6 +15,16 @@ AWaveSpawner::AWaveSpawner()
 void AWaveSpawner::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (StageRef)
+    {
+        SplinePath = StageRef->GetSpline();
+        UE_LOG(LogTemp, Log, TEXT("WaveSpawner: SplinePath set from StageRef"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("WaveSpawner: StageRef is not assigned"));
+    }
 }
 
 void AWaveSpawner::Tick(float DeltaTime)
@@ -24,10 +34,11 @@ void AWaveSpawner::Tick(float DeltaTime)
 
 void AWaveSpawner::StartWave(int32 RoundIndex)
 {
-    const FEnemySpawnPlan* Plan = Rounds.FindByPredicate([RoundIndex](const FEnemySpawnPlan& P)
-        {
-            return P.RoundIndex == RoundIndex;
-        });
+    if (!WavePlanTable) return;
+
+    FString Context;
+    FName RowName = FName(*FString::Printf(TEXT("Round_%d"), RoundIndex));
+    const FWavePlanRow* Plan = WavePlanTable->FindRow<FWavePlanRow>(RowName, Context);
 
     if (!Plan) return;
 
@@ -58,13 +69,10 @@ void AWaveSpawner::SpawnNextEnemy()
 
     const FEnemySpawnEntry& Entry = CurrentSpawnList[SpawnIndex++];
 
-    AEnemyPawn* Enemy = EnemyPool->AcquireEnemy(Entry.EnemyId);
+    AEnemyPawn* Enemy = EnemyPool->AcquireEnemy(Entry.EnemyId, Entry.HealthMultiplier, Entry.SpeedMultiplier, Entry.bIsBoss, Entry.Scale);
     if (Enemy)
     {
         FVector SpawnLocation = SplinePath->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
         Enemy->SetActorLocation(SpawnLocation);
-        Enemy->bIsBoss = Entry.bIsBoss;
-
-        Enemy->InitializeFromAssetId(Entry.EnemyId, SplinePath, Entry.HealthMultiplier, Entry.SpeedMultiplier);
     }
 }

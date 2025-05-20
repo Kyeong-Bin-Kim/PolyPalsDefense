@@ -12,7 +12,10 @@ AWaveManager::AWaveManager()
 void AWaveManager::BeginPlay()
 {
     Super::BeginPlay();
-    StartNextRound();
+
+    StartRound(1);
+
+    //StartNextRound();
 }
 
 void AWaveManager::StartNextRound()
@@ -46,16 +49,7 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
 {
     if (!Enemy) return;
 
-    int32 Damage;
-
-    if (Enemy->IsBoss()) // IsBoss()는 EnemyPawn에 추가 필요
-    {
-        Damage = BossLifePenalty;
-    }
-    else
-    {
-        Damage = BasicDamage;
-    }
+    int32 Damage = Enemy->IsBoss() ? BossDamageToLife : BasicDamageToLife;
 
     PlayerLife -= Damage;
     UE_LOG(LogTemp, Warning, TEXT("Player Life: %d"), PlayerLife);

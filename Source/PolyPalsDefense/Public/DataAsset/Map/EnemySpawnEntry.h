@@ -8,7 +8,7 @@ struct FEnemySpawnEntry
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditAnywhere, meta = (AllowedTypes = "Enemy"))
     FPrimaryAssetId EnemyId;
 
     UPROPERTY(EditAnywhere)
@@ -16,6 +16,9 @@ struct FEnemySpawnEntry
 
     UPROPERTY(EditAnywhere)
     bool bIsBoss = false;
+
+    UPROPERTY(EditAnywhere)
+    FVector Scale = FVector(0.25f, 0.25f, 0.25f);
 
     UPROPERTY(EditAnywhere)
     float HealthMultiplier = 1.0f;
