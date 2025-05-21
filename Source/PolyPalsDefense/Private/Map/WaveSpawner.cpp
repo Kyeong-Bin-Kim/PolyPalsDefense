@@ -4,6 +4,8 @@
 #include "Components/SplineComponent.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
+#include "Map/StageActor.h"
+#include "Map/WavePlanRow.h"
 
 AWaveSpawner::AWaveSpawner()
 {
@@ -19,7 +21,12 @@ void AWaveSpawner::BeginPlay()
     if (StageRef)
     {
         SplinePath = StageRef->GetSpline();
-        UE_LOG(LogTemp, Log, TEXT("WaveSpawner: SplinePath set from StageRef"));
+        UDataTable* WavePlanTable = StageRef->GetWavePlanTable();
+        UE_LOG(LogTemp, Log, TEXT("WaveSpawner: SplinePath and WavePlanTable set from StageRef"));
+
+        if (SplinePath) {
+            StageRef->RegisterSpawner(this);
+        }
     }
     else
     {
@@ -34,6 +41,7 @@ void AWaveSpawner::Tick(float DeltaTime)
 
 void AWaveSpawner::StartWave(int32 RoundIndex)
 {
+    UDataTable* WavePlanTable = StageRef ? StageRef->GetWavePlanTable() : nullptr;
     if (!WavePlanTable) return;
 
     FString Context;

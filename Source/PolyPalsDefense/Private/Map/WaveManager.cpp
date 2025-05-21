@@ -1,8 +1,9 @@
 #include "WaveManager.h"
 #include "WaveSpawner.h"
 #include "Enemy/EnemyPawn.h"
+#include "Map/StageActor.h"
 #include "TimerManager.h"
-#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 AWaveManager::AWaveManager()
 {
@@ -13,9 +14,27 @@ void AWaveManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    StartRound(1);
+    if (!StageRef.IsValid())
+    {
+        StageRef = Cast<AStageActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AStageActor::StaticClass()));
+        if (!StageRef.IsValid())
+        {
+            UE_LOG(LogTemp, Error, TEXT("WaveManager: StageRef is null even after auto search"));
+            return;
+        }
+    }
 
-    //StartNextRound();
+    for (AWaveSpawner* Spawner : StageRef->WaveSpawners)
+    {
+        if (Spawner)
+        {
+            Spawner->StartWave(CurrentRoundIndex);
+        }
+    }
+
+    GetWorld()->GetTimerManager().SetTimer(
+        RoundTimerHandle, this, &AWaveManager::EndRound,
+        RoundDuration, false);
 }
 
 void AWaveManager::StartNextRound()
@@ -31,11 +50,14 @@ void AWaveManager::StartNextRound()
 
 void AWaveManager::StartRound(int32 RoundIndex)
 {
-    for (AWaveSpawner* Spawner : Spawners)
+    if (StageRef)
     {
-        if (Spawner)
+        for (AWaveSpawner* Spawner : StageRef->WaveSpawners)
         {
-            Spawner->StartWave(RoundIndex);
+            if (Spawner)
+            {
+                Spawner->StartWave(RoundIndex);
+            }
         }
     }
 }
