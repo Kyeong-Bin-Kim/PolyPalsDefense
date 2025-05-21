@@ -6,6 +6,7 @@
 
 class AWaveSpawner;
 class AEnemyPawn;
+class AStageActor;
 
 UCLASS()
 class POLYPALSDEFENSE_API AWaveManager : public AActor
@@ -15,15 +16,16 @@ class POLYPALSDEFENSE_API AWaveManager : public AActor
 public:
     AWaveManager();
 
+protected:
     virtual void BeginPlay() override;
 
+public:
     void StartNextRound();
-
     void HandleEnemyReachedGoal(AEnemyPawn* Enemy);
 
 protected:
-    UPROPERTY(EditAnywhere, Category = "Wave")
-    TArray<AWaveSpawner*> Spawners;
+    UPROPERTY(EditAnywhere, Category = "Stage")
+    TSoftObjectPtr<AStageActor> StageRef;
 
     UPROPERTY(EditAnywhere, Category = "Wave")
     float RoundDuration = 60.f;
@@ -38,7 +40,7 @@ protected:
     int32 BossDamageToLife = 10;
 
 private:
-    int32 CurrentRoundIndex = 0;
+    int32 CurrentRoundIndex = 1;
     FTimerHandle RoundTimerHandle;
 
     void StartRound(int32 RoundIndex);

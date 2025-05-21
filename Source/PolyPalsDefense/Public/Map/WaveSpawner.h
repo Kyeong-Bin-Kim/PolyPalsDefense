@@ -3,12 +3,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Map/EnemySpawnEntry.h"
-#include "Map/WavePlanRow.h"
-#include "Map/StageActor.h"
 #include "WaveSpawner.generated.h"
 
 class UEnemyPoolComponent;
 class USplineComponent;
+class AStageActor;
 
 UCLASS()
 class POLYPALSDEFENSE_API AWaveSpawner : public AActor
@@ -29,9 +28,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyPoolComponent* EnemyPool;
-
-    UPROPERTY(EditAnywhere, Category = "Wave")
-    UDataTable* WavePlanTable;
 
 private:
     USplineComponent* SplinePath;
