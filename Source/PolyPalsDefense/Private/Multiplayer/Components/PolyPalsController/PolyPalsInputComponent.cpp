@@ -70,5 +70,6 @@ void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 
 void UPolyPalsInputComponent::InputClick(const FInputActionValue& Value)
 {
+	OnInputClick.ExecuteIfBound();
 	//UE_LOG(LogTemp, Log, TEXT("PolyPals: InputClick"));
 }

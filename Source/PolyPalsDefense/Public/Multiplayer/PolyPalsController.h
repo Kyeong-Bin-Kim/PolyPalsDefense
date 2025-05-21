@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "DataAsset/Tower/TowerEnums.h"
 #include "PolyPalsController.generated.h"
 
 class UPolyPalsInputComponent;
@@ -28,6 +29,12 @@ public:
 
 	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
 	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }
+	EPlayerColor GetPlayerColor() const { return PlayerColor; }
+
+	void SetPlayerColor(EPlayerColor InColor);
+
+private:
+	void InitializeControllerDataByGameMode(EPlayerColor InColor);
 
 protected:
 	UPROPERTY()
@@ -35,4 +42,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UGamePawnComponent> GamePawnComponent;
 
+	UPROPERTY(Replicated)
+	EPlayerColor PlayerColor = EPlayerColor::None;
+
+	friend class APolyPalsGameMode;
 };

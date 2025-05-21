@@ -5,6 +5,7 @@
 #include "Multiplayer/PolyPalsGamePawn.h"
 #include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
 #include "Multiplayer/Components/PolyPalsController/GamePawnComponent.h"
+#include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Multiplayer/InputConfig.h"
 
 #include "Net/UnrealNetwork.h"
@@ -34,5 +35,23 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
+	DOREPLIFETIME(APolyPalsController, PlayerColor);
 }
 
+void APolyPalsController::SetPlayerColor(EPlayerColor InColor) { 
+	uint8 EnumToInt = static_cast<uint8>(InColor);
+	UE_LOG(LogTemp, Log, TEXT("APolyPalsController: Player color set to: %d"), EnumToInt);
+	PlayerColor = InColor; 
+
+}
+
+void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)
+{
+	PlayerColor = InColor;
+
+	if (GamePawnComponent->GetGamePawn())
+	{
+		UBuildTowerComponent* BuildTowerComp = GamePawnComponent->GetGamePawn()->GetBuildTowerComponent();
+		BuildTowerComp->SetPlayerColorByController(PlayerColor);
+	}
+}

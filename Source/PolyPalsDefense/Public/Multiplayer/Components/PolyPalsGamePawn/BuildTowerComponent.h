@@ -4,8 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "DataAsset/Tower/TowerEnums.h"
 #include "BuildTowerComponent.generated.h"
 
+UENUM()
+enum class EBuildState
+{
+	None = 0,
+	SerchingPlace,
+	DecidePlacementLocation
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYPALSDEFENSE_API UBuildTowerComponent : public UActorComponent
@@ -13,19 +21,47 @@ class POLYPALSDEFENSE_API UBuildTowerComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UBuildTowerComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	// Call by gamepawn
+	void ClientSpawnPreviewBuilding();
 
 private:
+	void SetPlayerColorByController(EPlayerColor InColor);
+
 	void ClientOnInputTest();
-		
+	void ClientOnInputClick();
+
+	void OnSelectTower(const uint8 InTowerId);
+
+	void SetBuildState(EBuildState InState);
+	void OnNormal();
+	void OnSerchingPlace();
+	void OnDecidePlacementLocation();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
+
+private:
+	UPROPERTY()
+	TObjectPtr<class UTowerDataManager> TowerDataManager;
+	UPROPERTY()
+	TObjectPtr<class APreviewBuilding> PreviewBuilding;
+	UPROPERTY()
+	TSubclassOf<class APlacedTower> PlacedTowerBlueClass;
+
+	UPROPERTY(Replicated)
+	EPlayerColor PlayerColor = EPlayerColor::None;
+
+	uint8 TowerOnSerchingQue = 0;
+	EBuildState BuildState = EBuildState::None;
+	
 	friend class APolyPalsGamePawn;
+	friend class APolyPalsController;
 };

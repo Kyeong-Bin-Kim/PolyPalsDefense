@@ -7,6 +7,7 @@
 #include "PreviewBuilding.generated.h"
 
 class APolyPalsController;
+class UTowerDataManager;
 UCLASS()
 class POLYPALSDEFENSE_API APreviewBuilding : public AActor
 {
@@ -27,19 +28,35 @@ public:
 
 	void ExteranlInitialize(APolyPalsController* const InController);
 
-	void ShowPreviewBuilding(bool bShow);
-	
+	void ShowPreviewBuilding(bool bShow, uint8 InTowerId = 0);
+	void ChangeMeshMaterial(bool bIsBuildable);
+
+	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
+	bool IsBuildable() const { return bIsBuildable; }
 private:
 	FVector GetSnappedLocation(const FVector& WorldLocation);
 	void UpdateLocationUnderCursor();
 
+	UFUNCTION()
+	void OnPlacedTowerBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 private:
 	UPROPERTY()
+	TObjectPtr<class USceneComponent> RootScene;
+	UPROPERTY(EditAnywhere)
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 	UPROPERTY()
+	TObjectPtr<UTowerDataManager> TowerDataManager;
+	UPROPERTY()
 	TObjectPtr<APolyPalsController> PolyPalsController;
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> BuildableMat;
+	UPROPERTY()
+	TObjectPtr<UMaterialInterface> UnbuildableMat;
 
-	FVector OffsetLocation = FVector(0.f, 0.f, 5000.f);
+	FVector LastSnappedLocation;
+	FVector OffsetLocation;
+	bool bIsBuildable = true;
 
 private:
 	FTimerHandle LineTraceHandle;

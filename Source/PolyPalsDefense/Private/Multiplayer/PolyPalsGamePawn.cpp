@@ -5,6 +5,7 @@
 #include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "DataAsset/Tower/TowerEnums.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Components/SceneComponent.h"
@@ -70,7 +71,6 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 	bIsPossessed = true;
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
-	
 }
 
 void APolyPalsGamePawn::UnPossessed()
@@ -78,24 +78,27 @@ void APolyPalsGamePawn::UnPossessed()
 	Super::UnPossessed();
 
 	bIsPossessed = false;
-	UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
-	if (polypalsInputcomp)
-	{
-		polypalsInputcomp->OnInputTest.Unbind();
-	}
+	UnbindInputDelegate();
 	PolyPalsController = nullptr;
+	//BuildTowerComponent->ServerSetPlayerColor(EPlayerColor::None);
 }
 
 void APolyPalsGamePawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
+	UnbindInputDelegate();
+}
+
+void APolyPalsGamePawn::UnbindInputDelegate()
+{
 	if (PolyPalsController)
 	{
 		UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.Unbind();
+			polypalsInputcomp->OnInputClick.Unbind();
 		}
 	}
 }
@@ -108,6 +111,9 @@ void APolyPalsGamePawn::OnRep_PolyPalsController()
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTest);
+			polypalsInputcomp->OnInputClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
 		}
+
+		BuildTowerComponent->ClientSpawnPreviewBuilding();
 	}
 }
