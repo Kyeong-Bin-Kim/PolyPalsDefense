@@ -35,4 +35,6 @@ public:
 	TObjectPtr<UMaterialInterface> Buildable;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UMaterialInterface> Unbuildable;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<UMaterialInterface> GunMaxLevel;
 };

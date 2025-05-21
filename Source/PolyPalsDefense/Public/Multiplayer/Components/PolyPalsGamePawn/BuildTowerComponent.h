@@ -53,6 +53,8 @@ private:
 	TObjectPtr<class UTowerDataManager> TowerDataManager;
 	UPROPERTY()
 	TObjectPtr<class APreviewBuilding> PreviewBuilding;
+	UPROPERTY()
+	TSubclassOf<class APlacedTower> PlacedTowerBlueClass;
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;

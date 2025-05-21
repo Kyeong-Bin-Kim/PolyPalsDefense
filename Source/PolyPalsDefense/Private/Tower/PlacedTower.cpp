@@ -2,12 +2,13 @@
 
 
 #include "Tower/PlacedTower.h"
+#include "Tower/Components/TowerAttackComponent.h"
 #include "Core/Subsystems/TowerDataManager.h"
 #include "DataAsset/Tower/TowerMaterialData.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
 
-#include "Components/SceneComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -31,8 +32,12 @@ APlacedTower::APlacedTower()
 	TowerMeshComponent->SetRelativeScale3D(FVector(0.85f, 0.85f, 0.85f));
 
 	GunMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMeshComponent"));
-	GunMeshComponent->SetupAttachment(TowerMeshComponent);
+	GunMeshComponent->SetupAttachment(TowerMeshComponent, FName("GunAttachPoint"));
 
+	TowerRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TowerRangeSphere"));
+
+	TowerAttackComponent = CreateDefaultSubobject<UTowerAttackComponent>(TEXT("TowerAttackComponent"));
+	TowerAttackComponent->SetIsReplicated(true);
 	SetTowerCollision();
 	Tags.Add(FName("Tower"));
 }
@@ -43,6 +48,8 @@ void APlacedTower::BeginPlay()
 	Super::BeginPlay();
 	
 	SetTowerCollision();
+	GunMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TowerRangeSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
 }
 
 void APlacedTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -73,6 +80,7 @@ void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor
 {
 	TowerId = InTowerId;
 	PlayerColor = InColor;
+	TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
 }
 
 void APlacedTower::OnRep_PlayerColor()
@@ -102,6 +110,7 @@ void APlacedTower::OnRep_TowerId()
 	{
 		UTowerPropertyData* PropertyData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 		TowerMeshComponent->SetStaticMesh(PropertyData->TowerMesh);
+		GunMeshComponent->SetStaticMesh(PropertyData->GunMesh);
 	}
 }
 
@@ -137,6 +146,7 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 	{
 		TowerMeshComponent->SetMaterial(Iter, TargetMaterial);
 	}
+
 }
 
 void APlacedTower::SetTowerCollision()

@@ -128,9 +128,10 @@ void APreviewBuilding::ChangeMeshMaterial(bool bIsCanBuild)
 FVector APreviewBuilding::GetSnappedLocation(const FVector& WorldLocation)
 {
 	float GridSize = 100.f;
+
 	FVector Snapped;
-	Snapped.X = (FMath::RoundToFloat(WorldLocation.X / GridSize) * GridSize) + 50.f;
-	Snapped.Y = (FMath::RoundToFloat(WorldLocation.Y / GridSize) * GridSize) + 50.f;
+	Snapped.X = FMath::FloorToFloat(WorldLocation.X / GridSize) * GridSize + GridSize * 0.5f;
+	Snapped.Y = FMath::FloorToFloat(WorldLocation.Y / GridSize) * GridSize + GridSize * 0.5f;
 	Snapped.Z = WorldLocation.Z;
 
 	return Snapped;

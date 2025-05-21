@@ -37,6 +37,8 @@ struct FTowerUpgradeValue
 	float Damage;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float AttackDelay;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float Range;
 };
 
 UCLASS()

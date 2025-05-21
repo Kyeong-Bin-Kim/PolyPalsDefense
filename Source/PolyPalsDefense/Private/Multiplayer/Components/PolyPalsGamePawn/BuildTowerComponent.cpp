@@ -17,7 +17,9 @@ UBuildTowerComponent::UBuildTowerComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	ConstructorHelpers::FClassFinder<APlacedTower> TowerClass(TEXT("/Game/Blueprints/Towers/BP_PlacedTower.BP_PlacedTower_C"));
+	if (TowerClass.Succeeded())
+		PlacedTowerBlueClass = TowerClass.Class;
 }
 
 
@@ -127,6 +129,6 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(APlacedTower::StaticClass(), InLocation, FRotator::ZeroRotator, SpawnParams);
+	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, InLocation, FRotator::ZeroRotator, SpawnParams);
 	Tower->ExternalInitializeTower(InTargetTower, PlayerColor);
 }

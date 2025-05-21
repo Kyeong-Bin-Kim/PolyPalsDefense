@@ -11,8 +11,8 @@ UCLASS()
 class POLYPALSDEFENSE_API APlacedTower : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	APlacedTower();
 
@@ -20,7 +20,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -36,21 +36,26 @@ public:
 private:
 	void SetTowerCollision();
 
-	
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UBoxComponent> RootBoxComponent;
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> TowerMeshComponent;
-
-private: 
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+	UPROPERTY()
+	TObjectPtr<class USphereComponent> TowerRangeSphere;
+	UPROPERTY()
+	TObjectPtr<class UTowerAttackComponent> TowerAttackComponent;
+
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerColor)
 	EPlayerColor PlayerColor = EPlayerColor::None;
-	UPROPERTY(ReplicatedUsing = OnRep_TowerId)
+	UPROPERTY(EditInstanceOnly, ReplicatedUsing = OnRep_TowerId)
 	int16 TowerId = -1;
 
 	FTimerHandle VisualSetupHandle;
+
+	friend UTowerAttackComponent;
 };
