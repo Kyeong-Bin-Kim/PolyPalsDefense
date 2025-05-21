@@ -25,7 +25,7 @@ void UTowerAttackComponent::BeginPlay()
 	if (!GetOwner()->HasAuthority())
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
 
-	OwnerTower->TowerRangeSphere->bHiddenInGame = false;
+	OwnerTower->TowerRangeSphere->SetVisibility(true);
 }
 
 

@@ -50,6 +50,18 @@ void APlacedTower::BeginPlay()
 	SetTowerCollision();
 	GunMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TowerRangeSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+
+	//test code
+	if (HasAuthority())
+	{
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, FTimerDelegate::CreateLambda([this]() {
+
+			if (TowerId > 0)
+				ExternalInitializeTower(TowerId, EPlayerColor::None);
+
+			}), 1.f, false);
+	}
 }
 
 void APlacedTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -81,6 +93,10 @@ void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor
 	TowerId = InTowerId;
 	PlayerColor = InColor;
 	TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
+
+	// test code
+	OnRep_TowerId();
+	OnRep_PlayerColor();
 }
 
 void APlacedTower::OnRep_PlayerColor()
