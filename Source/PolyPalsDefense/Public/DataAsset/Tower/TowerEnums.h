@@ -10,7 +10,7 @@ enum class EPlayerColor : uint8
 	None = 0,
 	Red,
 	Blue,
-	Purple,
+	Yellow,
 	Green,
 	MAXCOLOR
 };

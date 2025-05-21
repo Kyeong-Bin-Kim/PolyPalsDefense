@@ -69,7 +69,7 @@ void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { Pl
 void UBuildTowerComponent::ClientOnInputTest()
 {
 	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
-	OnSelectTower(1);
+	OnSelectTower(3);
 }
 
 void UBuildTowerComponent::ClientOnInputClick()
@@ -122,6 +122,8 @@ void UBuildTowerComponent::OnDecidePlacementLocation()
 		TowerOnSerchingQue = 0;
 		PreviewBuilding->ShowPreviewBuilding(false);
 	}
+	else
+		SetBuildState(EBuildState::SerchingPlace);
 }
 
 void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector_NetQuantize InLocation, uint8 InTargetTower)
@@ -129,6 +131,9 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, InLocation, FRotator::ZeroRotator, SpawnParams);
+	FVector SpawnLocation = InLocation;
+	SpawnLocation.Z += 80.f;
+
+	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 	Tower->ExternalInitializeTower(InTargetTower, PlayerColor);
 }

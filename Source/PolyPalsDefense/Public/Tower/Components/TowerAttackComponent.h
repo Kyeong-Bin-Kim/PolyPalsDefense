@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "SerializedSpottedEnemy.h"
 #include "TowerAttackComponent.generated.h"
 
 
@@ -24,7 +25,12 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+	void ServerOnEnemyBeginOverlap(AActor* InEnemy);
+	void ServerOnEnemyEndOverlap(AActor* InEnemy);
 	void ServerSetTowerIdByTower(uint8 InTowerId);
+
+	UFUNCTION()
+	void OnRep_SpottedEnemies();
 
 	void ServerOnTowerLevelUp();
 	UFUNCTION()
@@ -36,6 +42,9 @@ private:
 
 	UPROPERTY(Replicated);
 	uint8 TowerId = -1;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SpottedEnemies)
+	FSpottedEnemies SpottedEnemies;
 
 	float Damage = 0.f;
 	float AttackDelay = 0.f;

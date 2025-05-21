@@ -149,7 +149,7 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 		SetActorLocation(NewSnappedLocation, true);
 		LastSnappedLocation = NewSnappedLocation;
 
-		FVector BoxExtent = FVector(50.f, 50.f, 100.f);
+		FVector BoxExtent = FVector(35.f, 35.f, 100.f);
 		FCollisionShape Box = FCollisionShape::MakeBox(BoxExtent);
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(this);

@@ -13,7 +13,7 @@
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 	bWantsInitializeComponent = true;
 }
 
@@ -25,7 +25,8 @@ void UTowerAttackComponent::BeginPlay()
 	if (!GetOwner()->HasAuthority())
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
 
-	OwnerTower->TowerRangeSphere->SetVisibility(true);
+	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
+	SetComponentTickEnabled(false);
 }
 
 
@@ -46,7 +47,39 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+
+void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
+{
+	FSpottedEnemy TargetEnemy;
+	TargetEnemy.Enemy = InEnemy;
+	SpottedEnemies.AddEnemy(TargetEnemy);
+
+	if (SpottedEnemies.Enemies.IsEmpty())
+	{
+
+	}
+	else
+	{
+
+	}
+}
+
+void UTowerAttackComponent::ServerOnEnemyEndOverlap(AActor* InEnemy)
+{
+	FSpottedEnemy TargetEnemy;
+	TargetEnemy.Enemy = InEnemy;
+	SpottedEnemies.RemoveEnemy(TargetEnemy);
+
+	if (SpottedEnemies.Enemies.IsEmpty())
+	{
+
+	}
+	else
+	{
+
+	}
 }
 
 void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
@@ -59,6 +92,18 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
 
+void UTowerAttackComponent::OnRep_SpottedEnemies()
+{
+	if (SpottedEnemies.Enemies.IsEmpty())
+	{
+
+	}
+	else
+	{
+
+	}
+}
+
 void UTowerAttackComponent::ServerOnTowerLevelUp()
 {
 	if (!GetOwner()->HasAuthority()) return;
@@ -68,14 +113,21 @@ void UTowerAttackComponent::ServerOnTowerLevelUp()
 	CurrentLevel++;
 	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 	
+	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
+
 	switch (CurrentLevel)
 	{
 	case 2:
+		UpgradeData = Data->UpgradeData.Find(ELevelValue::Level2);
 		break;
 	case 3:
+		UpgradeData = Data->UpgradeData.Find(ELevelValue::Level3);
 		break;
 	}
 
+	Damage = UpgradeData->Damage;
+	AttackDelay = UpgradeData->AttackDelay;
+	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
 
 void UTowerAttackComponent::OnRep_CurrentLevel()

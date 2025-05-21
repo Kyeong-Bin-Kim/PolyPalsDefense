@@ -35,6 +35,7 @@ APlacedTower::APlacedTower()
 	GunMeshComponent->SetupAttachment(TowerMeshComponent, FName("GunAttachPoint"));
 
 	TowerRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TowerRangeSphere"));
+	TowerRangeSphere->SetupAttachment(RootBoxComponent);
 
 	TowerAttackComponent = CreateDefaultSubobject<UTowerAttackComponent>(TEXT("TowerAttackComponent"));
 	TowerAttackComponent->SetIsReplicated(true);
@@ -50,18 +51,20 @@ void APlacedTower::BeginPlay()
 	SetTowerCollision();
 	GunMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TowerRangeSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
+	TowerRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &APlacedTower::OnBeginOverlap);
+	TowerRangeSphere->OnComponentEndOverlap.AddDynamic(this, &APlacedTower::OnEndOverlap);
 
 	//test code
-	if (HasAuthority())
-	{
-		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, FTimerDelegate::CreateLambda([this]() {
+	//if (HasAuthority())
+	//{
+	//	FTimerHandle handle;
+	//	GetWorld()->GetTimerManager().SetTimer(handle, FTimerDelegate::CreateLambda([this]() {
 
-			if (TowerId > 0)
-				ExternalInitializeTower(TowerId, EPlayerColor::None);
+	//		if (TowerId > 0)
+	//			ExternalInitializeTower(TowerId, EPlayerColor::None);
 
-			}), 1.f, false);
-	}
+	//		}), 1.f, false);
+	//}
 }
 
 void APlacedTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -95,8 +98,8 @@ void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor
 	TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
 
 	// test code
-	OnRep_TowerId();
-	OnRep_PlayerColor();
+	//OnRep_TowerId();
+	//OnRep_PlayerColor();
 }
 
 void APlacedTower::OnRep_PlayerColor()
@@ -148,8 +151,8 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 	case EPlayerColor::Green:
 		TargetMaterial = MaterialData->PlayerGreen;
 		break;
-	case EPlayerColor::Purple:
-		TargetMaterial = MaterialData->PlayerPurple;
+	case EPlayerColor::Yellow:
+		TargetMaterial = MaterialData->PlayerYellow;
 		break;
 	default:
 		TargetMaterial = MaterialData->Default;
@@ -170,5 +173,29 @@ void APlacedTower::SetTowerCollision()
 	TowerMeshComponent->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);
 	TowerMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	TowerMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+}
+
+void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag(AttackTargetTag))
+	{
+		FString MyName = GetName();
+		FString EneymName = OtherActor->GetName();
+		UE_LOG(LogTemp, Log, TEXT("Tower %s Spotted Enemy %s"), *MyName, *EneymName);
+		TowerAttackComponent->ServerOnEnemyBeginOverlap(OtherActor);
+	}
+}
+
+void APlacedTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->ActorHasTag(AttackTargetTag))
+	{
+		FString MyName = GetName();
+		FString EneymName = OtherActor->GetName();
+		UE_LOG(LogTemp, Log, TEXT("Tower %s Spotted Enemy %s"), *MyName, *EneymName);
+		TowerAttackComponent->ServerOnEnemyEndOverlap(OtherActor);
+	}
 }
 
