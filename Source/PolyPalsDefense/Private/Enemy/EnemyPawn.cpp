@@ -48,32 +48,64 @@ AEnemyPawn::AEnemyPawn()
     SetActorHiddenInGame(true);
 }
 
+void AEnemyPawn::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
 void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    // bIsActive 복제 등록
+
     DOREPLIFETIME(AEnemyPawn, bIsActive);
+    DOREPLIFETIME(AEnemyPawn, EnemyData);
+    DOREPLIFETIME(AEnemyPawn, ReplicatedScale);
 }
 
 void AEnemyPawn::OnRep_IsActive()
 {
-    // 활성 상태에 따라 가시성 및 충돌, 틱 활성화/비활성화
     SetActorHiddenInGame(!bIsActive);
     SetActorEnableCollision(bIsActive);
     SetActorTickEnabled(bIsActive);
 }
 
-void AEnemyPawn::BeginPlay()
+void AEnemyPawn::OnRep_EnemyData()
 {
-    Super::BeginPlay();
+    if (!EnemyData) return;
+
+    // 메시 먼저 설정
+    if (EnemyData->Visual.Mesh)
+    {
+        Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
+    }
+
+    // 애니메이션 블루프린트 설정
+    if (EnemyData->Visual.AnimBPClass)
+    {
+        Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
+        Mesh->InitAnim(true);
+    }
+
+    // 복제된 스케일도 적용
+    Mesh->SetRelativeScale3D(ReplicatedScale);
+
+    UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData 실행됨 - 애니메이션: %s, 스케일: %s"),
+        EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
+        *ReplicatedScale.ToString());
+}
+
+void AEnemyPawn::OnRep_Scale()
+{
+    Mesh->SetRelativeScale3D(ReplicatedScale);
 }
 
 void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     if (!InDataAsset) return;
 
-    // 데이터 에셋 및 런타임 스탯 초기화
     EnemyData = InDataAsset;
+    ReplicatedScale = Scale;
+
     RuntimeStats = FEnemyRuntimeStats(EnemyData->Stats);
     if (bIsBoss)
         RuntimeStats.ApplyMultiplier(HealthMultiplier, SpeedMultiplier);
@@ -84,31 +116,28 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     if (EnemyData->Visual.AnimBPClass)
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
 
-    // 크기 및 이동 속도 초기화
-    Mesh->SetRelativeScale3D(Scale);
-    BaseMoveSpeed = RuntimeStats.MoveSpeed;
+    Mesh->SetRelativeScale3D(ReplicatedScale);
+    BaseMoveSpeed = RuntimeStats.MoveSpeed; // TODO: 나중에 이동 컴포넌트 또는 상태 컴포넌트로 이관
     SplineMovement->Initialize(InSpline, BaseMoveSpeed);
 
-    // 상태 컴포넌트 초기화 및 죽음 이벤트 바인딩
     if (Status)
     {
         Status->Initialize(RuntimeStats.MaxHealth);
+        Status->OnEnemyDied.RemoveDynamic(this, &AEnemyPawn::HandleEnemyDeath);
         Status->OnEnemyDied.AddDynamic(this, &AEnemyPawn::HandleEnemyDeath);
     }
 }
 
-void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
+void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
-    // 에셋 매니저로부터 데이터 에셋 로드
-    UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(AssetId);
+    UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(InAssetId);
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
         InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {
-        // 에셋 로드 또는 캐스트 실패 시 에러 로그 출력
-        UE_LOG(LogTemp, Error, TEXT("EnemyPawn: Asset loaded but cast failed: %s"), *AssetId.ToString());
+        UE_LOG(LogTemp, Error, TEXT("EnemyPawn: Asset loaded but cast failed: %s"), *InAssetId.ToString());
     }
 }
 
@@ -126,8 +155,34 @@ void AEnemyPawn::ApplyStun(float Duration)
 
 void AEnemyPawn::HandleEnemyDeath()
 {
-    // 풀링 구조 도입 시에는 ReleaseEnemy 호출으로 대체 가능
-    Destroy();
+    Destroy(); // 풀링 시스템과 연동 시 ReleaseEnemy로 교체 가능
+}
+
+void AEnemyPawn::SetIsActive(bool bNewActive)
+{
+    bIsActive = bNewActive;
+
+    SetActorHiddenInGame(!bIsActive);
+    SetActorEnableCollision(bIsActive);
+    SetActorTickEnabled(bIsActive);
+
+    ForceNetUpdate();
+}
+
+bool AEnemyPawn::GetIsActive() const
+{
+    return bIsActive;
+}
+
+void AEnemyPawn::SetEnemyData(UEnemyDataAsset* InData)
+{
+    EnemyData = InData;
+    OnRep_EnemyData();
+}
+
+UEnemyDataAsset* AEnemyPawn::GetEnemyData() const
+{
+    return EnemyData;
 }
 
 bool AEnemyPawn::IsBoss() const
@@ -137,7 +192,6 @@ bool AEnemyPawn::IsBoss() const
 
 void AEnemyPawn::ReachGoal()
 {
-    // 웨이브 매니저에게 골인 알림
     if (AWaveManager* Manager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(
         GetWorld(), AWaveManager::StaticClass())))
     {

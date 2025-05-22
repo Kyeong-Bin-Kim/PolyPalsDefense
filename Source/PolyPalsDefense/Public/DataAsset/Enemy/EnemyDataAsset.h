@@ -23,9 +23,4 @@ public:
     // 시각적 연출
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyVisualData Visual;
-
-    virtual FPrimaryAssetId GetPrimaryAssetId() const override
-    {
-        return FPrimaryAssetId("Enemy", GetFName());
-    }
 };

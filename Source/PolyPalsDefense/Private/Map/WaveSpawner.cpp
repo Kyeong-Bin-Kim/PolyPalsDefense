@@ -133,7 +133,6 @@ void AWaveSpawner::SpawnNextEnemy()
     if (!HasAuthority())
         return;
 
-    // 모두 소진했으면 타이머 정리 후 종료
     if (SpawnIndex >= CurrentSpawnList.Num())
     {
         UE_LOG(LogTemp, Log, TEXT("[WaveSpawner] All %d enemies spawned. Clearing timer."),
@@ -142,11 +141,6 @@ void AWaveSpawner::SpawnNextEnemy()
         return;
     }
 
-    // 호출 로그 (현재 몇 번째 스폰인지)
-    UE_LOG(LogTemp, Log, TEXT("[WaveSpawner] SpawnNextEnemy called: %d / %d"),
-        SpawnIndex + 1, CurrentSpawnList.Num());
-
-    // 스폰 로직
     const FEnemySpawnEntry& Entry = CurrentSpawnList[SpawnIndex];
     SpawnIndex++;
 
@@ -159,26 +153,16 @@ void AWaveSpawner::SpawnNextEnemy()
         Entry.Scale
     );
 
-    if (Enemy)
-    {
-        FVector SpawnLocation = SplinePath->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World);
-        Enemy->SetActorLocation(SpawnLocation);
-
-        // 위치 정보를 클라이언트에 전송
-        Enemy->ForceNetUpdate();
-    }
-    else
+    if (!Enemy)
     {
         UE_LOG(LogTemp, Error, TEXT("[WaveSpawner] AcquireEnemy returned null"));
         return;
     }
 
-    // 위치 설정 및 애니메이션 파라미터 갱신
-    const FVector SpawnLocation = SplinePath
+    FVector SpawnLocation = SplinePath
         ? SplinePath->GetLocationAtSplinePoint(0, ESplineCoordinateSpace::World)
         : FVector::ZeroVector;
-    Enemy->SetActorLocation(SpawnLocation);
 
-    UE_LOG(LogTemp, Log, TEXT("[WaveSpawner] Spawned %s at %s"),
-        *Enemy->GetName(), *SpawnLocation.ToString());
+    Enemy->SetActorLocation(SpawnLocation);
+    Enemy->ForceNetUpdate(); // 복제 동기화
 }

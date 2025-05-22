@@ -26,9 +26,12 @@ public:
 
     // 데이터 에셋으로 초기화
     void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
-    
+
     // AssetManager로부터 에셋 ID로 초기화
     void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
+
+    // 보스 여부
+    bool IsBoss() const;
 
     // 슬로우 상태 적용
     void ApplySlow(float Ratio, float Duration);
@@ -39,58 +42,86 @@ public:
     // 목표 지점 도달 시 호출
     void ReachGoal();
 
-    // 보스 여부 반환
-    bool IsBoss() const;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-    bool bIsBoss = false;
-
-    // 풀링 활성화 상태, 클라이언트에 동기화
-    UPROPERTY(ReplicatedUsing = OnRep_IsActive)
-    bool bIsActive;
-
-protected:
-    // 복제할 프로퍼티 등록
-    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    // 클라이언트에서 활성화 상태 변경 시 처리
-    UFUNCTION()
-    void OnRep_IsActive();
-
     // 생명력이 0이 되었을 때 처리
     UFUNCTION()
     void HandleEnemyDeath();
 
-    // 루트 컴포넌트 (충돌 없음)
+    // 활성화 상태 설정 및 복제 트리거
+    void SetIsActive(bool bNewActive);
+
+    // 현재 활성화 상태 조회
+    bool GetIsActive() const;
+
+    // 에너미 데이터 설정
+    void SetEnemyData(UEnemyDataAsset* InData);
+
+    // 현재 에너미 데이터 조회
+    UEnemyDataAsset* GetEnemyData() const;
+
+protected:
+    // 복제된 활성화 상태 반응
+    UFUNCTION()
+    void OnRep_IsActive();
+
+    // 복제된 데이터 자산 반응
+    UFUNCTION()
+    void OnRep_EnemyData();
+
+    // 복제된 스케일 반응
+    UFUNCTION()
+    void OnRep_Scale();
+
+    // 복제 등록
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+    // === 컴포넌트 ===
+
+    // 루트 컴포넌트
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USceneComponent* Root;
 
-    // 스켈레탈 메시 컴포넌트
+    // 스켈레탈 메시 (시각, 애니메이션)
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USkeletalMeshComponent* Mesh;
 
-    // 방향 표시용 화살표 컴포넌트
+    // 방향 표시용 화살표
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UArrowComponent* DirectionIndicator;
 
-    // 스플라인 기반 이동 컴포넌트
+    // 스플라인 이동 처리
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemySplineMovementComponent* SplineMovement;
 
-    // 상태 관리 컴포넌트 (체력, 슬로우, 스턴)
+    // 체력, 슬로우, 스턴 상태 관리
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyStatusComponent* Status;
-
-    // 에셋 데이터
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
-    UEnemyDataAsset* EnemyData;
 
     // 메시 회전 기본값
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
 
+    // === 복제 상태 ===
+
+    // 풀링 활성화 여부
+    UPROPERTY(ReplicatedUsing = OnRep_IsActive)
+    bool bIsActive;
+
+    // 에셋 데이터 (메시, 애니메이션 포함)
+    UPROPERTY(ReplicatedUsing = OnRep_EnemyData)
+    UEnemyDataAsset* EnemyData;
+
+    // 메시 크기
+    UPROPERTY(ReplicatedUsing = OnRep_Scale)
+    FVector ReplicatedScale;
+
+    // 보스 여부
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
+    bool bIsBoss = false;
+
 private:
-    // 기본 이동 속도
-    float BaseMoveSpeed;
-    // 런타임용 스탯
+    // 실시간 스탯 (체력, 속도 등)
     FEnemyRuntimeStats RuntimeStats;
+
+    // TODO: BaseMoveSpeed는 추후 SplineMovement 또는 StatusComponent에 이관
+    float BaseMoveSpeed;
 };
