@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "DataAsset/Tower/TowerEnums.h"
 #include "TowerAttackComponent.generated.h"
 
 
@@ -22,9 +23,23 @@ public:
 	virtual void InitializeComponent() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
+	void ServerOnEnemyBeginOverlap(AActor* InEnemy);
+	void ServerOnEnemyEndOverlap(AActor* InEnemy);
+	AActor* ServerFindFirstValidTarget();
+	void ServerOnTowerAttack();
+	void ClientOnTowerAttack();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
+	void SetAttackTimer();
+	void ClearAttackTimer();
+
+	UFUNCTION()
+	void OnRep_TowerId();
+
+	UFUNCTION()
+	void OnRep_CurrentTarget();
 
 	void ServerOnTowerLevelUp();
 	UFUNCTION()
@@ -34,17 +49,29 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLevel)
 	uint8 CurrentLevel = 1;
 
-	UPROPERTY(Replicated);
+	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
 	uint8 TowerId = -1;
 
+	UPROPERTY(Replicated)
+	TObjectPtr<AActor> CurrentTarget;
+	
+	UPROPERTY()
+	TArray<AActor*> SpottedEnemy_Server;
+
+
 	float Damage = 0.f;
-	float AttackDelay = 0.f;
+	float AttackDelay = -1.f;
+	ETowerAbility TowerAbility = ETowerAbility::None;
+
+	FTimerHandle AttackHandle;
 
 private:
 	UPROPERTY()
 	TObjectPtr<class APlacedTower> OwnerTower;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+	UPROPERTY()
+	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
 
 	friend APlacedTower;
 

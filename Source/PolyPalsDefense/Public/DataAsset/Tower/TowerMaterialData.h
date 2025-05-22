@@ -30,7 +30,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UMaterialInterface> PlayerGreen;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TObjectPtr<UMaterialInterface> PlayerPurple;
+	TObjectPtr<UMaterialInterface> PlayerYellow;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UMaterialInterface> Buildable;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

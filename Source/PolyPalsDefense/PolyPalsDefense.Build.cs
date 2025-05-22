@@ -25,7 +25,7 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public/Map")
 });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem"  });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem", "Niagara"  });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

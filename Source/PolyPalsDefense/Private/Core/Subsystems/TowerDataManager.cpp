@@ -8,14 +8,13 @@
 
 bool UTowerDataManager::ShouldCreateSubsystem(UObject* Outer) const
 {
+	return true;
+
 	if (const UWorld* world = Cast<UWorld>(Outer))
 	{
 		if (world->IsGameWorld())
 		{
 			FString mapName = world->GetMapName();
-			//FString TargetName = TEXT("TowerTest");
-
-			
 
 			if (mapName.StartsWith(TEXT("UEDPIE_")))
 			{

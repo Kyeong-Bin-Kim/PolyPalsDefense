@@ -36,8 +36,10 @@ public:
 private:
 	void SetTowerCollision();
 
-
-
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class UBoxComponent> RootBoxComponent;
@@ -52,8 +54,11 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerColor)
 	EPlayerColor PlayerColor = EPlayerColor::None;
+
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = OnRep_TowerId)
 	int16 TowerId = -1;
+	UPROPERTY(EditDefaultsOnly)
+	FName AttackTargetTag = FName("Enemy");
 
 	FTimerHandle VisualSetupHandle;
 

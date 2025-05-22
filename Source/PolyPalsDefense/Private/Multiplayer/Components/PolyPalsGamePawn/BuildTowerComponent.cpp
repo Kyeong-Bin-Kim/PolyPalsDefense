@@ -69,7 +69,7 @@ void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { Pl
 void UBuildTowerComponent::ClientOnInputTest()
 {
 	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
-	OnSelectTower(1);
+	
 }
 
 void UBuildTowerComponent::ClientOnInputClick()
@@ -78,6 +78,30 @@ void UBuildTowerComponent::ClientOnInputClick()
 
 	if (BuildState == EBuildState::SerchingPlace)
 		SetBuildState(EBuildState::DecidePlacementLocation);
+}
+
+void UBuildTowerComponent::ClientOnInputRightClick()
+{
+	if (BuildState == EBuildState::SerchingPlace)
+		SetBuildState(EBuildState::None);
+}
+
+void UBuildTowerComponent::ClientOnInputTower1()
+{
+	if (BuildState == EBuildState::None)
+		OnSelectTower(1);
+}
+
+void UBuildTowerComponent::ClientOnInputTower2()
+{
+	if (BuildState == EBuildState::None)
+		OnSelectTower(2);
+}
+
+void UBuildTowerComponent::ClientOnInputTower3()
+{
+	if (BuildState == EBuildState::None)
+		OnSelectTower(3);
 }
 
 void UBuildTowerComponent::OnSelectTower(const uint8 InTowerId)
@@ -106,6 +130,8 @@ void UBuildTowerComponent::SetBuildState(EBuildState InState)
 
 void UBuildTowerComponent::OnNormal()
 {
+	TowerOnSerchingQue = 0;
+	PreviewBuilding->ShowPreviewBuilding(false);
 }
 
 void UBuildTowerComponent::OnSerchingPlace()
@@ -116,12 +142,12 @@ void UBuildTowerComponent::OnDecidePlacementLocation()
 {
 	if (PreviewBuilding->IsBuildable())
 	{
-		SetBuildState(EBuildState::None);
 		FVector_NetQuantize placeLocation = PreviewBuilding->GetActorLocation();
 		Server_RequestSpawnTower(placeLocation, TowerOnSerchingQue);
-		TowerOnSerchingQue = 0;
-		PreviewBuilding->ShowPreviewBuilding(false);
+		SetBuildState(EBuildState::None);
 	}
+	else
+		SetBuildState(EBuildState::SerchingPlace);
 }
 
 void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector_NetQuantize InLocation, uint8 InTargetTower)
@@ -129,6 +155,9 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, InLocation, FRotator::ZeroRotator, SpawnParams);
+	FVector SpawnLocation = InLocation;
+	SpawnLocation.Z += 80.f;
+
+	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 	Tower->ExternalInitializeTower(InTargetTower, PlayerColor);
 }

@@ -73,7 +73,10 @@ void APreviewBuilding::ShowPreviewBuilding(bool bShow, uint8 InTowerId)
 	SetActorTickEnabled(bShow);
 
 	if (!bShow)
+	{
 		SetActorLocation(OffsetLocation);
+		LastSnappedLocation = OffsetLocation;
+	}
 
 	if (!TowerDataManager) return;
 
@@ -149,7 +152,7 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 		SetActorLocation(NewSnappedLocation, true);
 		LastSnappedLocation = NewSnappedLocation;
 
-		FVector BoxExtent = FVector(50.f, 50.f, 100.f);
+		FVector BoxExtent = FVector(35.f, 35.f, 100.f);
 		FCollisionShape Box = FCollisionShape::MakeBox(BoxExtent);
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(this);
@@ -166,16 +169,17 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 		if (!bOverlaps)
 			bFlag = true;
 
-		if (bFlag)
-		{
-			UE_LOG(LogTemp, Log, TEXT("Flag: true"));
-			DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Green, false, 0.1f);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("Flag: false"));
-			DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Red, false, 0.1f);
-		}
+		// test code
+		//if (bFlag)
+		//{
+		//	UE_LOG(LogTemp, Log, TEXT("Flag: true"));
+		//	DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Green, false, 0.1f);
+		//}
+		//else
+		//{
+		//	UE_LOG(LogTemp, Log, TEXT("Flag: false"));
+		//	DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Red, false, 0.1f);
+		//}
 
 		if (bIsBuildable != bFlag)
 		{

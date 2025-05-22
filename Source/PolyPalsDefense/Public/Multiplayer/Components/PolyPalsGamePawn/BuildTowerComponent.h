@@ -37,6 +37,10 @@ private:
 
 	void ClientOnInputTest();
 	void ClientOnInputClick();
+	void ClientOnInputRightClick();
+	void ClientOnInputTower1();
+	void ClientOnInputTower2();
+	void ClientOnInputTower3();
 
 	void OnSelectTower(const uint8 InTowerId);
 

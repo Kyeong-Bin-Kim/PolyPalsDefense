@@ -4,29 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "TowerEnums.h"
 #include "TowerPropertyData.generated.h"
-
-UENUM()
-enum class ETowerAbility : uint8
-{
-	None = 0,
-	Stun,
-	Slow
-};
-UENUM()
-enum class EAttackMethod : uint8
-{
-	Projectile,
-	Delegate,
-	LineTrace
-};
-UENUM()
-enum class ELevelValue : uint8
-{
-	Level1 = 0		UMETA(DisplayName = "1레벨"),
-	Level2			UMETA(DisplayName = "2레벨"),
-	Level3			UMETA(DisplayName = "3레벨")
-};
 
 USTRUCT(BlueprintType)
 struct FTowerUpgradeValue
@@ -67,4 +46,6 @@ public:
 	TObjectPtr<UStaticMesh> TowerMesh;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Visual")
 	TObjectPtr<UStaticMesh> GunMesh;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Visual")
+	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
 };

@@ -9,6 +9,10 @@
 
 DECLARE_DELEGATE(FOnInputTest)
 DECLARE_DELEGATE(FOnInputClick)
+DECLARE_DELEGATE(FOnInputRightClick)
+DECLARE_DELEGATE(FOnInputTower1)
+DECLARE_DELEGATE(FOnInputTower2)
+DECLARE_DELEGATE(FOnInputTower3)
 
 class APolyPalsController;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -36,11 +40,20 @@ private:
 	
 	void InputTest(const FInputActionValue& Value);
 	void InputClick(const FInputActionValue& Value);
+	void InputRightClick(const FInputActionValue& Value);
+	void InputTower1(const FInputActionValue& Value);
+	void InputTower2(const FInputActionValue& Value);
+	void InputTower3(const FInputActionValue& Value);
+	
 
 
 public:
 	FOnInputTest OnInputTest;
 	FOnInputClick OnInputClick;
+	FOnInputRightClick OnInputRightClick;
+	FOnInputTower1 OnInputTower1;
+	FOnInputTower2 OnInputTower2;
+	FOnInputTower3 OnInputTower3;
 
 protected:
 	UPROPERTY()

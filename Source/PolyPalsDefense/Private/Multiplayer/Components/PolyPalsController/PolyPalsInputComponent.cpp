@@ -53,23 +53,39 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 	{
 		Input->BindAction(InputConfig->InputTest, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTest);
 		Input->BindAction(InputConfig->InputClick, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputClick);
+		Input->BindAction(InputConfig->InputRightClick, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputRightClick);
+		Input->BindAction(InputConfig->InputTower1, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower1);
+		Input->BindAction(InputConfig->InputTower2, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower2);
+		Input->BindAction(InputConfig->InputTower3, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower3);
 	}
 }
 
 void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 {
 	OnInputTest.ExecuteIfBound();
-	//UE_LOG(LogTemp, Log, TEXT("PolyPals: InputTest"));
-
-	//FActorSpawnParameters SpawnParams;
-	//SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
-	//APreviewBuilding* Building = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-	//Building->ExteranlInitialize(PolyPalsController);
 }
 
 void UPolyPalsInputComponent::InputClick(const FInputActionValue& Value)
 {
 	OnInputClick.ExecuteIfBound();
-	//UE_LOG(LogTemp, Log, TEXT("PolyPals: InputClick"));
+}
+
+void UPolyPalsInputComponent::InputRightClick(const FInputActionValue& Value)
+{
+	OnInputRightClick.ExecuteIfBound();
+}
+
+void UPolyPalsInputComponent::InputTower1(const FInputActionValue& Value)
+{
+	OnInputTower1.ExecuteIfBound();
+}
+
+void UPolyPalsInputComponent::InputTower2(const FInputActionValue& Value)
+{
+	OnInputTower2.ExecuteIfBound();
+}
+
+void UPolyPalsInputComponent::InputTower3(const FInputActionValue& Value)
+{
+	OnInputTower3.ExecuteIfBound();
 }
