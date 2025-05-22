@@ -13,8 +13,8 @@ struct FWavePlanRow : public FTableRowBase
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     int32 RoundIndex;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly)
-    float SpawnInterval = 1.0f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
+    float SpawnWindow = 40.0f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
     TArray<FEnemySpawnEntry> SpawnList;

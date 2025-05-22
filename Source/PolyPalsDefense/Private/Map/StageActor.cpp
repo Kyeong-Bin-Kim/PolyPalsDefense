@@ -31,17 +31,17 @@ void AStageActor::BeginPlay()
     {
         if (Mesh->GetAttachParent() == TowerBuildZoneRoot)
         {
-            Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-            Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block); // Mouse
-            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore); // Tower
+            Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+            Mesh->SetCollisionObjectType(ECC_WorldStatic);
+            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Ignore);
         }
         else if (Mesh->GetAttachParent() == PathBlockZoneRoot)
         {
-            Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-            Mesh->SetCollisionResponseToAllChannels(ECR_Ignore);
-            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block); // Mouse
-            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);  // Tower
+            Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+            Mesh->SetCollisionObjectType(ECC_WorldStatic);
+            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Block);
+            Mesh->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
         }
     }
 }

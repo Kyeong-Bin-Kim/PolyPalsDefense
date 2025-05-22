@@ -1,7 +1,6 @@
 #include "WaveManager.h"
 #include "WaveSpawner.h"
 #include "Enemy/EnemyPawn.h"
-#include "Map/StageActor.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -14,73 +13,130 @@ void AWaveManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (!StageRef.IsValid())
+    // 서버 전용: 클라이언트에서는 이 함수 바로 리턴
+    if (!HasAuthority())
+        return;
+
+    // 이벤트 구독: 플레이어 준비, 게임오버
+    if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
     {
-        StageRef = Cast<AStageActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AStageActor::StaticClass()));
-        if (!StageRef.IsValid())
-        {
-            UE_LOG(LogTemp, Error, TEXT("WaveManager: StageRef is null even after auto search"));
-            return;
-        }
+        PState->OnAllPlayersReady.AddDynamic(this, &AWaveManager::OnPlayersReady);
+        PState->OnGameOver.AddDynamic(this, &AWaveManager::HandleGameOver);
     }
 
-    for (AWaveSpawner* Spawner : StageRef->WaveSpawners)
+    // WaveSpawner 바인딩
+    if (!WaveSpawner)
     {
-        if (Spawner)
-        {
-            Spawner->StartWave(CurrentRoundIndex);
-        }
+        WaveSpawner = Cast<AWaveSpawner>(
+            UGameplayStatics::GetActorOfClass(GetWorld(), AWaveSpawner::StaticClass()));
     }
-
-    GetWorld()->GetTimerManager().SetTimer(
-        RoundTimerHandle, this, &AWaveManager::EndRound,
-        RoundDuration, false);
+    if (!WaveSpawner)
+    {
+        UE_LOG(LogTemp, Error, TEXT("[WaveManager] No WaveSpawner found!"));
+        return;
+    }
 }
 
-void AWaveManager::StartNextRound()
+void AWaveManager::OnPlayersReady()
 {
-    CurrentRoundIndex++;
-    StartRound(CurrentRoundIndex);
+    UE_LOG(LogTemp, Log, TEXT("[WaveManager] All players ready. Preparing for %.1f sec"), PreparationTime);
 
-    GetWorld()->GetTimerManager().ClearTimer(RoundTimerHandle);
+    // 준비 시간이 지난 뒤 첫 라운드를 시작
     GetWorld()->GetTimerManager().SetTimer(
-        RoundTimerHandle, this, &AWaveManager::EndRound,
-        RoundDuration, false);
+        RoundTimerHandle,
+        this, &AWaveManager::StartFirstRound,
+        PreparationTime,
+        false
+    );
+}
+
+void AWaveManager::HandleGameOver()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[WaveSpawner] HandleGameOver() fired"));
+
+    // 게임 오버 시 라운드 타이머 정리 및 스포너 비활성화
+    GetWorld()->GetTimerManager().ClearTimer(RoundTimerHandle);
+   
+    if (WaveSpawner)
+    {
+        WaveSpawner->SetActorTickEnabled(false);
+        WaveSpawner->SetActorEnableCollision(false);
+    }
 }
 
 void AWaveManager::StartRound(int32 RoundIndex)
 {
-    if (StageRef)
-    {
-        for (AWaveSpawner* Spawner : StageRef->WaveSpawners)
-        {
-            if (Spawner)
-            {
-                Spawner->StartWave(RoundIndex);
-            }
-        }
-    }
+    if (!HasAuthority() || !WaveSpawner)
+        return;
+
+    if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
+        return;
+
+    UE_LOG(LogTemp, Log, TEXT("[WaveManager] StartRound %d"), RoundIndex);
+    WaveSpawner->StartWave(RoundIndex);
+}
+
+void AWaveManager::StartFirstRound()
+{
+    UE_LOG(LogTemp, Log, TEXT("[WaveManager] Starting First Round %d"), CurrentRoundIndex);
+    StartRound(CurrentRoundIndex);
+
+    // 첫 라운드 종료 타이머 설정
+    GetWorld()->GetTimerManager().SetTimer(
+        RoundTimerHandle,
+        this, &AWaveManager::EndRound,
+        RoundDuration,
+        false
+    );
 }
 
 void AWaveManager::EndRound()
 {
-    StartNextRound();
+    if (!HasAuthority())
+        return;
+
+    // 게임오버 상태면 무시
+    if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
+        return;
+
+    // 다음 라운드로 이동
+    CurrentRoundIndex++;
+    UE_LOG(LogTemp, Log, TEXT("[WaveManager] Round ended. Next Round %d"), CurrentRoundIndex);
+
+    StartRound(CurrentRoundIndex);
+
+    // 타이머 재설정
+    GetWorld()->GetTimerManager().SetTimer(
+        RoundTimerHandle,
+        this, &AWaveManager::EndRound,
+        RoundDuration, false);
 }
 
 void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
 {
-    if (!Enemy) return;
+    if (!HasAuthority())
+        return;
+
+    if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
+        return;
+
+    if (!Enemy)
+        return;
 
     int32 Damage = Enemy->IsBoss() ? BossDamageToLife : BasicDamageToLife;
-
     PlayerLife -= Damage;
-    UE_LOG(LogTemp, Warning, TEXT("Player Life: %d"), PlayerLife);
+    UE_LOG(LogTemp, Warning, TEXT("[WaveManager] Player Life: %d"), PlayerLife);
+
+    Enemy->Destroy();
 
     if (PlayerLife <= 0)
     {
-        UE_LOG(LogTemp, Error, TEXT("Game Over!"));
-        // 게임 오버 처리 (UI, 재시작 등)
-    }
+        UE_LOG(LogTemp, Error, TEXT("[WaveManager] Game Over!"));
 
-    Enemy->Destroy();
+        // GameState를 통해 게임오버 설정
+        if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
+        {
+            PState->SetGameOver();
+        }
+    }
 }

@@ -1,8 +1,22 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+#include "PolyPalsGameMode.h"
+#include "PolyPalsState.h"
+#include "PolyPalsController.h"
 
+APolyPalsGameMode::APolyPalsGameMode()
+{
+	ConnectedPlayers = 0;
+	ExpectedPlayerCount = 3;
+}
 
-#include "Multiplayer/PolyPalsGameMode.h"
-#include "Multiplayer/PolyPalsController.h"
+void APolyPalsGameMode::TriggerGameOver()
+{
+	// GameState를 PolyPalsState로 캐스트하여 SetGameOver 호출
+	AGameStateBase* GS = GameState;
+	if (APolyPalsState* PState = Cast<APolyPalsState>(GS))
+	{
+		PState->SetGameOver();
+	}
+}
 
 void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
@@ -32,6 +46,21 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer);
 			ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 			PreparedColors.RemoveAt(0);
+		}
+	}
+
+	// 접속자 수 카운트 (호스트 포함)
+	ConnectedPlayers++;
+	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"),
+		ConnectedPlayers, ExpectedPlayerCount);
+
+	// 기준 인원 도달 시 OnAllPlayersReady 브로드캐스트
+	if (ConnectedPlayers >= ExpectedPlayerCount)
+	{
+		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+		{
+			UE_LOG(LogTemp, Log, TEXT("All players ready! Broadcasting event."));
+			GS->OnAllPlayersReady.Broadcast();
 		}
 	}
 }
