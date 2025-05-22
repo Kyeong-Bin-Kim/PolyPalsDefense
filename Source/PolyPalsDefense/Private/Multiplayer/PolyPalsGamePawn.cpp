@@ -99,6 +99,10 @@ void APolyPalsGamePawn::UnbindInputDelegate()
 		{
 			polypalsInputcomp->OnInputTest.Unbind();
 			polypalsInputcomp->OnInputClick.Unbind();
+			polypalsInputcomp->OnInputRightClick.Unbind();
+			polypalsInputcomp->OnInputTower1.Unbind();
+			polypalsInputcomp->OnInputTower2.Unbind();
+			polypalsInputcomp->OnInputTower3.Unbind();
 		}
 	}
 }
@@ -112,6 +116,10 @@ void APolyPalsGamePawn::OnRep_PolyPalsController()
 		{
 			polypalsInputcomp->OnInputTest.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTest);
 			polypalsInputcomp->OnInputClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
+			polypalsInputcomp->OnInputRightClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputRightClick);
+			polypalsInputcomp->OnInputTower1.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower1);
+			polypalsInputcomp->OnInputTower2.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower2);
+			polypalsInputcomp->OnInputTower3.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower3);
 		}
 
 		BuildTowerComponent->ClientSpawnPreviewBuilding();

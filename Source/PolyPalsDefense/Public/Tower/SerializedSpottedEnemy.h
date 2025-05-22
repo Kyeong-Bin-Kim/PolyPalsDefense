@@ -28,7 +28,7 @@ struct FSpottedEnemies : public FFastArraySerializer
 
 	void AddEnemy(const FSpottedEnemy& NewEnemy)
 	{
-		Enemies.Add(NewEnemy);
+		Enemies.AddUnique(NewEnemy);
 		MarkItemDirty(Enemies.Last());
 	}
 

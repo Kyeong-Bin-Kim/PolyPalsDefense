@@ -33,6 +33,7 @@ public:
 
 	UStaticMeshComponent* GetMeshComponent() const { return MeshComponent; }
 	bool IsBuildable() const { return bIsBuildable; }
+
 private:
 	FVector GetSnappedLocation(const FVector& WorldLocation);
 	void UpdateLocationUnderCursor();
