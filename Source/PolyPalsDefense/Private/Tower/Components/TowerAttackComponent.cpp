@@ -21,7 +21,7 @@
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	bWantsInitializeComponent = true;
 }
 
@@ -31,10 +31,16 @@ void UTowerAttackComponent::BeginPlay()
 
 
 	if (!GetOwner()->HasAuthority())
+	{
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
+		FVector EffectLoadLocation = FVector(10000.f, 10000.f, 100000.f);
+		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
+			GunMeshComponent, FName("MuzzleSocket"),
+			EffectLoadLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
+			true, true, ENCPoolMethod::AutoRelease, true);
+	}
 
 	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
-	SetComponentTickEnabled(false);
 }
 
 
@@ -56,26 +62,15 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 
 void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (CurrentTarget)
-	{
-		FVector TargetLocatoin = CurrentTarget->GetActorLocation();
-		FVector GunLocation = GunMeshComponent->GetComponentLocation();
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocatoin);
-
-		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
-		FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
-		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, 1000.f);
-		GunMeshComponent->SetWorldRotation(InterpedRotation);
-		//GunMeshComponent->SetWorldRotation(NewRotation);
-	}
+	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
 
 void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
+	if (GetWorld())
+		GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
 }
 
 void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
@@ -143,10 +138,28 @@ void UTowerAttackComponent::ServerOnTowerAttack()
 
 void UTowerAttackComponent::ClientOnTowerAttack()
 {
+	//FVector Location = GunMeshComponent->GetSocketLocation(FName("MuzzleSocket"));
 	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
 		GunMeshComponent, FName("MuzzleSocket"),
-		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition,
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
 		true, true, ENCPoolMethod::AutoRelease, true);
+}
+
+void UTowerAttackComponent::ClientUpdateGunMeshRotation()
+{
+	if (CurrentTarget)
+	{
+		FVector TargetLocatoin = CurrentTarget->GetActorLocation();
+		FVector GunLocation = GunMeshComponent->GetComponentLocation();
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocatoin);
+
+		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
+		/*FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
+		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, InterpSpeed);
+		GunMeshComponent->SetWorldRotation(InterpedRotation);*/
+		//GunMeshComponent->SetWorldRotation(NewRotation);
+		GunMeshComponent->SetRelativeRotation(NewRotation);
+	}
 }
 
 void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
@@ -194,12 +207,20 @@ void UTowerAttackComponent::OnRep_CurrentTarget()
 	if (CurrentTarget)
 	{
 		SetAttackTimer();
-		SetComponentTickEnabled(true);
+		//FString TargetName = CurrentTarget.GetName();
+		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTartget set as %s"), *TargetName);
+
+		if (GetWorld())
+			GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
 	}
 	else
 	{
+		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTarget set as null."))
 		ClearAttackTimer();
-		SetComponentTickEnabled(false);
+		if (!GetWorld()) return;
+		
+		if (GetWorld()->GetTimerManager().IsTimerActive(GunMeshHandle))
+			GetWorld()->GetTimerManager().ClearTimer(GunMeshHandle);
 	}
 }
 
