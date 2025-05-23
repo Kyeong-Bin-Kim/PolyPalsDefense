@@ -8,7 +8,7 @@ struct FEnemySpawnEntry
 {
     GENERATED_BODY()
 
-    UPROPERTY(EditAnywhere, meta = (AllowedTypes = "Enemy"))
+    UPROPERTY(EditAnywhere, meta = (AllowedTypes = "EnemyDataAsset"))
     FPrimaryAssetId EnemyId;
 
     UPROPERTY(EditAnywhere)

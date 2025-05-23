@@ -6,12 +6,17 @@
 #include "Enemy/EnemyVisualData.h"
 #include "EnemyDataAsset.generated.h"
 
-UCLASS(BlueprintType, Blueprintable)
+UCLASS()
 class POLYPALSDEFENSE_API UEnemyDataAsset : public UPrimaryDataAsset
 {
     GENERATED_BODY()
 
 public:
+    FPrimaryAssetId GetPrimaryAssetId() const override
+    {
+        return FPrimaryAssetId("EnemyDataAsset", GetFName());
+    }
+
     // 전투 능력치
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyStatData Stats;
@@ -23,9 +28,4 @@ public:
     // 시각적 연출
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyVisualData Visual;
-
-    virtual FPrimaryAssetId GetPrimaryAssetId() const override
-    {
-        return FPrimaryAssetId("Enemy", GetFName());
-    }
 };

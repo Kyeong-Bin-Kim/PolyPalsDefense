@@ -19,11 +19,13 @@ public:
     // 이동 초기화 (스플라인, 속도)
     void Initialize(USplineComponent* InSpline, float InMoveSpeed);
 
-    /** 이동속도 변경 (슬로우 등) */
+    // 이동속도 변경 (슬로우)
     void SetMoveSpeed(float NewSpeed);
 
-    /** 이동 정지 여부 설정 (스턴 등) */
+    // 이동 정지 여부 설정 (스턴)
     void SetPaused(bool bPause);
+
+    USplineComponent* GetSpline() const { return Spline; }
 
 protected:
     virtual void BeginPlay() override;

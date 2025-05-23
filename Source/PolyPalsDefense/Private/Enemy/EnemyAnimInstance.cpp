@@ -9,7 +9,6 @@ void UEnemyAnimInstance::NativeInitializeAnimation()
 void UEnemyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);
-    // Tick마다 애니메이션 파라미터 갱신 필요 시 추가 가능
 }
 
 void UEnemyAnimInstance::SetSpeed(float InSpeed)
