@@ -27,10 +27,10 @@ public:
 	
 protected:
 	/////////////////////// test code ///////////////////////
-	//UPROPERTY(EditDefaultsOnly)
-	//TSubclassOf<class ATestEnemy> TestEnemyClass;
-	//UPROPERTY(EditDefaultsOnly)
-	//FVector TestEnemySpawnLocation;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ATestEnemy> TestEnemyClass;
+	UPROPERTY(EditDefaultsOnly)
+	FVector TestEnemySpawnLocation;
 	//////////////////////////////////////////////////////////
 
 private:

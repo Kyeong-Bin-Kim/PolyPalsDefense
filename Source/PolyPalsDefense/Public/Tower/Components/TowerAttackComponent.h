@@ -31,6 +31,7 @@ private:
 	AActor* ServerFindFirstValidTarget();
 	void ServerOnTowerAttack();
 	void ClientOnTowerAttack();
+	void ClientUpdateGunMeshRotation();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
 	void SetAttackTimer();
 	void ClearAttackTimer();
@@ -52,7 +53,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
 	uint8 TowerId = -1;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
 	TObjectPtr<AActor> CurrentTarget;
 	
 	UPROPERTY()
@@ -64,6 +65,7 @@ private:
 	ETowerAbility TowerAbility = ETowerAbility::None;
 
 	FTimerHandle AttackHandle;
+	FTimerHandle GunMeshHandle;
 
 private:
 	UPROPERTY()

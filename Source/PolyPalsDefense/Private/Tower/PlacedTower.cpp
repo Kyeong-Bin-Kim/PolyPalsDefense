@@ -197,7 +197,7 @@ void APlacedTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	{
 		FString MyName = GetName();
 		FString EneymName = OtherActor->GetName();
-		UE_LOG(LogTemp, Log, TEXT("Tower %s Spotted Enemy %s"), *MyName, *EneymName);
+		UE_LOG(LogTemp, Log, TEXT("Tower %s lost Enemy %s"), *MyName, *EneymName);
 		TowerAttackComponent->ServerOnEnemyEndOverlap(OtherActor);
 	}
 }

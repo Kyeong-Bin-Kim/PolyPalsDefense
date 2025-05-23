@@ -71,12 +71,12 @@ void APolyPalsGameMode::StartPlay()
 	Super::StartPlay();
 
 	/////////////////////// test code ///////////////////////
-	//FActorSpawnParameters Params;
-	//Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	//FTransform SpawnTrasform;
-	//SpawnTrasform.SetLocation(TestEnemySpawnLocation);
+	FTransform SpawnTrasform;
+	SpawnTrasform.SetLocation(TestEnemySpawnLocation);
 
-	//GetWorld()->SpawnActor<ATestEnemy>(TestEnemyClass, SpawnTrasform);
+	GetWorld()->SpawnActor<ATestEnemy>(TestEnemyClass, SpawnTrasform);
 	//////////////////////////////////////////////////////////
 }
