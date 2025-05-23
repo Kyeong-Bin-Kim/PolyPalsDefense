@@ -5,6 +5,7 @@
 #include "Components/SplineComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/ArrowComponent.h"
+#include "EnemyAnimInstance.h"
 #include "AssetManagement/PolyPalsDefenseAssetManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "WaveManager.h"
@@ -60,6 +61,7 @@ void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AEnemyPawn, bIsActive);
     DOREPLIFETIME(AEnemyPawn, EnemyData);
     DOREPLIFETIME(AEnemyPawn, ReplicatedScale);
+    DOREPLIFETIME(AEnemyPawn, ReplicatedMoveSpeed);
 }
 
 void AEnemyPawn::OnRep_IsActive()
@@ -77,13 +79,21 @@ void AEnemyPawn::OnRep_EnemyData()
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
+        UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
     }
 
     // 애니메이션 블루프린트 설정
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
+        UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
         Mesh->InitAnim(true);
+
+        // 애님 인스턴스에 속도 전달
+        if (UEnemyAnimInstance* EnemyAnim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
+        {
+            EnemyAnim->SetSpeed(ReplicatedMoveSpeed); // 복제된 속도 전달
+        }
     }
 
     // 복제된 스케일도 적용
@@ -99,33 +109,53 @@ void AEnemyPawn::OnRep_Scale()
     Mesh->SetRelativeScale3D(ReplicatedScale);
 }
 
+void AEnemyPawn::OnRep_MoveSpeed()
+{
+    if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
+    {
+        Anim->SetSpeed(ReplicatedMoveSpeed);
+    }
+}
+
 void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     if (!InDataAsset) return;
 
     EnemyData = InDataAsset;
     ReplicatedScale = Scale;
+    ReplicatedMoveSpeed = RuntimeStats.MoveSpeed;
 
+    // 런타임 스탯 생성 및 배수 적용
     RuntimeStats = FEnemyRuntimeStats(EnemyData->Stats);
     if (bIsBoss)
+    {
         RuntimeStats.ApplyMultiplier(HealthMultiplier, SpeedMultiplier);
+    }
 
-    // 메시, 애니메이션 세팅
+    // 메시 및 애니메이션 설정
     if (EnemyData->Visual.Mesh)
+    {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
+    }
     if (EnemyData->Visual.AnimBPClass)
+    {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
+    }
 
+    // 스케일 적용
     Mesh->SetRelativeScale3D(ReplicatedScale);
-    BaseMoveSpeed = RuntimeStats.MoveSpeed; // TODO: 나중에 이동 컴포넌트 또는 상태 컴포넌트로 이관
-    SplineMovement->Initialize(InSpline, BaseMoveSpeed);
 
+    // 상태 컴포넌트 초기화 및 사망 이벤트 바인딩
     if (Status)
     {
-        Status->Initialize(RuntimeStats.MaxHealth);
+        Status->Initialize(RuntimeStats.MaxHealth, RuntimeStats.MoveSpeed);
         Status->OnEnemyDied.RemoveDynamic(this, &AEnemyPawn::HandleEnemyDeath);
         Status->OnEnemyDied.AddDynamic(this, &AEnemyPawn::HandleEnemyDeath);
     }
+
+    // 스플라인 이동 초기화 (Status에서 유효 속도 받아서)
+    const float EffectiveSpeed = Status ? Status->GetEffectiveMoveSpeed() : RuntimeStats.MoveSpeed;
+    SplineMovement->Initialize(InSpline, EffectiveSpeed);
 }
 
 void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)

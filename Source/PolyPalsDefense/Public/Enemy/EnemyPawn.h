@@ -71,6 +71,10 @@ protected:
     UFUNCTION()
     void OnRep_Scale();
 
+	// 복제된 이동 속도 반응
+    UFUNCTION()
+    void OnRep_MoveSpeed();
+
     // 복제 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -114,6 +118,10 @@ protected:
     UPROPERTY(ReplicatedUsing = OnRep_Scale)
     FVector ReplicatedScale;
 
+    // 이동속도
+    UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
+    float ReplicatedMoveSpeed;
+
     // 보스 여부
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     bool bIsBoss = false;
@@ -121,7 +129,4 @@ protected:
 private:
     // 실시간 스탯 (체력, 속도 등)
     FEnemyRuntimeStats RuntimeStats;
-
-    // TODO: BaseMoveSpeed는 추후 SplineMovement 또는 StatusComponent에 이관
-    float BaseMoveSpeed;
 };

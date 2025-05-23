@@ -7,7 +7,7 @@ UEnemyStatusComponent::UEnemyStatusComponent()
     PrimaryComponentTick.bCanEverTick = false;
     MaxHealth = 100.f;
     CurrentHealth = MaxHealth;
-    SlowRatio = 1.f;
+    SlowRatio = 0.5f;
     bIsStunned = false;
 }
 
@@ -17,10 +17,16 @@ void UEnemyStatusComponent::BeginPlay()
     CurrentHealth = MaxHealth;
 }
 
-void UEnemyStatusComponent::Initialize(float InMaxHealth)
+void UEnemyStatusComponent::Initialize(float InMaxHealth, float InBaseMoveSpeed)
 {
     MaxHealth = InMaxHealth;
     CurrentHealth = MaxHealth;
+    BaseMoveSpeed = InBaseMoveSpeed;
+}
+
+float UEnemyStatusComponent::GetEffectiveMoveSpeed() const
+{
+    return bIsStunned ? 0.f : BaseMoveSpeed * SlowRatio;
 }
 
 void UEnemyStatusComponent::TakeDamage(float DamageAmount)
