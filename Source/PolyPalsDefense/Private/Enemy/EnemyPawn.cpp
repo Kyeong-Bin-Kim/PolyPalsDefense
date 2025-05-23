@@ -46,11 +46,18 @@ AEnemyPawn::AEnemyPawn()
     // 초기에는 비활성화 상태로 숨김
     bIsActive = false;
     SetActorHiddenInGame(true);
+    bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
 void AEnemyPawn::BeginPlay()
 {
     Super::BeginPlay();
+
+    
+    Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    Mesh->SetCollisionObjectType(ECC_Pawn);
+    Mesh->SetCollisionResponseToAllChannels(ECR_Overlap);
+    Tags.Add(FName(TEXT("Enemy")));
 }
 
 void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
