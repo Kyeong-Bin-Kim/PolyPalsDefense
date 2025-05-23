@@ -28,6 +28,18 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetNextWaveTime(float Seconds);
 
+    UFUNCTION()
+    void OnToggleTowerButtonClicked();
+
+    UFUNCTION()
+    void OnTower1ButtonClicked();
+
+    UFUNCTION()
+    void OnTower2ButtonClicked();
+
+    UFUNCTION()
+    void OnTower3ButtonClicked();
+
 protected:
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* RoundText;
@@ -46,4 +58,18 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     class UHorizontalBox* TowerIconsBox;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* ToggleTowerButton;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* Tower1Button;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* Tower2Button;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* Tower3Button;
+
+    bool bIsTowerPanelVisible = false;
 };

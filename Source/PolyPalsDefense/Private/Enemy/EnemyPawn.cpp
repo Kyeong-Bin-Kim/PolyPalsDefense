@@ -246,11 +246,6 @@ UEnemyDataAsset* AEnemyPawn::GetEnemyData() const
     return EnemyData;
 }
 
-bool AEnemyPawn::IsBoss() const
-{
-    return bIsBoss;
-}
-
 void AEnemyPawn::ReachGoal()
 {
     if (AWaveManager* Manager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(
@@ -258,4 +253,30 @@ void AEnemyPawn::ReachGoal()
     {
         Manager->HandleEnemyReachedGoal(this);
     }
+}
+
+float AEnemyPawn::GetMaxHealth() const
+{
+
+    return Status ? Status->GetMaxHealth() : 0.f;
+}
+
+float AEnemyPawn::GetHealth() const
+{
+    return Status ? Status->GetCurrentHealth() : 0.f;
+}
+
+bool AEnemyPawn::IsSlowed() const
+{
+    return Status ? Status->IsSlowed() : false;
+}
+
+bool AEnemyPawn::IsStunned() const
+{
+    return Status ? Status->IsStunned() : false;
+}
+
+bool AEnemyPawn::IsBoss() const
+{
+    return bIsBoss;
 }
