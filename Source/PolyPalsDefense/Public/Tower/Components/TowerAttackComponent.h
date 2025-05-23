@@ -59,7 +59,7 @@ private:
 	UPROPERTY()
 	TArray<AActor*> SpottedEnemy_Server;
 
-
+	bool bReadyToAttack = true;
 	float Damage = 0.f;
 	float AttackDelay = -1.f;
 	ETowerAbility TowerAbility = ETowerAbility::None;

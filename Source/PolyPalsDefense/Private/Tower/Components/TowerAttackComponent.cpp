@@ -119,7 +119,15 @@ void UTowerAttackComponent::ServerOnTowerAttack()
 	}
 
 	CurrentTarget = Target;
-	UGameplayStatics::ApplyDamage(Target, Damage, nullptr, nullptr, nullptr);
+	if (bReadyToAttack)
+	{
+		UGameplayStatics::ApplyDamage(Target, Damage, nullptr, nullptr, nullptr);
+		bReadyToAttack = false;
+		if (GetWorld())
+			GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
+			bReadyToAttack = true;
+				}), AttackDelay, false);
+	}
 
 	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Target);
 	if (IsValid(EnemyPawn))	// 캐스트가 성공했는가? 혹은 다른 이유로 Destroy 되지 않았는가?
@@ -139,10 +147,20 @@ void UTowerAttackComponent::ServerOnTowerAttack()
 void UTowerAttackComponent::ClientOnTowerAttack()
 {
 	//FVector Location = GunMeshComponent->GetSocketLocation(FName("MuzzleSocket"));
-	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
-		GunMeshComponent, FName("MuzzleSocket"),
-		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
-		true, true, ENCPoolMethod::AutoRelease, true);
+
+	if (bReadyToAttack)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
+			GunMeshComponent, FName("MuzzleSocket"),
+			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
+			true, true, ENCPoolMethod::AutoRelease, true);
+		bReadyToAttack = false;
+		if (GetWorld())
+			GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
+			bReadyToAttack = true;
+				}), AttackDelay, false);
+	}
+
 }
 
 void UTowerAttackComponent::ClientUpdateGunMeshRotation()
