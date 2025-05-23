@@ -1,6 +1,7 @@
 #include "PolyPalsGameMode.h"
 #include "PolyPalsState.h"
 #include "PolyPalsController.h"
+#include "Tower/TestEnemy.h"
 
 APolyPalsGameMode::APolyPalsGameMode()
 {
@@ -63,4 +64,19 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			GS->OnAllPlayersReady.Broadcast();
 		}
 	}
+}
+
+void APolyPalsGameMode::StartPlay()
+{
+	Super::StartPlay();
+
+	/////////////////////// test code ///////////////////////
+	//FActorSpawnParameters Params;
+	//Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	//FTransform SpawnTrasform;
+	//SpawnTrasform.SetLocation(TestEnemySpawnLocation);
+
+	//GetWorld()->SpawnActor<ATestEnemy>(TestEnemyClass, SpawnTrasform);
+	//////////////////////////////////////////////////////////
 }

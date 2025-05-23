@@ -178,6 +178,9 @@ void APlacedTower::SetTowerCollision()
 void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	FString Overlapped = OtherActor->GetName();
+	UE_LOG(LogTemp, Log, TEXT("Tower range overlapped with %s"), *Overlapped);
+
 	if (OtherActor->ActorHasTag(AttackTargetTag))
 	{
 		FString MyName = GetName();
