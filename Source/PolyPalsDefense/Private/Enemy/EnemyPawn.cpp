@@ -4,6 +4,7 @@
 #include "EnemyStatusComponent.h"
 #include "Components/SplineComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/ArrowComponent.h"
 #include "EnemyAnimInstance.h"
 #include "AssetManagement/PolyPalsDefenseAssetManager.h"
@@ -16,39 +17,45 @@ AEnemyPawn::AEnemyPawn()
     // 네트워크 복제 설정
     bReplicates = true;
     SetReplicateMovement(true);
-
     PrimaryActorTick.bCanEverTick = false;
 
-    // 루트 컴포넌트 생성
+    // 루트 컴포넌트
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     RootComponent = Root;
 
-    // 스켈레탈 메시 생성 및 충돌 설정 (Overlap만 허용)
+    // 스켈레탈 메시
     Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
     Mesh->SetupAttachment(RootComponent);
+    Mesh->SetRelativeRotation(MeshRotation);
     Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    Mesh->SetCollisionObjectType(ECC_Pawn);
     Mesh->SetCollisionResponseToAllChannels(ECR_Overlap);
+    Mesh->SetGenerateOverlapEvents(true);
 
-    // 방향 표시용 컴포넌트
+    // 메시 하위에 구체 콜리전
+    CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
+    CollisionSphere->SetupAttachment(Mesh);
+    CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    CollisionSphere->SetCollisionResponseToAllChannels(ECR_Overlap);
+    CollisionSphere->SetGenerateOverlapEvents(true);
+
+    // 방향 표시
     DirectionIndicator = CreateDefaultSubobject<UArrowComponent>(TEXT("Direction"));
     DirectionIndicator->SetupAttachment(RootComponent);
 
-    // 이동, 상태 컴포넌트 생성
+    // 이동 및 상태 컴포넌트
     SplineMovement = CreateDefaultSubobject<UEnemySplineMovementComponent>(TEXT("SplineMovement"));
     Status = CreateDefaultSubobject<UEnemyStatusComponent>(TEXT("Status"));
 
-    // 메시 기본 회전 적용
-    Mesh->SetRelativeRotation(MeshRotation);
-
-    // 태그 설정 (타워 공격, 스킬 판정용)
+    // 태그 및 초기 비활성 상태
     Tags.Add(FName(TEXT("Enemy")));
-
-    // 초기에는 비활성화 상태로 숨김
     bIsActive = false;
     SetActorHiddenInGame(true);
+
+    // 스트리밍 중에도 오버랩 유지
     bGenerateOverlapEventsDuringLevelStreaming = true;
 }
+
+
 
 void AEnemyPawn::BeginPlay()
 {
@@ -68,6 +75,7 @@ void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AEnemyPawn, bIsActive);
     DOREPLIFETIME(AEnemyPawn, EnemyData);
     DOREPLIFETIME(AEnemyPawn, ReplicatedScale);
+	DOREPLIFETIME(AEnemyPawn, ReplicatedSphereRadius);
     DOREPLIFETIME(AEnemyPawn, ReplicatedMoveSpeed);
 }
 
@@ -105,6 +113,7 @@ void AEnemyPawn::OnRep_EnemyData()
 
     // 복제된 스케일도 적용
     Mesh->SetRelativeScale3D(ReplicatedScale);
+	CollisionSphere->SetRelativeScale3D(ReplicatedScale);
 
     UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData 실행됨 - 애니메이션: %s, 스케일: %s"),
         EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
@@ -116,6 +125,12 @@ void AEnemyPawn::OnRep_Scale()
     Mesh->SetRelativeScale3D(ReplicatedScale);
 }
 
+void AEnemyPawn::OnRep_SphereRadius()
+{
+    const float ScaledRadius = ReplicatedSphereRadius * ReplicatedScale.X;
+    CollisionSphere->SetSphereRadius(ScaledRadius);
+}
+
 void AEnemyPawn::OnRep_MoveSpeed()
 {
     if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
@@ -124,26 +139,29 @@ void AEnemyPawn::OnRep_MoveSpeed()
     }
 }
 
-void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
+void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius)
 {
     if (!InDataAsset) return;
 
     EnemyData = InDataAsset;
     ReplicatedScale = Scale;
-    ReplicatedMoveSpeed = RuntimeStats.MoveSpeed;
+	ReplicatedSphereRadius = CollisionRadius;
 
-    // 런타임 스탯 생성 및 배수 적용
     RuntimeStats = FEnemyRuntimeStats(EnemyData->Stats);
     if (bIsBoss)
     {
         RuntimeStats.ApplyMultiplier(HealthMultiplier, SpeedMultiplier);
     }
 
-    // 메시 및 애니메이션 설정
+    ReplicatedMoveSpeed = RuntimeStats.MoveSpeed;
+
+    // 메시 설정
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
     }
+
+    // 애니메이션 블루프린트 설정
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
@@ -152,7 +170,12 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     // 스케일 적용
     Mesh->SetRelativeScale3D(ReplicatedScale);
 
-    // 상태 컴포넌트 초기화 및 사망 이벤트 바인딩
+    // 구체 콜리전 반지름 적용 (스케일 반영)
+    float ScaledRadius = CollisionRadius * ReplicatedScale.X;
+    CollisionSphere->SetSphereRadius(ScaledRadius);
+
+
+    // 상태 컴포넌트 초기화
     if (Status)
     {
         Status->Initialize(RuntimeStats.MaxHealth, RuntimeStats.MoveSpeed);
@@ -160,17 +183,16 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
         Status->OnEnemyDied.AddDynamic(this, &AEnemyPawn::HandleEnemyDeath);
     }
 
-    // 스플라인 이동 초기화 (Status에서 유효 속도 받아서)
     const float EffectiveSpeed = Status ? Status->GetEffectiveMoveSpeed() : RuntimeStats.MoveSpeed;
     SplineMovement->Initialize(InSpline, EffectiveSpeed);
 }
 
-void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
+void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(InAssetId);
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
-        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
+        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale, CollisionRadius);
     }
     else
     {

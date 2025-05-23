@@ -8,6 +8,7 @@
 class USplineComponent;
 class UEnemyDataAsset;
 class USkeletalMeshComponent;
+class USphereComponent;
 class UArrowComponent;
 class UEnemySplineMovementComponent;
 class UEnemyStatusComponent;
@@ -25,10 +26,10 @@ public:
     virtual void BeginPlay() override;
 
     // 데이터 에셋으로 초기화
-    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
+    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius);
 
     // AssetManager로부터 에셋 ID로 초기화
-    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
+    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius);
 
     // 보스 여부
     bool IsBoss() const;
@@ -69,6 +70,10 @@ protected:
 
     // 복제된 스케일 반응
     UFUNCTION()
+    void OnRep_SphereRadius();
+
+	// 복제된 구체 콜리전 반응
+    UFUNCTION()
     void OnRep_Scale();
 
 	// 복제된 이동 속도 반응
@@ -87,6 +92,10 @@ protected:
     // 스켈레탈 메시 (시각, 애니메이션)
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USkeletalMeshComponent* Mesh;
+
+    // 구체 콜리전
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    USphereComponent* CollisionSphere;
 
     // 방향 표시용 화살표
     UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -117,6 +126,10 @@ protected:
     // 메시 크기
     UPROPERTY(ReplicatedUsing = OnRep_Scale)
     FVector ReplicatedScale;
+
+	// 구체 콜리전 반지름
+    UPROPERTY(ReplicatedUsing = OnRep_SphereRadius)
+    float ReplicatedSphereRadius;
 
     // 이동속도
     UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
