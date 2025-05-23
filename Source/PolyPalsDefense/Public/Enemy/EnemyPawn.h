@@ -26,10 +26,10 @@ public:
     virtual void BeginPlay() override;
 
     // 데이터 에셋으로 초기화
-    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius);
+    void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
     // AssetManager로부터 에셋 ID로 초기화
-    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius);
+    void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
     // 보스 여부
     bool IsBoss() const;
@@ -67,10 +67,6 @@ protected:
     // 복제된 데이터 자산 반응
     UFUNCTION()
     void OnRep_EnemyData();
-
-    // 복제된 스케일 반응
-    UFUNCTION()
-    void OnRep_SphereRadius();
 
 	// 복제된 구체 콜리전 반응
     UFUNCTION()
@@ -113,6 +109,10 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
 
+    // 구체 콜리전 반지름
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
+	float SphereRadius = 120.f;
+
     // === 복제 상태 ===
 
     // 풀링 활성화 여부
@@ -126,10 +126,6 @@ protected:
     // 메시 크기
     UPROPERTY(ReplicatedUsing = OnRep_Scale)
     FVector ReplicatedScale;
-
-	// 구체 콜리전 반지름
-    UPROPERTY(ReplicatedUsing = OnRep_SphereRadius)
-    float ReplicatedSphereRadius;
 
     // 이동속도
     UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)

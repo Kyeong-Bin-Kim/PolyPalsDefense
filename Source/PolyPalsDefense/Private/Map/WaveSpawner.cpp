@@ -150,8 +150,7 @@ void AWaveSpawner::SpawnNextEnemy()
         Entry.HealthMultiplier,
         Entry.SpeedMultiplier,
         Entry.bIsBoss,
-        Entry.Scale,
-        Entry.BasicSphereRadius
+        Entry.Scale
     );
 
     if (!Enemy)

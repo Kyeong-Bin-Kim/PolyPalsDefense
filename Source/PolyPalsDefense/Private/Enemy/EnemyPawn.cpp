@@ -34,6 +34,7 @@ AEnemyPawn::AEnemyPawn()
     // 메시 하위에 구체 콜리전
     CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
     CollisionSphere->SetupAttachment(Mesh);
+    CollisionSphere->SetSphereRadius(SphereRadius);
     CollisionSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     CollisionSphere->SetCollisionResponseToAllChannels(ECR_Overlap);
     CollisionSphere->SetGenerateOverlapEvents(true);
@@ -75,7 +76,6 @@ void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
     DOREPLIFETIME(AEnemyPawn, bIsActive);
     DOREPLIFETIME(AEnemyPawn, EnemyData);
     DOREPLIFETIME(AEnemyPawn, ReplicatedScale);
-	DOREPLIFETIME(AEnemyPawn, ReplicatedSphereRadius);
     DOREPLIFETIME(AEnemyPawn, ReplicatedMoveSpeed);
 }
 
@@ -125,12 +125,6 @@ void AEnemyPawn::OnRep_Scale()
     Mesh->SetRelativeScale3D(ReplicatedScale);
 }
 
-void AEnemyPawn::OnRep_SphereRadius()
-{
-    const float ScaledRadius = ReplicatedSphereRadius * ReplicatedScale.X;
-    CollisionSphere->SetSphereRadius(ScaledRadius);
-}
-
 void AEnemyPawn::OnRep_MoveSpeed()
 {
     if (UEnemyAnimInstance* Anim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
@@ -139,13 +133,12 @@ void AEnemyPawn::OnRep_MoveSpeed()
     }
 }
 
-void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius)
+void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     if (!InDataAsset) return;
 
     EnemyData = InDataAsset;
     ReplicatedScale = Scale;
-	ReplicatedSphereRadius = CollisionRadius;
 
     RuntimeStats = FEnemyRuntimeStats(EnemyData->Stats);
     if (bIsBoss)
@@ -170,10 +163,19 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     // 스케일 적용
     Mesh->SetRelativeScale3D(ReplicatedScale);
 
-    // 구체 콜리전 반지름 적용 (스케일 반영)
-    float ScaledRadius = CollisionRadius * ReplicatedScale.X;
-    CollisionSphere->SetSphereRadius(ScaledRadius);
+    if (Mesh && CollisionSphere)
+    {
+        FName CenterBoneName = TEXT("Body");
 
+        if (Mesh->DoesSocketExist(CenterBoneName))
+        {
+            FVector BoneLocation = Mesh->GetSocketLocation(CenterBoneName);
+            FVector LocalLocation = Mesh->GetComponentTransform().InverseTransformPosition(BoneLocation);
+            CollisionSphere->SetRelativeLocation(LocalLocation);
+
+            UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 중심 본 기준 위치 적용: %s"), *LocalLocation.ToString());
+        }
+    }
 
     // 상태 컴포넌트 초기화
     if (Status)
@@ -187,12 +189,12 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     SplineMovement->Initialize(InSpline, EffectiveSpeed);
 }
 
-void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale, float CollisionRadius)
+void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(InAssetId);
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
-        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale, CollisionRadius);
+        InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {

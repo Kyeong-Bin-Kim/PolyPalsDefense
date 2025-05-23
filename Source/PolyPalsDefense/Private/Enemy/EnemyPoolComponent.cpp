@@ -22,7 +22,7 @@ void UEnemyPoolComponent::BeginPlay()
         return;
 }
 
-AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale, float CollisionRadius)
+AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale)
 {
     AEnemyPawn* EnemyPawn = nullptr;
 
@@ -32,12 +32,12 @@ AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, US
         EnemyPawn = EnemyPool[AssetId].Pop();
 
         // 재활용 시에도 완전 초기화
-        EnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale, CollisionRadius);
+        EnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {
         // 풀에 없으면 새로 생성
-        EnemyPawn = CreateNewEnemy(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, bIsBoss, Scale, CollisionRadius);
+        EnemyPawn = CreateNewEnemy(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, bIsBoss, Scale);
     }
 
     if (EnemyPawn)
@@ -64,7 +64,7 @@ void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
     }
 }
 
-AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale, float CollisionRadius)
+AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, bool bIsBoss, FVector Scale)
 {
     if (!EnemyClass || !GetWorld())
         return nullptr;
@@ -81,7 +81,7 @@ AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, 
 
     if (NewEnemyPawn)
     {
-        NewEnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale, CollisionRadius);
+        NewEnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
         NewEnemyPawn->SetIsActive(true);
     }
 
