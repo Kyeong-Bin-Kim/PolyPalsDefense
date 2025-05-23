@@ -33,7 +33,7 @@ void UTowerAttackComponent::BeginPlay()
 	if (!GetOwner()->HasAuthority())
 	{
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
-		FVector EffectLoadLocation = FVector(10000.f, 10000.f, 100000.f);
+		FVector EffectLoadLocation = FVector(0.f, 0.f, 5000.f);
 		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
 			GunMeshComponent, FName("MuzzleSocket"),
 			EffectLoadLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
@@ -178,9 +178,9 @@ void UTowerAttackComponent::SetAttackTimer()
 	ClearAttackTimer();
 
 	if (GetOwner()->HasAuthority())
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ServerOnTowerAttack, AttackDelay, true);
+		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ServerOnTowerAttack, AttackDelay, true, 0.f);
 	else
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ClientOnTowerAttack, AttackDelay, true);
+		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ClientOnTowerAttack, AttackDelay, true, 0.f);
 }
 
 void UTowerAttackComponent::ClearAttackTimer()

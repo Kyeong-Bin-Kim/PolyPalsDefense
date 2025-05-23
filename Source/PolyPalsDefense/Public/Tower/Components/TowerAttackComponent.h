@@ -51,7 +51,7 @@ private:
 	uint8 CurrentLevel = 1;
 
 	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
-	uint8 TowerId = -1;
+	int16 TowerId = -1;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
 	TObjectPtr<AActor> CurrentTarget;
@@ -66,6 +66,7 @@ private:
 
 	FTimerHandle AttackHandle;
 	FTimerHandle GunMeshHandle;
+	FTimerHandle DelayHandle;
 
 private:
 	UPROPERTY()
