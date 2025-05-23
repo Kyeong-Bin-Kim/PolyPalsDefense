@@ -51,6 +51,7 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UTowerAttackComponent, CurrentLevel);
 	DOREPLIFETIME(UTowerAttackComponent, TowerId);
+	DOREPLIFETIME(UTowerAttackComponent, CurrentTarget);
 }
 
 void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -64,10 +65,10 @@ void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocatoin);
 
 		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
-		/*FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
-		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, InterpSpeed);
-		GunMeshComponent->SetWorldRotation(InterpedRotation);*/
-		GunMeshComponent->SetWorldRotation(NewRotation);
+		FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
+		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, 1000.f);
+		GunMeshComponent->SetWorldRotation(InterpedRotation);
+		//GunMeshComponent->SetWorldRotation(NewRotation);
 	}
 }
 
@@ -192,17 +193,13 @@ void UTowerAttackComponent::OnRep_CurrentTarget()
 {
 	if (CurrentTarget)
 	{
-		if (!GetWorld()->GetTimerManager().IsTimerActive(AttackHandle))
-			SetAttackTimer();
-
-		if (!IsComponentTickEnabled())
-			SetComponentTickEnabled(true);
+		SetAttackTimer();
+		SetComponentTickEnabled(true);
 	}
 	else
 	{
 		ClearAttackTimer();
-		if (IsComponentTickEnabled())
-			SetComponentTickEnabled(false);
+		SetComponentTickEnabled(false);
 	}
 }
 

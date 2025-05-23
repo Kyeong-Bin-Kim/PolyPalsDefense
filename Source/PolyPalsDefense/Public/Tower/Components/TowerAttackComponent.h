@@ -52,7 +52,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
 	uint8 TowerId = -1;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
 	TObjectPtr<AActor> CurrentTarget;
 	
 	UPROPERTY()
