@@ -26,6 +26,14 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "Game")
     FOnAllPlayersReady OnAllPlayersReady;
 
+    // 현재 골드 조회
+    UFUNCTION(BlueprintPure, Category = "Player")
+    int32 GetGold() const { return Gold; }
+
+    // 서버에서 골드 추가
+    UFUNCTION(Server, Reliable)
+    void AddGold(int32 Amount);
+
     // 게임 오버가 발생했는지 여부 반환
     UFUNCTION(BlueprintPure, Category = "Game")
     bool IsGameOver() const { return bIsGameOver; }
@@ -38,11 +46,19 @@ protected:
     // 복제할 프로퍼티 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    // 골드 변경 시 UI에 알림
+    UFUNCTION()
+    void OnRep_Gold();
+
     // GameOver 플래그 동기화 시 호출되어 이벤트 브로드캐스트
     UFUNCTION()
     void OnRep_GameOver();
 
 private:
+    // 골드 값 (클라이언트 UI용 복제 - 플레이어별 골드)
+    UPROPERTY(ReplicatedUsing = OnRep_Gold)
+    int32 Gold;
+
     // 게임 오버 상태 여부 (ReplicatedUsing을 통해 OnRep 호출)
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)
     bool bIsGameOver;

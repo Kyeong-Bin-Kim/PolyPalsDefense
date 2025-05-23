@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "EnemyStatusComponent.generated.h"
 
+// 사망 이벤트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyDied);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -14,53 +15,62 @@ class POLYPALSDEFENSE_API UEnemyStatusComponent : public UActorComponent
 public:
     UEnemyStatusComponent();
 
-    // 체력 초기화
+    // 초기화
     void Initialize(float InMaxHealth, float InBaseMoveSpeed);
 
-	// 이동 속도 계산
-    float GetEffectiveMoveSpeed() const;
-
-    // 데미지 적용
+    // 데미지 및 상태 이상
     void TakeDamage(float DamageAmount);
-
-    // 스턴 적용 (지속 시간 포함)
     void ApplyStun(float Duration);
-
-    // 슬로우 적용 (비율과 지속시간)
     void ApplySlow(float Ratio, float Duration);
 
-    // 사망 델리게이트
+    // === Getter (UI 연동용) ===
+    float GetCurrentHealth() const { return CurrentHealth; }
+    float GetMaxHealth() const { return MaxHealth; }
+    float GetHealthRatio() const { return MaxHealth > 0.f ? CurrentHealth / MaxHealth : 0.f; }
+
+    bool IsDead() const { return CurrentHealth <= 0.f; }
+    bool IsStunned() const { return bIsStunned; }
+    bool IsSlowed() const { return bIsSlowed; }
+
+    float GetEffectiveMoveSpeed() const;
+
+    // 사망 이벤트 바인딩용
     UPROPERTY(BlueprintAssignable)
     FOnEnemyDied OnEnemyDied;
-
-    // 현재 체력
-    UPROPERTY(BlueprintReadOnly)
-    float CurrentHealth;
-
-    // 최대 체력
-    UPROPERTY(BlueprintReadOnly, EditAnywhere)
-    float MaxHealth;
-
-	// 기본 이동 속도
-    UPROPERTY(BlueprintReadOnly)
-    float BaseMoveSpeed;
-
-    // 현재 슬로우 비율 (0 ~ 1)
-    UPROPERTY(BlueprintReadOnly)
-    float SlowRatio;
-
-    // 현재 스턴 여부
-    UPROPERTY(BlueprintReadOnly)
-    bool bIsStunned;
 
 protected:
     virtual void BeginPlay() override;
 
-private:
-    FTimerHandle StunTimerHandle;
-    FTimerHandle SlowTimerHandle;
+    // === Replication ===
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+    UFUNCTION()
+    void OnRep_CurrentHealth();
+
+private:
+    void Die();
     void ClearStun();
     void ClearSlow();
-    void Die();
+
+    // === 상태 데이터 ===
+    UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere)
+    float CurrentHealth;
+
+    UPROPERTY(EditAnywhere)
+    float MaxHealth;
+
+    UPROPERTY()
+    float BaseMoveSpeed;
+
+    UPROPERTY()
+    float SlowRatio;
+
+    UPROPERTY()
+    bool bIsStunned;
+
+    UPROPERTY()
+    bool bIsSlowed;
+
+    FTimerHandle StunTimerHandle;
+    FTimerHandle SlowTimerHandle;
 };

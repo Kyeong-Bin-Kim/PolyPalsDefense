@@ -28,6 +28,25 @@ protected:
     void HandleGameOver();
 
 public:
+    // === UI용 Getter ===
+
+    // 현재 생명 수
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    int32 GetRemainingLives() const { return PlayerLife; }
+
+    // 현재 라운드 인덱스
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    int32 GetCurrentRoundIndex() const { return CurrentRoundIndex; }
+
+    // 라운드 타이머 값 (진행 시간)
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    float GetRoundElapsedTime() const;
+
+    // 사전 준비 시간
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    float GetPreparationTime() const { return PreparationTime; }
+
+public:
     // 라운드를 시작하는 함수
     UFUNCTION(BlueprintCallable, Category = "Wave")
     void StartRound(int32 RoundIndex);
@@ -47,6 +66,9 @@ private:
     // 현재 라운드 인덱스
     int32 CurrentRoundIndex = 1;
     FTimerHandle RoundTimerHandle;
+
+    // 타이머 시작 시간 기록
+    float RoundStartTimestamp = 0.f;
 
 protected:
     // 에디터에서 지정하거나 월드에서 자동 검색될 단일 스포너

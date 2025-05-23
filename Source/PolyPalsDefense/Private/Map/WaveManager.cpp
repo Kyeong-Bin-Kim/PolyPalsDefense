@@ -78,16 +78,25 @@ void AWaveManager::StartRound(int32 RoundIndex)
 
 void AWaveManager::StartFirstRound()
 {
-    UE_LOG(LogTemp, Log, TEXT("[WaveManager] Starting First Round %d"), CurrentRoundIndex);
     StartRound(CurrentRoundIndex);
 
-    // 첫 라운드 종료 타이머 설정
+    // 시작 시간 기록 (UI용)
+    RoundStartTimestamp = GetWorld()->GetTimeSeconds();
+
+    // 종료 타이머 설정
     GetWorld()->GetTimerManager().SetTimer(
         RoundTimerHandle,
         this, &AWaveManager::EndRound,
         RoundDuration,
         false
     );
+}
+
+float AWaveManager::GetRoundElapsedTime() const
+{
+    if (!HasAuthority()) return 0.f;
+
+    return GetWorld()->GetTimeSeconds() - RoundStartTimestamp;
 }
 
 void AWaveManager::EndRound()
