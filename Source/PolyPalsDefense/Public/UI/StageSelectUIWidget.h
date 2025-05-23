@@ -18,13 +18,13 @@ protected:
     class UButton* ExitGame;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Easy;
+    class UButton* Stage1;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Normal;
+    class UButton* Stage2;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Hard;
+    class UButton* Stage3;
 
     UFUNCTION()
     void OnExitGameClicked();
@@ -40,4 +40,6 @@ protected:
 
     void OnStageSelected(FName StageName);
     void OpenLobbyUI();
+
+    FName LastSelectedStage;
 };

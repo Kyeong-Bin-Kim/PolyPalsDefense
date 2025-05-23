@@ -1,5 +1,6 @@
 // StageSelectUIWidget.cpp
 #include "UI/StageSelectUIWidget.h"
+#include "UI/LobbyUIWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
@@ -12,17 +13,17 @@ void UStageSelectUIWidget::NativeConstruct()
     {
         ExitGame->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnExitGameClicked);
     }
-    if (Easy)
+    if (Stage1)
     {
-        Easy->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnEasyClicked);
+        Stage1->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnEasyClicked);
     }
-    if (Normal)
+    if (Stage2)
     {
-        Normal->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnNormalClicked);
+        Stage2->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnNormalClicked);
     }
-    if (Hard)
+    if (Stage3)
     {
-        Hard->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnHardClicked);
+        Stage3->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnHardClicked);
     }
 }
 
@@ -33,22 +34,22 @@ void UStageSelectUIWidget::OnExitGameClicked()
 
 void UStageSelectUIWidget::OnEasyClicked()
 {
-    OnStageSelected("Easy");
+    OnStageSelected("Stage1");
 }
 
 void UStageSelectUIWidget::OnNormalClicked()
 {
-    OnStageSelected("Normal");
+    OnStageSelected("Stage2");
 }
 
 void UStageSelectUIWidget::OnHardClicked()
 {
-    OnStageSelected("Hard");
+    OnStageSelected("Stage3");
 }
 
 void UStageSelectUIWidget::OnStageSelected(FName StageName)
 {
-    // TODO: Set difficulty variable here if needed: GGameDifficulty = StageName;
+    LastSelectedStage = StageName;
     OpenLobbyUI();
 }
 
@@ -56,11 +57,16 @@ void UStageSelectUIWidget::OpenLobbyUI()
 {
     if (APlayerController* PC = GetOwningPlayer())
     {
-        UUserWidget* LobbyWidget = CreateWidget(PC, LoadClass<UUserWidget>(nullptr, TEXT("/Game/UI/WBP_Lobby.WBP_Lobby_C")));
+        ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(
+            PC, LoadClass<ULobbyUIWidget>(nullptr, TEXT("/Game/UI/WBP_Lobby.WBP_Lobby_C"))
+        );
+
         if (LobbyWidget)
         {
+            LobbyWidget->SetSelectedStage(LastSelectedStage); 
             LobbyWidget->AddToViewport();
         }
     }
+
     RemoveFromParent();
 }

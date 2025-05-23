@@ -2,6 +2,7 @@
 #include "UI/LobbyUIWidget.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
+#include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 
 void ULobbyUIWidget::NativeConstruct()
@@ -18,7 +19,6 @@ void ULobbyUIWidget::NativeConstruct()
         StartGame->OnClicked.AddDynamic(this, &ULobbyUIWidget::OnStartGameClicked);
     }
 
-    // PlayerSlotBox의 Children을 순회하며 바인딩
     if (PlayerSlotBox)
     {
         for (UWidget* Child : PlayerSlotBox->GetAllChildren())
@@ -29,7 +29,18 @@ void ULobbyUIWidget::NativeConstruct()
                 PlayerSlot->OnReadyClicked.AddDynamic(this, &ULobbyUIWidget::HandleSlotReadyClicked);
             }
         }
+    }
+}
 
+void ULobbyUIWidget::SetSelectedStage(FName InStageName)
+{
+    SelectedStageName = InStageName;
+    UE_LOG(LogTemp, Log, TEXT("LobbyUIWidget received selected stage: %s"), *SelectedStageName.ToString());
+
+    if (Stage)
+    {
+        FString DisplayText = FString::Printf(TEXT("%s"), *SelectedStageName.ToString());
+        Stage->SetText(FText::FromString(DisplayText));
     }
 }
 
@@ -45,12 +56,11 @@ void ULobbyUIWidget::OnStartGameClicked()
     UWorld* World = GetWorld();
     if (World)
     {
-        UGameplayStatics::OpenLevel(World, FName("TestMap02"), true);
+        UGameplayStatics::OpenLevel(World, FName("TowerTest"), true);
     }
 }
 
 void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 {
     UE_LOG(LogTemp, Log, TEXT("Player slot ready clicked: %s"), *ClickedSlot->GetName());
-    // 여기서 Ready 상태 업데이트나 서버 알림 등을 처리 가능
 }
