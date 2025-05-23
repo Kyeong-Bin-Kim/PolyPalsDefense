@@ -4,6 +4,20 @@
 APolyPalsState::APolyPalsState()
 {
     bIsGameOver = false;
+    Gold = 0;
+}
+
+void APolyPalsState::AddGold_Implementation(int32 Amount)
+{
+    Gold += Amount;
+    OnRep_Gold(); // 서버에서도 즉시 UI 갱신 가능
+}
+
+void APolyPalsState::OnRep_Gold()
+{
+    UE_LOG(LogTemp, Log, TEXT("[PlayerState] 골드 갱신: %d"), Gold);
+
+    // UI 위젯 연동(내부에서 직접 브로드캐스트[권장] OR 위젯에서 Tick or Timer로 GetGold() 호출)
 }
 
 void APolyPalsState::SetGameOver()
@@ -27,4 +41,5 @@ void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(APolyPalsState, bIsGameOver);
+    DOREPLIFETIME(APolyPalsState, Gold);
 }

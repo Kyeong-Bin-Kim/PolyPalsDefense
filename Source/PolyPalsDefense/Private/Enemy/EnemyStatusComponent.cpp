@@ -1,6 +1,7 @@
 #include "EnemyStatusComponent.h"
 #include "TimerManager.h"
 #include "GameFramework/Actor.h"
+#include "Net/UnrealNetwork.h"
 
 UEnemyStatusComponent::UEnemyStatusComponent()
 {
@@ -15,6 +16,19 @@ void UEnemyStatusComponent::BeginPlay()
 {
     Super::BeginPlay();
     CurrentHealth = MaxHealth;
+}
+
+void UEnemyStatusComponent::OnRep_CurrentHealth()
+{
+    // 체력 UI 동기화 등 처리 (HUD 바인딩에서 처리 가능)
+    UE_LOG(LogTemp, Log, TEXT("[EnemyStatus] OnRep_CurrentHealth: %.1f"), CurrentHealth);
+}
+
+void UEnemyStatusComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(UEnemyStatusComponent, CurrentHealth);
 }
 
 void UEnemyStatusComponent::Initialize(float InMaxHealth, float InBaseMoveSpeed)

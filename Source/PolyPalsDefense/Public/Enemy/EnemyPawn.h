@@ -59,6 +59,20 @@ public:
     // 현재 에너미 데이터 조회
     UEnemyDataAsset* GetEnemyData() const;
 
+public:
+    // === UI용 Getter ===
+    // 최대 체력
+    float GetMaxHealth() const;
+
+    // 현재 체력
+    float GetHealth() const;
+
+    // 슬로우 상태 여부
+    bool IsStunned() const;
+
+	// 스턴 상태 여부
+    bool IsSlowed() const;
+
 protected:
     // 복제된 활성화 상태 반응
     UFUNCTION()
