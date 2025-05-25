@@ -47,6 +47,8 @@ protected:
 	TObjectPtr<UStaticMeshComponent> TowerMeshComponent;
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class UNiagaraComponent> MuzzleEffectComponent;
 	UPROPERTY()
 	TObjectPtr<class USphereComponent> TowerRangeSphere;
 	UPROPERTY()

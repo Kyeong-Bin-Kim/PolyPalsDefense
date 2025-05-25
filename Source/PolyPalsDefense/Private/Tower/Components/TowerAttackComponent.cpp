@@ -3,7 +3,6 @@
 
 #include "Tower/Components/TowerAttackComponent.h"
 #include "Tower/PlacedTower.h"
-#include "Tower/TowerAttackInterface.h"
 #include "Multiplayer/PolyPalsController.h"
 #include "Core/Subsystems/TowerDataManager.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
@@ -17,6 +16,7 @@
 #include "Components/SphereComponent.h"
 #include "Engine/StaticMeshSocket.h"
 #include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
 UTowerAttackComponent::UTowerAttackComponent()
@@ -29,16 +29,8 @@ void UTowerAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-
 	if (!GetOwner()->HasAuthority())
-	{
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
-		FVector EffectLoadLocation = FVector(0.f, 0.f, 5000.f);
-		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
-			GunMeshComponent, FName("MuzzleSocket"),
-			EffectLoadLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
-			true, true, ENCPoolMethod::AutoRelease, true);
-	}
 
 	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
 }
@@ -50,6 +42,9 @@ void UTowerAttackComponent::InitializeComponent()
 
 	OwnerTower = GetOwner<APlacedTower>();
 	GunMeshComponent = OwnerTower->GunMeshComponent;
+	MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
+
+	//MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
 }
 
 void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -58,11 +53,7 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UTowerAttackComponent, CurrentLevel);
 	DOREPLIFETIME(UTowerAttackComponent, TowerId);
 	DOREPLIFETIME(UTowerAttackComponent, CurrentTarget);
-}
-
-void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	DOREPLIFETIME(UTowerAttackComponent, bMuzzleEffect);
 }
 
 void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -79,14 +70,8 @@ void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
 	{
 		SpottedEnemy_Server.AddUnique(InEnemy);
 
-		if (!SpottedEnemy_Server.IsEmpty())
-		{
-			if (CurrentTarget != SpottedEnemy_Server[0])
-				CurrentTarget = SpottedEnemy_Server[0];
-
-			if (!GetWorld()->GetTimerManager().IsTimerActive(AttackHandle))
-				SetAttackTimer();
-		}
+		if (TowerState_Server == ETowerState::Idle)
+			SetTowerState(ETowerState::SpotTarget);
 	}
 }
 
@@ -94,89 +79,46 @@ void UTowerAttackComponent::ServerOnEnemyEndOverlap(AActor* InEnemy)
 {
 	SpottedEnemy_Server.Remove(InEnemy);
 
-	if (SpottedEnemy_Server.IsEmpty())
+	if (CurrentTarget == InEnemy)
 		CurrentTarget = nullptr;
-}
-
-AActor* UTowerAttackComponent::ServerFindFirstValidTarget()
-{
-	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
-		return !IsValid(Candidate);
-		});
-
-	return SpottedEnemy_Server.IsValidIndex(0) ? SpottedEnemy_Server[0] : nullptr;
 }
 
 void UTowerAttackComponent::ServerOnTowerAttack()
 {
-	AActor* Target = ServerFindFirstValidTarget();
-
-	if (!IsValid(Target))
+	if (IsValid(CurrentTarget))
 	{
-		CurrentTarget = nullptr;
-		ClearAttackTimer();
-		return;
-	}
-
-	CurrentTarget = Target;
-	if (bReadyToAttack)
-	{
-		UGameplayStatics::ApplyDamage(Target, Damage, nullptr, nullptr, nullptr);
-		bReadyToAttack = false;
-		if (GetWorld())
-			GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
-			bReadyToAttack = true;
-				}), AttackDelay, false);
-	}
-
-	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Target);
-	if (IsValid(EnemyPawn))	// 캐스트가 성공했는가? 혹은 다른 이유로 Destroy 되지 않았는가?
-	{
-		switch (TowerAbility)
+		if (bReadyToAttack)
 		{
-		case ETowerAbility::Slow:
-			EnemyPawn->ApplySlow(0.5f, 2.f);
-			break;
-		case ETowerAbility::Stun:
-			EnemyPawn->ApplyStun(2.f);
-			break;
+			UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
+			DrawDebugSphere(GetWorld(), CurrentTarget->GetActorLocation(), 60.f, 12.f, FColor::Blue, false, 0.3f);
+			bReadyToAttack = false;
+			bMuzzleEffect = !bMuzzleEffect;
+
+			if (GetWorld())
+			{
+				GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
+					bReadyToAttack = true;
+					ServerOnTowerAttack();
+					}), AttackDelay, false);
+			}
 		}
 	}
-}
-
-void UTowerAttackComponent::ClientOnTowerAttack()
-{
-	//FVector Location = GunMeshComponent->GetSocketLocation(FName("MuzzleSocket"));
-
-	if (bReadyToAttack)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
-			GunMeshComponent, FName("MuzzleSocket"),
-			FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
-			true, true, ENCPoolMethod::AutoRelease, true);
-		bReadyToAttack = false;
-		if (GetWorld())
-			GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
-			bReadyToAttack = true;
-				}), AttackDelay, false);
-	}
-
+	else
+		SetTowerState(ETowerState::LostTarget);
 }
 
 void UTowerAttackComponent::ClientUpdateGunMeshRotation()
 {
 	if (CurrentTarget)
 	{
-		FVector TargetLocatoin = CurrentTarget->GetActorLocation();
+		FVector TargetLocation = CurrentTarget->GetActorLocation();
 		FVector GunLocation = GunMeshComponent->GetComponentLocation();
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocatoin);
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocation);
 
 		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
-		/*FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
-		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, InterpSpeed);
-		GunMeshComponent->SetWorldRotation(InterpedRotation);*/
-		//GunMeshComponent->SetWorldRotation(NewRotation);
-		GunMeshComponent->SetRelativeRotation(NewRotation);
+		FRotator GunRotation = GunMeshComponent->GetComponentRotation();
+		FRotator InterpedRotation = FMath::RInterpTo(GunRotation, NewRotation, GetWorld()->GetDeltaSeconds(), 1000.f);
+		GunMeshComponent->SetRelativeRotation(InterpedRotation);
 	}
 }
 
@@ -188,25 +130,88 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 	Damage = UpgradeData->Damage;
 	AttackDelay = UpgradeData->AttackDelay;
 	TowerAbility = Data->TowerAbility;
+	/*MuzzleEffect = Data->MuzzleEffect;*/
+	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
 
-void UTowerAttackComponent::SetAttackTimer()
+void UTowerAttackComponent::SetGunMeshTimer()
 {
-	ClearAttackTimer();
-
-	if (GetOwner()->HasAuthority())
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ServerOnTowerAttack, AttackDelay, true, 0.f);
-	else
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ClientOnTowerAttack, AttackDelay, true, 0.f);
+	if (!GetWorld()) return;
+	
+	ClearTowerTimer(GunMeshHandle);
+	GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
 }
 
-void UTowerAttackComponent::ClearAttackTimer()
+void UTowerAttackComponent::ClearTowerTimer(FTimerHandle& InHandle)
 {
 	if (!GetWorld()) return;
 
-	if (GetWorld()->GetTimerManager().IsTimerActive(AttackHandle))
-		GetWorld()->GetTimerManager().ClearTimer(AttackHandle);
+	if (GetWorld()->GetTimerManager().IsTimerActive(InHandle))
+		GetWorld()->GetTimerManager().ClearTimer(InHandle);
+}
+void UTowerAttackComponent::SetTowerState(ETowerState InState)
+{
+	TowerState_Server = InState;
+	switch (TowerState_Server)
+	{
+	case ETowerState::Idle:
+		OnIdle();
+		break;
+	case ETowerState::SpotTarget:
+		OnSpotTarget();
+		break;
+	case ETowerState::Attack:
+		OnAttack();
+		break;
+	case ETowerState::LostTarget:
+		OnLostTarget();
+		break;
+	}
+}
+
+void UTowerAttackComponent::OnIdle()
+{
+	// For extenstion method.
+}
+
+void UTowerAttackComponent::OnSpotTarget()
+{
+	for (const auto& Iter : SpottedEnemy_Server)
+	{
+		if (IsValid(Iter))
+		{
+			CurrentTarget = Iter;
+			break;
+		}
+	}
+
+	if (IsValid(CurrentTarget))
+		SetTowerState(ETowerState::Attack);
+	else
+		SetTowerState(ETowerState::LostTarget);
+}
+
+void UTowerAttackComponent::OnAttack()
+{
+	ServerOnTowerAttack();
+}
+
+void UTowerAttackComponent::OnLostTarget()
+{
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
+
+	if (SpottedEnemy_Server.IsEmpty())
+		SetTowerState(ETowerState::Idle);
+	else
+		SetTowerState(ETowerState::SpotTarget);
+}
+
+void UTowerAttackComponent::OnRep_MuzzleEffect()
+{
+	MuzzleEffectComponent->ActivateSystem();
 }
 
 void UTowerAttackComponent::OnRep_TowerId()
@@ -216,30 +221,15 @@ void UTowerAttackComponent::OnRep_TowerId()
 		UTowerPropertyData* TowerData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 		FTowerUpgradeValue* UpgradeData = TowerData->UpgradeData.Find(ELevelValue::Level1);
 		AttackDelay = UpgradeData->AttackDelay;
-		MuzzleEffect = TowerData->MuzzleEffect;
 	}
 }
 
 void UTowerAttackComponent::OnRep_CurrentTarget()
 {
-	if (CurrentTarget)
-	{
-		SetAttackTimer();
-		//FString TargetName = CurrentTarget.GetName();
-		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTartget set as %s"), *TargetName);
-
-		if (GetWorld())
-			GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
-	}
+	if (IsValid(CurrentTarget))
+		SetGunMeshTimer();
 	else
-	{
-		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTarget set as null."))
-		ClearAttackTimer();
-		if (!GetWorld()) return;
-		
-		if (GetWorld()->GetTimerManager().IsTimerActive(GunMeshHandle))
-			GetWorld()->GetTimerManager().ClearTimer(GunMeshHandle);
-	}
+		ClearTowerTimer(GunMeshHandle);
 }
 
 void UTowerAttackComponent::ServerOnTowerLevelUp()
@@ -277,7 +267,7 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 	UTowerPropertyData* PropertyData = DataManager->GetTowerPropertyData(TowerId);
 	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel));
 	AttackDelay = TowerUpgradeValue->AttackDelay;
-	SetAttackTimer();
+	//SetAttackTimer();
 
 	switch (CurrentLevel)
 	{

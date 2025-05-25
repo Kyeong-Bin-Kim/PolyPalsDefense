@@ -9,6 +9,8 @@
 
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraComponentPoolMethodEnum.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -33,6 +35,12 @@ APlacedTower::APlacedTower()
 
 	GunMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMeshComponent"));
 	GunMeshComponent->SetupAttachment(TowerMeshComponent, FName("GunAttachPoint"));
+
+	MuzzleEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleEffectComponent"));
+	MuzzleEffectComponent->SetupAttachment(GunMeshComponent, FName("MuzzleSocket"));
+	MuzzleEffectComponent->bAutoActivate = false;
+
+
 
 	TowerRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TowerRangeSphere"));
 	TowerRangeSphere->SetupAttachment(RootBoxComponent);
@@ -130,6 +138,7 @@ void APlacedTower::OnRep_TowerId()
 		UTowerPropertyData* PropertyData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 		TowerMeshComponent->SetStaticMesh(PropertyData->TowerMesh);
 		GunMeshComponent->SetStaticMesh(PropertyData->GunMesh);
+		MuzzleEffectComponent->SetAsset(PropertyData->MuzzleEffect);
 	}
 }
 
