@@ -30,6 +30,18 @@ public:
     UFUNCTION(BlueprintPure, Category = "Player")
     int32 GetGold() const { return Gold; }
 
+    // 현재 라운드 조회
+    UFUNCTION(BlueprintPure, Category = "Player")
+    int32 GetRound() const { return Round; }
+
+    // 현재 체력 조회
+	UFUNCTION(BlueprintPure, Category = "Player")
+	int32 GetHealth() const { return Round; } // 라운드가 체력을 나타내는 경우
+
+	// 총 라운드 조회
+	UFUNCTION(BlueprintPure, Category = "Player")
+	int32 GetTotalRound() const { return TotalRound; }
+
     // 서버에서 골드 추가
     UFUNCTION(Server, Reliable)
     void AddGold(int32 Amount);
@@ -58,6 +70,14 @@ private:
     // 골드 값 (클라이언트 UI용 복제 - 플레이어별 골드)
     UPROPERTY(ReplicatedUsing = OnRep_Gold)
     int32 Gold;
+    
+    // 라운드 (클라이언트 UI용 복제 - 플레이어별 골드)
+    UPROPERTY()
+    int32 Round;
+    
+    // 총 라운드 (클라이언트 UI용 복제 - 플레이어별 골드)
+    UPROPERTY()
+    int32 TotalRound;
 
     // 게임 오버 상태 여부 (ReplicatedUsing을 통해 OnRep 호출)
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)

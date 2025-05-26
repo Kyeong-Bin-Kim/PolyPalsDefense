@@ -9,6 +9,7 @@
 #include "EnemyAnimInstance.h"
 #include "AssetManagement/PolyPalsDefenseAssetManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI/EnemyHealthBarWidget.h"
 #include "WaveManager.h"
 #include "Net/UnrealNetwork.h"
 
@@ -46,6 +47,13 @@ AEnemyPawn::AEnemyPawn()
     // 이동 및 상태 컴포넌트
     SplineMovement = CreateDefaultSubobject<UEnemySplineMovementComponent>(TEXT("SplineMovement"));
     Status = CreateDefaultSubobject<UEnemyStatusComponent>(TEXT("Status"));
+
+    // 체력바 활성
+    HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+    HealthBarWidget->SetupAttachment(Mesh);
+    HealthBarWidget->SetWidgetSpace(EWidgetSpace::World);
+    HealthBarWidget->SetDrawAtDesiredSize(true);
+    HealthBarWidget->SetWidgetClass(EnemyHealthBarWidgetClass); // 클래스 설정 필요
 
     // 태그 및 초기 비활성 상태
     Tags.Add(FName(TEXT("Enemy")));
