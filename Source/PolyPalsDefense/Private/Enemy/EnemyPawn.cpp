@@ -102,14 +102,14 @@ void AEnemyPawn::OnRep_EnemyData()
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
-        UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
     }
 
     // 애니메이션 블루프린트 설정
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
-        UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
         Mesh->InitAnim(true);
 
         // 애님 인스턴스에 속도 전달
@@ -123,9 +123,9 @@ void AEnemyPawn::OnRep_EnemyData()
     Mesh->SetRelativeScale3D(ReplicatedScale);
 	CollisionSphere->SetRelativeScale3D(ReplicatedScale);
 
-    UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData 실행됨 - 애니메이션: %s, 스케일: %s"),
-        EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
-        *ReplicatedScale.ToString());
+    //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData 실행됨 - 애니메이션: %s, 스케일: %s"),
+    //    EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
+    //    *ReplicatedScale.ToString());
 }
 
 void AEnemyPawn::OnRep_Scale()

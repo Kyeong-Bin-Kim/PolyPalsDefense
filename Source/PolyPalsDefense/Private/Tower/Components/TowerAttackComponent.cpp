@@ -3,7 +3,6 @@
 
 #include "Tower/Components/TowerAttackComponent.h"
 #include "Tower/PlacedTower.h"
-#include "Tower/TowerAttackInterface.h"
 #include "Multiplayer/PolyPalsController.h"
 #include "Core/Subsystems/TowerDataManager.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
@@ -17,7 +16,9 @@
 #include "Components/SphereComponent.h"
 #include "Engine/StaticMeshSocket.h"
 #include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Engine/OverlapResult.h"
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
@@ -29,16 +30,8 @@ void UTowerAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-
 	if (!GetOwner()->HasAuthority())
-	{
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
-		FVector EffectLoadLocation = FVector(0.f, 0.f, 5000.f);
-		UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
-			GunMeshComponent, FName("MuzzleSocket"),
-			EffectLoadLocation, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
-			true, true, ENCPoolMethod::AutoRelease, true);
-	}
 
 	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
 }
@@ -50,6 +43,9 @@ void UTowerAttackComponent::InitializeComponent()
 
 	OwnerTower = GetOwner<APlacedTower>();
 	GunMeshComponent = OwnerTower->GunMeshComponent;
+	MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
+
+	//MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
 }
 
 void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -58,11 +54,7 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UTowerAttackComponent, CurrentLevel);
 	DOREPLIFETIME(UTowerAttackComponent, TowerId);
 	DOREPLIFETIME(UTowerAttackComponent, CurrentTarget);
-}
-
-void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	DOREPLIFETIME(UTowerAttackComponent, bMuzzleEffect);
 }
 
 void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -75,90 +67,33 @@ void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
 {
-	if (InEnemy)
+	if (IsValid(InEnemy))
 	{
-		SpottedEnemy_Server.AddUnique(InEnemy);
+		SpottedEnemy_Server.AddUnique(Cast<AEnemyPawn>(InEnemy));
 
-		if (!SpottedEnemy_Server.IsEmpty())
-		{
-			if (CurrentTarget != SpottedEnemy_Server[0])
-				CurrentTarget = SpottedEnemy_Server[0];
-
-			if (!GetWorld()->GetTimerManager().IsTimerActive(AttackHandle))
-				SetAttackTimer();
-		}
+		if (TowerState_Server == ETowerState::Idle)
+			SetTowerState(ETowerState::SpotTarget);
 	}
 }
 
 void UTowerAttackComponent::ServerOnEnemyEndOverlap(AActor* InEnemy)
 {
-	SpottedEnemy_Server.Remove(InEnemy);
-
-	if (SpottedEnemy_Server.IsEmpty())
-		CurrentTarget = nullptr;
-}
-
-AActor* UTowerAttackComponent::ServerFindFirstValidTarget()
-{
-	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
-		return !IsValid(Candidate);
-		});
-
-	return SpottedEnemy_Server.IsValidIndex(0) ? SpottedEnemy_Server[0] : nullptr;
-}
-
-void UTowerAttackComponent::ServerOnTowerAttack()
-{
-	AActor* Target = ServerFindFirstValidTarget();
-
-	if (!IsValid(Target))
-	{
-		CurrentTarget = nullptr;
-		ClearAttackTimer();
-		return;
-	}
-
-	CurrentTarget = Target;
-	UGameplayStatics::ApplyDamage(Target, Damage, nullptr, nullptr, nullptr);
-
-	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Target);
-	if (IsValid(EnemyPawn))	// 캐스트가 성공했는가? 혹은 다른 이유로 Destroy 되지 않았는가?
-	{
-		switch (TowerAbility)
-		{
-		case ETowerAbility::Slow:
-			EnemyPawn->ApplySlow(0.5f, 2.f);
-			break;
-		case ETowerAbility::Stun:
-			EnemyPawn->ApplyStun(2.f);
-			break;
-		}
-	}
-}
-
-void UTowerAttackComponent::ClientOnTowerAttack()
-{
-	//FVector Location = GunMeshComponent->GetSocketLocation(FName("MuzzleSocket"));
-	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect,
-		GunMeshComponent, FName("MuzzleSocket"),
-		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset,
-		true, true, ENCPoolMethod::AutoRelease, true);
+	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(InEnemy);
+	SpottedEnemy_Server.Remove(EnemyPawn);
 }
 
 void UTowerAttackComponent::ClientUpdateGunMeshRotation()
 {
 	if (CurrentTarget)
 	{
-		FVector TargetLocatoin = CurrentTarget->GetActorLocation();
+		FVector TargetLocation = CurrentTarget->GetActorLocation();
 		FVector GunLocation = GunMeshComponent->GetComponentLocation();
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocatoin);
+		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocation);
 
 		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
-		/*FRotator GunRotatoin = GunMeshComponent->GetComponentRotation();
-		FRotator InterpedRotation = FMath::RInterpTo(GunRotatoin, NewRotation, DeltaTime, InterpSpeed);
-		GunMeshComponent->SetWorldRotation(InterpedRotation);*/
-		//GunMeshComponent->SetWorldRotation(NewRotation);
-		GunMeshComponent->SetRelativeRotation(NewRotation);
+		FRotator GunRotation = GunMeshComponent->GetComponentRotation();
+		FRotator InterpedRotation = FMath::RInterpTo(GunRotation, NewRotation, GetWorld()->GetDeltaSeconds(), 1000.f);
+		GunMeshComponent->SetRelativeRotation(InterpedRotation);
 	}
 }
 
@@ -170,25 +105,161 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 	Damage = UpgradeData->Damage;
 	AttackDelay = UpgradeData->AttackDelay;
 	TowerAbility = Data->TowerAbility;
+	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
 
-void UTowerAttackComponent::SetAttackTimer()
+void UTowerAttackComponent::SetGunMeshTimer()
 {
-	ClearAttackTimer();
-
-	if (GetOwner()->HasAuthority())
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ServerOnTowerAttack, AttackDelay, true, 0.f);
-	else
-		GetWorld()->GetTimerManager().SetTimer(AttackHandle, this, &UTowerAttackComponent::ClientOnTowerAttack, AttackDelay, true, 0.f);
+	if (!GetWorld()) return;
+	
+	ClearTowerTimer(GunMeshHandle);
+	GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
 }
 
-void UTowerAttackComponent::ClearAttackTimer()
+void UTowerAttackComponent::ClearTowerTimer(FTimerHandle& InHandle)
+{
+	if (!GetWorld()) return;
+	GetWorld()->GetTimerManager().ClearTimer(InHandle);
+}
+void UTowerAttackComponent::SetTowerState(ETowerState InState)
+{
+	TowerState_Server = InState;
+	switch (TowerState_Server)
+	{
+	case ETowerState::Idle:
+		OnIdle();
+		break;
+	case ETowerState::SpotTarget:
+		OnSpotTarget();
+		break;
+	case ETowerState::Attack:
+		OnAttack();
+		break;
+	case ETowerState::Delay:
+		OnDelay();
+		break;
+	case ETowerState::LostTarget:
+		OnLostTarget();
+		break;
+	}
+}
+
+void UTowerAttackComponent::OnIdle()
+{
+	// For extenstion method.
+}
+
+void UTowerAttackComponent::OnSpotTarget()
+{
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
+
+	if (SpottedEnemy_Server.IsEmpty())
+		SetTowerState(ETowerState::LostTarget);
+	else
+		SetTowerState(ETowerState::Attack);
+}
+
+void UTowerAttackComponent::OnAttack()
+{
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
+
+	if (SpottedEnemy_Server.IsEmpty())
+	{
+		SetTowerState(ETowerState::LostTarget);
+		return;
+	}
+
+	if (IsValid(SpottedEnemy_Server[0]))
+	{
+		if (TowerAbility != ETowerAbility::None)
+		{
+			FCollisionShape Sphere = FCollisionShape::MakeSphere(100.f);
+			TArray<FOverlapResult> OverlapResults;
+
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(GetOwner());
+			FCollisionResponseParams ResParams;
+			//ResParams.CollisionResponse = ECR_Block;
+
+			DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 100.f, 8, FColor::Yellow, false,
+				2.f);
+			GetWorld()->OverlapMultiByChannel(OverlapResults,
+				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
+				Sphere, Params, ResParams);
+
+			switch (TowerAbility)
+			{
+			case ETowerAbility::Slow:
+				for (const auto& Iter : OverlapResults)
+				{
+					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
+					if (EnemyPawn)
+						EnemyPawn->ApplySlow(0.5f, 2.f);
+				}
+				break;
+			case ETowerAbility::Stun:
+				for (const auto& Iter : OverlapResults)
+				{
+					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
+					if (EnemyPawn)
+						EnemyPawn->ApplyStun(2.0f);
+				}
+				break;
+			}
+		}
+
+		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
+		DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red);
+		//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 35.f, 12.f, FColor::Blue, false, 0.3f);
+		CurrentTarget = SpottedEnemy_Server[0];
+		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
+		UE_LOG(LogTemp, Log, TEXT("ApplyDamage: %f"), Damage);
+		//UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
+		bMuzzleEffect = !bMuzzleEffect;
+		SetTowerState(ETowerState::Delay);
+	}
+	else
+		SetTowerState(ETowerState::LostTarget);
+}
+
+void UTowerAttackComponent::OnDelay()
 {
 	if (!GetWorld()) return;
 
-	if (GetWorld()->GetTimerManager().IsTimerActive(AttackHandle))
-		GetWorld()->GetTimerManager().ClearTimer(AttackHandle);
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
+
+		if (SpottedEnemy_Server.IsEmpty())
+			SetTowerState(ETowerState::LostTarget);
+		else
+			SetTowerState(ETowerState::Attack);
+
+		}), AttackDelay, false);
+		
+}
+
+void UTowerAttackComponent::OnLostTarget()
+{
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
+
+	if (SpottedEnemy_Server.IsEmpty())
+		SetTowerState(ETowerState::Idle);
+	else
+		SetTowerState(ETowerState::SpotTarget);
+}
+
+void UTowerAttackComponent::OnRep_MuzzleEffect()
+{
+	//MuzzleEffectComponent->ActivateSystem();
+	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect, GunMeshComponent, FName("MuzzleSocket"),
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, true,
+		ENCPoolMethod::AutoRelease);
 }
 
 void UTowerAttackComponent::OnRep_TowerId()
@@ -204,24 +275,10 @@ void UTowerAttackComponent::OnRep_TowerId()
 
 void UTowerAttackComponent::OnRep_CurrentTarget()
 {
-	if (CurrentTarget)
-	{
-		SetAttackTimer();
-		//FString TargetName = CurrentTarget.GetName();
-		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTartget set as %s"), *TargetName);
-
-		if (GetWorld())
-			GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
-	}
+	if (IsValid(CurrentTarget))
+		SetGunMeshTimer();
 	else
-	{
-		//UE_LOG(LogTemp, Log, TEXT("UTowerAttackComponent CurrentTarget set as null."))
-		ClearAttackTimer();
-		if (!GetWorld()) return;
-		
-		if (GetWorld()->GetTimerManager().IsTimerActive(GunMeshHandle))
-			GetWorld()->GetTimerManager().ClearTimer(GunMeshHandle);
-	}
+		ClearTowerTimer(GunMeshHandle);
 }
 
 void UTowerAttackComponent::ServerOnTowerLevelUp()
@@ -259,7 +316,7 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 	UTowerPropertyData* PropertyData = DataManager->GetTowerPropertyData(TowerId);
 	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel));
 	AttackDelay = TowerUpgradeValue->AttackDelay;
-	SetAttackTimer();
+	//SetAttackTimer();
 
 	switch (CurrentLevel)
 	{

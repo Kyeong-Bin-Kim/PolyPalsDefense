@@ -8,6 +8,16 @@
 #include "TowerAttackComponent.generated.h"
 
 
+UENUM()
+enum class ETowerState : uint8
+{
+	Idle = 0,
+	SpotTarget,
+	Attack,
+	Delay,
+	LostTarget
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYPALSDEFENSE_API UTowerAttackComponent : public UActorComponent
 {
@@ -22,19 +32,26 @@ protected:
 public:	
 	virtual void InitializeComponent() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	void ServerOnEnemyBeginOverlap(AActor* InEnemy);
 	void ServerOnEnemyEndOverlap(AActor* InEnemy);
-	AActor* ServerFindFirstValidTarget();
-	void ServerOnTowerAttack();
-	void ClientOnTowerAttack();
 	void ClientUpdateGunMeshRotation();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
-	void SetAttackTimer();
-	void ClearAttackTimer();
+	void SetGunMeshTimer();
+	void ClearTowerTimer(FTimerHandle& InHandle);
+
+	void SetTowerState(ETowerState InState);
+	void OnIdle();
+	void OnSpotTarget();
+	void OnAttack();
+	void OnDelay();
+	void OnLostTarget();
+
+	UFUNCTION()
+	void OnRep_MuzzleEffect();
 
 	UFUNCTION()
 	void OnRep_TowerId();
@@ -46,6 +63,7 @@ private:
 	UFUNCTION()
 	void OnRep_CurrentLevel();
 
+
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLevel)
 	uint8 CurrentLevel = 1;
@@ -54,12 +72,17 @@ private:
 	int16 TowerId = -1;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
-	TObjectPtr<AActor> CurrentTarget;
+	TObjectPtr<class AEnemyPawn> CurrentTarget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
+	bool bMuzzleEffect = false;
+
+	ETowerState TowerState_Server = ETowerState::Idle;
 	
 	UPROPERTY()
-	TArray<AActor*> SpottedEnemy_Server;
+	TArray<AEnemyPawn*> SpottedEnemy_Server;
 
-
+	bool bReadyToAttack = true;
 	float Damage = 0.f;
 	float AttackDelay = -1.f;
 	ETowerAbility TowerAbility = ETowerAbility::None;
@@ -74,8 +97,10 @@ private:
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
 	UPROPERTY()
+	TObjectPtr<class UNiagaraComponent> MuzzleEffectComponent;
+	UPROPERTY()
 	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
-
+	
 	friend APlacedTower;
 
 };

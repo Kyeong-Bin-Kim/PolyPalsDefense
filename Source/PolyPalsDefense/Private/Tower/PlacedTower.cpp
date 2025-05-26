@@ -9,6 +9,8 @@
 
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
+#include "NiagaraComponent.h"
+#include "NiagaraComponentPoolMethodEnum.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -33,6 +35,12 @@ APlacedTower::APlacedTower()
 
 	GunMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMeshComponent"));
 	GunMeshComponent->SetupAttachment(TowerMeshComponent, FName("GunAttachPoint"));
+
+	MuzzleEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleEffectComponent"));
+	MuzzleEffectComponent->SetupAttachment(GunMeshComponent, FName("MuzzleSocket"));
+	MuzzleEffectComponent->bAutoActivate = false;
+
+
 
 	TowerRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TowerRangeSphere"));
 	TowerRangeSphere->SetupAttachment(RootBoxComponent);
@@ -130,6 +138,7 @@ void APlacedTower::OnRep_TowerId()
 		UTowerPropertyData* PropertyData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 		TowerMeshComponent->SetStaticMesh(PropertyData->TowerMesh);
 		GunMeshComponent->SetStaticMesh(PropertyData->GunMesh);
+		MuzzleEffectComponent->SetAsset(PropertyData->MuzzleEffect);
 	}
 }
 
@@ -178,14 +187,14 @@ void APlacedTower::SetTowerCollision()
 void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	FString Overlapped = OtherActor->GetName();
-	UE_LOG(LogTemp, Log, TEXT("Tower range overlapped with %s"), *Overlapped);
+	//FString Overlapped = OtherActor->GetName();
+	//UE_LOG(LogTemp, Log, TEXT("Tower range overlapped with %s"), *Overlapped);
 
 	if (OtherActor->ActorHasTag(AttackTargetTag))
 	{
-		FString MyName = GetName();
-		FString EneymName = OtherActor->GetName();
-		UE_LOG(LogTemp, Log, TEXT("Tower %s Spotted Enemy %s"), *MyName, *EneymName);
+		//FString MyName = GetName();
+		//FString EneymName = OtherActor->GetName();
+		//UE_LOG(LogTemp, Log, TEXT("Tower %s Spotted Enemy %s"), *MyName, *EneymName);
 		TowerAttackComponent->ServerOnEnemyBeginOverlap(OtherActor);
 	}
 }
@@ -195,9 +204,9 @@ void APlacedTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	if (OtherActor->ActorHasTag(AttackTargetTag))
 	{
-		FString MyName = GetName();
-		FString EneymName = OtherActor->GetName();
-		UE_LOG(LogTemp, Log, TEXT("Tower %s lost Enemy %s"), *MyName, *EneymName);
+		//FString MyName = GetName();
+		//FString EneymName = OtherActor->GetName();
+		//UE_LOG(LogTemp, Log, TEXT("Tower %s lost Enemy %s"), *MyName, *EneymName);
 		TowerAttackComponent->ServerOnEnemyEndOverlap(OtherActor);
 	}
 }
