@@ -31,6 +31,10 @@ public:
     // AssetManager로부터 에셋 ID로 초기화
     void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
+    // 외부에서 데미지 적용 요청시 사용할 중개 함수
+    UFUNCTION(BlueprintCallable, Category = "Enemy")
+    void ReceiveDamage(float DamageAmount);
+
     // 보스 여부
     bool IsBoss() const;
 
