@@ -14,6 +14,7 @@ enum class ETowerState : uint8
 	Idle = 0,
 	SpotTarget,
 	Attack,
+	Delay,
 	LostTarget
 };
 
@@ -37,20 +38,16 @@ public:
 private:
 	void ServerOnEnemyBeginOverlap(AActor* InEnemy);
 	void ServerOnEnemyEndOverlap(AActor* InEnemy);
-	//AActor* ServerFindFirstValidTarget();
-	void ServerOnTowerAttack();
-	//void ClientOnTowerAttack();
 	void ClientUpdateGunMeshRotation();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
 	void SetGunMeshTimer();
 	void ClearTowerTimer(FTimerHandle& InHandle);
-	//void SetAttackTimer();
-	//void ClearAttackTimer();
 
 	void SetTowerState(ETowerState InState);
 	void OnIdle();
 	void OnSpotTarget();
 	void OnAttack();
+	void OnDelay();
 	void OnLostTarget();
 
 	UFUNCTION()
@@ -75,7 +72,7 @@ private:
 	int16 TowerId = -1;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
-	TObjectPtr<AActor> CurrentTarget;
+	TObjectPtr<class AEnemyPawn> CurrentTarget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
 	bool bMuzzleEffect = false;
@@ -83,7 +80,7 @@ private:
 	ETowerState TowerState_Server = ETowerState::Idle;
 	
 	UPROPERTY()
-	TArray<AActor*> SpottedEnemy_Server;
+	TArray<AEnemyPawn*> SpottedEnemy_Server;
 
 	bool bReadyToAttack = true;
 	float Damage = 0.f;

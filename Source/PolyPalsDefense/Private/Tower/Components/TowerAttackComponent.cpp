@@ -18,6 +18,7 @@
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Engine/OverlapResult.h"
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
@@ -66,9 +67,9 @@ void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
 {
-	if (InEnemy)
+	if (IsValid(InEnemy))
 	{
-		SpottedEnemy_Server.AddUnique(InEnemy);
+		SpottedEnemy_Server.AddUnique(Cast<AEnemyPawn>(InEnemy));
 
 		if (TowerState_Server == ETowerState::Idle)
 			SetTowerState(ETowerState::SpotTarget);
@@ -77,34 +78,8 @@ void UTowerAttackComponent::ServerOnEnemyBeginOverlap(AActor* InEnemy)
 
 void UTowerAttackComponent::ServerOnEnemyEndOverlap(AActor* InEnemy)
 {
-	SpottedEnemy_Server.Remove(InEnemy);
-
-	if (CurrentTarget == InEnemy)
-		CurrentTarget = nullptr;
-}
-
-void UTowerAttackComponent::ServerOnTowerAttack()
-{
-	if (IsValid(CurrentTarget))
-	{
-		if (bReadyToAttack)
-		{
-			UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
-			DrawDebugSphere(GetWorld(), CurrentTarget->GetActorLocation(), 45.f, 12.f, FColor::Blue, false, 0.3f);
-			bReadyToAttack = false;
-			bMuzzleEffect = !bMuzzleEffect;
-
-			if (GetWorld())
-			{
-				GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
-					bReadyToAttack = true;
-					ServerOnTowerAttack();
-					}), AttackDelay, false);
-			}
-		}
-	}
-	else
-		SetTowerState(ETowerState::LostTarget);
+	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(InEnemy);
+	SpottedEnemy_Server.Remove(EnemyPawn);
 }
 
 void UTowerAttackComponent::ClientUpdateGunMeshRotation()
@@ -145,9 +120,7 @@ void UTowerAttackComponent::SetGunMeshTimer()
 void UTowerAttackComponent::ClearTowerTimer(FTimerHandle& InHandle)
 {
 	if (!GetWorld()) return;
-
-	if (GetWorld()->GetTimerManager().IsTimerActive(InHandle))
-		GetWorld()->GetTimerManager().ClearTimer(InHandle);
+	GetWorld()->GetTimerManager().ClearTimer(InHandle);
 }
 void UTowerAttackComponent::SetTowerState(ETowerState InState)
 {
@@ -163,6 +136,9 @@ void UTowerAttackComponent::SetTowerState(ETowerState InState)
 	case ETowerState::Attack:
 		OnAttack();
 		break;
+	case ETowerState::Delay:
+		OnDelay();
+		break;
 	case ETowerState::LostTarget:
 		OnLostTarget();
 		break;
@@ -176,24 +152,94 @@ void UTowerAttackComponent::OnIdle()
 
 void UTowerAttackComponent::OnSpotTarget()
 {
-	for (const auto& Iter : SpottedEnemy_Server)
-	{
-		if (IsValid(Iter))
-		{
-			CurrentTarget = Iter;
-			break;
-		}
-	}
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
 
-	if (IsValid(CurrentTarget))
-		SetTowerState(ETowerState::Attack);
-	else
+	if (SpottedEnemy_Server.IsEmpty())
 		SetTowerState(ETowerState::LostTarget);
+	else
+		SetTowerState(ETowerState::Attack);
 }
 
 void UTowerAttackComponent::OnAttack()
 {
-	ServerOnTowerAttack();
+	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
+		return !IsValid(Candidate);
+		});
+
+	if (SpottedEnemy_Server.IsEmpty())
+	{
+		SetTowerState(ETowerState::LostTarget);
+		return;
+	}
+
+	if (IsValid(SpottedEnemy_Server[0]))
+	{
+		if (TowerAbility != ETowerAbility::None)
+		{
+			FCollisionShape Sphere = FCollisionShape::MakeSphere(100.f);
+			TArray<FOverlapResult> OverlapResults;
+
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(GetOwner());
+			FCollisionResponseParams ResParams;
+			//ResParams.CollisionResponse = ECR_Block;
+
+			DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 100.f, 8, FColor::Yellow, false,
+				2.f);
+			GetWorld()->OverlapMultiByChannel(OverlapResults,
+				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
+				Sphere, Params, ResParams);
+
+			switch (TowerAbility)
+			{
+			case ETowerAbility::Slow:
+				for (const auto& Iter : OverlapResults)
+				{
+					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
+					if (EnemyPawn)
+						EnemyPawn->ApplySlow(0.5f, 2.f);
+				}
+				break;
+			case ETowerAbility::Stun:
+				for (const auto& Iter : OverlapResults)
+				{
+					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
+					if (EnemyPawn)
+						EnemyPawn->ApplyStun(2.0f);
+				}
+				break;
+			}
+		}
+
+		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
+		DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red);
+		//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 35.f, 12.f, FColor::Blue, false, 0.3f);
+		CurrentTarget = SpottedEnemy_Server[0];
+		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
+		UE_LOG(LogTemp, Log, TEXT("ApplyDamage: %f"), Damage);
+		//UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
+		bMuzzleEffect = !bMuzzleEffect;
+		SetTowerState(ETowerState::Delay);
+	}
+	else
+		SetTowerState(ETowerState::LostTarget);
+}
+
+void UTowerAttackComponent::OnDelay()
+{
+	if (!GetWorld()) return;
+
+	GetWorld()->GetTimerManager().SetTimer(DelayHandle, FTimerDelegate::CreateLambda([this]() {
+
+		if (SpottedEnemy_Server.IsEmpty())
+			SetTowerState(ETowerState::LostTarget);
+		else
+			SetTowerState(ETowerState::Attack);
+
+		}), AttackDelay, false);
+		
 }
 
 void UTowerAttackComponent::OnLostTarget()

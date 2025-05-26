@@ -74,7 +74,7 @@ AEnemyPawn* UEnemyPoolComponent::CreateNewEnemy(const FPrimaryAssetId& AssetId, 
 
     AEnemyPawn* NewEnemyPawn = GetWorld()->SpawnActor<AEnemyPawn>(
         EnemyClass,
-        FVector::ZeroVector,
+        FVector(5000.f, 0.f, 5000.f),
         FRotator::ZeroRotator,
         SpawnParams
     );
