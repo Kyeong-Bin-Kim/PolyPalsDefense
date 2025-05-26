@@ -202,6 +202,14 @@ void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USpline
     }
 }
 
+void AEnemyPawn::ReceiveDamage(float DamageAmount)
+{
+    if (Status)
+    {
+        Status->TakeDamage(DamageAmount);
+    }
+}
+
 void AEnemyPawn::ApplySlow(float Ratio, float Duration)
 {
     if (Status)
