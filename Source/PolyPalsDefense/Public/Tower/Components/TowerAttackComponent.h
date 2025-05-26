@@ -101,8 +101,8 @@ private:
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
 	UPROPERTY()
 	TObjectPtr<class UNiagaraComponent> MuzzleEffectComponent;
-	//UPROPERTY()
-	//TObjectPtr<class UNiagaraSystem> MuzzleEffect;
+	UPROPERTY()
+	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
 	
 	friend APlacedTower;
 

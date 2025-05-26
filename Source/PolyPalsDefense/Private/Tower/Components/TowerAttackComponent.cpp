@@ -90,7 +90,7 @@ void UTowerAttackComponent::ServerOnTowerAttack()
 		if (bReadyToAttack)
 		{
 			UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
-			DrawDebugSphere(GetWorld(), CurrentTarget->GetActorLocation(), 60.f, 12.f, FColor::Blue, false, 0.3f);
+			DrawDebugSphere(GetWorld(), CurrentTarget->GetActorLocation(), 45.f, 12.f, FColor::Blue, false, 0.3f);
 			bReadyToAttack = false;
 			bMuzzleEffect = !bMuzzleEffect;
 
@@ -130,7 +130,6 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 	Damage = UpgradeData->Damage;
 	AttackDelay = UpgradeData->AttackDelay;
 	TowerAbility = Data->TowerAbility;
-	/*MuzzleEffect = Data->MuzzleEffect;*/
 	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
@@ -211,7 +210,10 @@ void UTowerAttackComponent::OnLostTarget()
 
 void UTowerAttackComponent::OnRep_MuzzleEffect()
 {
-	MuzzleEffectComponent->ActivateSystem();
+	//MuzzleEffectComponent->ActivateSystem();
+	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect, GunMeshComponent, FName("MuzzleSocket"),
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, true,
+		ENCPoolMethod::AutoRelease);
 }
 
 void UTowerAttackComponent::OnRep_TowerId()
@@ -221,6 +223,7 @@ void UTowerAttackComponent::OnRep_TowerId()
 		UTowerPropertyData* TowerData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
 		FTowerUpgradeValue* UpgradeData = TowerData->UpgradeData.Find(ELevelValue::Level1);
 		AttackDelay = UpgradeData->AttackDelay;
+		MuzzleEffect = TowerData->MuzzleEffect;
 	}
 }
 
