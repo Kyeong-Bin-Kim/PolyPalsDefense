@@ -80,3 +80,8 @@ void APolyPalsGameMode::StartPlay()
 	//GetWorld()->SpawnActor<ATestEnemy>(TestEnemyClass, SpawnTrasform);
 	//////////////////////////////////////////////////////////
 }
+
+void APolyPalsGameMode::OnEnemyKilled(int32 InGold)
+{
+	DecreaseRemainingEnemyCount(); // 남은 적 수 감소
+}

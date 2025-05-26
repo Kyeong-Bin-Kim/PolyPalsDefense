@@ -5,6 +5,10 @@
 #include "Tower/TowerEnums.h"
 #include "PolyPalsGameMode.generated.h"
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, float /*InCurrentLifeRatio*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnRoundChanged, int32 /*AssignedColor*/);
+
 class APolyPalsState;
 
 UCLASS()
@@ -24,7 +28,19 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void StartPlay() override;
 
+	UFUNCTION()
+	void OnEnemyKilled(int32 InGold);
 	
+
+	inline void SubtractLife(int32 InValue)
+	{
+		SetLife(Life - InValue);
+		if (bIsGamePlay && Life < 0)
+		{
+			Life = 0;
+			//GameOver();
+		}
+	}
 protected:
 	///////////////////// test code ///////////////////////
 	//UPROPERTY(EditDefaultsOnly)
@@ -32,6 +48,38 @@ protected:
 	//UPROPERTY(EditDefaultsOnly)
 	//FVector TestEnemySpawnLocation;
 	////////////////////////////////////////////////////////
+
+private:
+
+	inline void DecreaseRemainingEnemyCount()
+	{
+		RemainingEnemyCount--;
+		if (bIsGamePlay && RemainingEnemyCount <= 0)
+		{
+			RemainingEnemyCount = 0;
+			//GameClear();
+		}
+	}
+	inline void SetLife(int32 InNewHealth)
+	{
+		Life = InNewHealth;
+		OnHealthChanged.Broadcast(static_cast<float>(Life) / static_cast<float>(StartHealth)); // HealthBar에 현재 체력 비율 전달
+	}
+
+public:
+
+	FOnLifeChanged OnHealthChanged;
+	FOnRoundChanged OnRoundChanged;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "StageData")
+	int32 Life = 100;
+
+	// 이 스테이지에서 남아있는 적의 수
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageData")
+	int32 RemainingEnemyCount = 0;
+
 
 private:
 	UPROPERTY()
@@ -44,4 +92,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Game")
 	int32 ExpectedPlayerCount;
 
+
+	bool bIsGamePlay = true;
+	int32 StartHealth = 100;
 };

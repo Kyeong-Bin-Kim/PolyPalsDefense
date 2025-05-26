@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Enemy/EnemyRuntimeStats.h"
+#include "Components/WidgetComponent.h"
 #include "EnemyPawn.generated.h"
 
 class USplineComponent;
@@ -119,6 +120,10 @@ protected:
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyStatusComponent* Status;
 
+    // 체력바
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class UEnemyHealthBarWidget> EnemyHealthBarWidgetClass;
+
     // 메시 회전 기본값
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
@@ -148,6 +153,10 @@ protected:
     // 보스 여부
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     bool bIsBoss = false;
+public:
+
+    UPROPERTY(VisibleAnywhere, Category = "UI")
+    UWidgetComponent* HealthBarWidget;
 
 private:
     // 실시간 스탯 (체력, 속도 등)
