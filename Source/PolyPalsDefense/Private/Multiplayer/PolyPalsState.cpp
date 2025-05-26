@@ -4,7 +4,7 @@
 APolyPalsState::APolyPalsState()
 {
     bIsGameOver = false;
-    Gold = 0;
+    Gold = 1000;
 }
 
 void APolyPalsState::AddGold_Implementation(int32 Amount)

@@ -18,6 +18,8 @@ struct FTowerUpgradeValue
 	float AttackDelay;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float Range;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,meta = (ClampMin = "0"))
+	int32 Cost;
 };
 
 UCLASS()

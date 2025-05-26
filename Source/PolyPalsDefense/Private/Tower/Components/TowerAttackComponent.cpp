@@ -19,6 +19,8 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Engine/OverlapResult.h"
+#include "Engine/EngineTypes.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
@@ -178,37 +180,54 @@ void UTowerAttackComponent::OnAttack()
 	{
 		if (TowerAbility != ETowerAbility::None)
 		{
-			FCollisionShape Sphere = FCollisionShape::MakeSphere(100.f);
-			TArray<FOverlapResult> OverlapResults;
+			//FCollisionShape Sphere = FCollisionShape::MakeSphere(200.f);
+			//TArray<FOverlapResult> OverlapResults;
 
-			FCollisionQueryParams Params;
-			Params.AddIgnoredActor(GetOwner());
-			FCollisionResponseParams ResParams;
-			//ResParams.CollisionResponse = ECR_Block;
+			//FCollisionQueryParams Params;
+			//Params.AddIgnoredActor(GetOwner());
+			//FCollisionResponseParams ResParams;
+			//ResParams.CollisionResponse = ECR_Overlap;
 
-			DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 100.f, 8, FColor::Yellow, false,
-				2.f);
-			GetWorld()->OverlapMultiByChannel(OverlapResults,
-				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
-				Sphere, Params, ResParams);
+			
+			//GetWorld()->OverlapMultiByChannel(OverlapResults,
+			//	SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
+			//	Sphere, Params, ResParams);
+
+			///////////////
+
+			//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 200.f, 8, FColor::Yellow, false,
+			//	2.f);
+
+			//TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+			//ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+			//TArray<AActor*> ActorsToIgnore;
+			//ActorsToIgnore.Add(GetOwner());
+
+			//TArray<AActor*> OutActors;
+
+			//UKismetSystemLibrary::SphereOverlapActors(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(),
+			//	200.f, ObjectTypes, nullptr, ActorsToIgnore, OutActors);
 
 			switch (TowerAbility)
 			{
 			case ETowerAbility::Slow:
-				for (const auto& Iter : OverlapResults)
-				{
-					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
-					if (EnemyPawn)
-						EnemyPawn->ApplySlow(0.5f, 2.f);
-				}
+				//for (const auto& Iter : OutActors)
+				//{
+				//	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter);
+				//	if (EnemyPawn)
+				//		EnemyPawn->ApplySlow(0.5f, 2.f);
+				//}
+				SpottedEnemy_Server[0]->ApplySlow(0.1f, 10.f);
 				break;
 			case ETowerAbility::Stun:
-				for (const auto& Iter : OverlapResults)
-				{
-					AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter.GetActor());
-					if (EnemyPawn)
-						EnemyPawn->ApplyStun(2.0f);
-				}
+				//for (const auto& Iter : OutActors)
+				//{
+				//	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter);
+				//	if (EnemyPawn)
+				//		EnemyPawn->ApplyStun(2.0f);
+				//}
+				SpottedEnemy_Server[0]->ApplyStun(10.f);
 				break;
 			}
 		}

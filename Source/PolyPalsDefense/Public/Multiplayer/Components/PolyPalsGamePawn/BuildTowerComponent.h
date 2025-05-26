@@ -7,6 +7,8 @@
 #include "DataAsset/Tower/TowerEnums.h"
 #include "BuildTowerComponent.generated.h"
 
+DECLARE_DELEGATE(FTryBuildButNotEnoughGold)
+
 UENUM()
 enum class EBuildState
 {
@@ -51,6 +53,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
+
+public:
+	FTryBuildButNotEnoughGold TryBuildButNotEnoughGold;
 
 private:
 	UPROPERTY()
