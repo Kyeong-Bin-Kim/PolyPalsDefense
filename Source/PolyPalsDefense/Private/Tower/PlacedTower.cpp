@@ -207,6 +207,11 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 
 }
 
+void APlacedTower::SetWidgetHidden(bool bIsDeactice)
+{
+	TowerUpWidgetComponent->SetHiddenInGame(bIsDeactice);
+}
+
 void APlacedTower::SetTowerCollision()
 {
 	TowerMeshComponent->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);

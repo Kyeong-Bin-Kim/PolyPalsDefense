@@ -4,6 +4,7 @@
 #include "Multiplayer/Components/PolyPalsGamePawn/TowerHandleComponent.h"
 #include "Multiplayer/PolyPalsGamePawn.h"
 #include "Multiplayer/PolyPalsController.h"
+#include "Tower/PlacedTower.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -47,14 +48,10 @@ void UTowerHandleComponent::ClientOnInputClick()
 		APlacedTower* ClickedTower = Cast<APlacedTower>(ClickedActor);
 		if (ClickedTower)
 		{
-			if (ClickedTower != FocusedTower)
-			{
-				if (FocusedTower)
-				{
-					//FocusedTower->
-				}
-				FocusedTower = ClickedTower;
-			}
+			if (FocusedTower)
+				FocusedTower->SetWidgetHidden(true);
+			FocusedTower = ClickedTower;
+			FocusedTower->SetWidgetHidden(false);
 		}
 	}
 }

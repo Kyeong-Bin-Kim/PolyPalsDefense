@@ -46,6 +46,8 @@ public:
 
 	UTowerAttackComponent* GetAttackComponent() const { return TowerAttackComponent; }
 
+	void SetWidgetHidden(bool bIsDeactice);
+
 private:
 	void SetTowerCollision();
 
