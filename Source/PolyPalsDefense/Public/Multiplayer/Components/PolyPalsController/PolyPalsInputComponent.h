@@ -8,7 +8,7 @@
 #include "PolyPalsInputComponent.generated.h"
 
 DECLARE_DELEGATE(FOnInputTest)
-DECLARE_DELEGATE(FOnInputClick)
+DECLARE_MULTICAST_DELEGATE(FOnInputClick)
 DECLARE_DELEGATE(FOnInputRightClick)
 DECLARE_DELEGATE(FOnInputTower1)
 DECLARE_DELEGATE(FOnInputTower2)

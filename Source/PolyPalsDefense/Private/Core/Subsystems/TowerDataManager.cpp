@@ -65,6 +65,18 @@ UTowerPropertyData* UTowerDataManager::GetTowerPropertyData(const uint8 InTowerI
 	}
 }
 
+int32 UTowerDataManager::GetTowerCost(uint8 InTowerId, ELevelValue InLevel)
+{
+	if (TowerProperties.IsEmpty()) return 0;
+	if (!TowerProperties.Contains(InTowerId)) return 0;
+
+	UTowerPropertyData** FoundData = TowerProperties.Find(InTowerId);
+	UTowerPropertyData* Data = *FoundData;
+	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(InLevel);
+
+	return UpgradeData->Cost;
+}
+
 void UTowerDataManager::LoadMaterialData()
 {
 	UPolyPalsDefenseAssetManager& Manager = UPolyPalsDefenseAssetManager::Get();

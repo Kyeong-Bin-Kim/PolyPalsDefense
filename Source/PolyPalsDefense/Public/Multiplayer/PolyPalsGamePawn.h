@@ -6,6 +6,12 @@
 #include "GameFramework/Pawn.h"
 #include "PolyPalsGamePawn.generated.h"
 
+class APolyPalsController;
+class USceneComponent;
+class USpringArmComponent;
+class UCameraComponent;
+class UBuildTowerComponent;
+class UTowerHandleComponent;
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsGamePawn : public APawn
 {
@@ -30,7 +36,8 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	inline bool IsPossessed() const { return bIsPossessed; }
-	class UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
+	UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
+	APolyPalsController* GetPossessedController() const { return PolyPalsController; }
 
 private:
 	void UnbindInputDelegate();
@@ -49,20 +56,24 @@ private:
 private:
 	// Cach data
 	UPROPERTY(ReplicatedUsing = OnRep_PolyPalsController)
-	TObjectPtr<class APolyPalsController> PolyPalsController;
+	TObjectPtr<APolyPalsController> PolyPalsController;
 
 private:
 	// Components
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class USceneComponent> RootSceneComponent;
+	TObjectPtr<USceneComponent> RootSceneComponent;
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class USpringArmComponent> SpringArm;
+	TObjectPtr<USpringArmComponent> SpringArm;
 	UPROPERTY(EditDefaultsOnly)
-	TObjectPtr<class UCameraComponent> PolyPalsPlayCamera;
+	TObjectPtr<UCameraComponent> PolyPalsPlayCamera;
 	
 private:
 	// ActorComponents
 	UPROPERTY()
 	TObjectPtr<UBuildTowerComponent> BuildTowerComponent;
+	UPROPERTY()
+	TObjectPtr<UTowerHandleComponent> TowerHandleComponent;
+
+	friend UBuildTowerComponent;
 
 };

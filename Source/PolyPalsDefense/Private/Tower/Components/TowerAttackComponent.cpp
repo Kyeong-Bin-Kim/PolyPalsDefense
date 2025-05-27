@@ -4,6 +4,7 @@
 #include "Tower/Components/TowerAttackComponent.h"
 #include "Tower/PlacedTower.h"
 #include "Multiplayer/PolyPalsController.h"
+#include "Multiplayer/PolyPalsState.h"
 #include "Core/Subsystems/TowerDataManager.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
 #include "DataAsset/Tower/TowerMaterialData.h"
@@ -239,7 +240,7 @@ void UTowerAttackComponent::OnAttack()
 		}
 
 		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
-		DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red);
+		DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red, false, 0.4f);
 		//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 35.f, 12.f, FColor::Blue, false, 0.3f);
 		CurrentTarget = SpottedEnemy_Server[0];
 		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
@@ -307,7 +308,7 @@ void UTowerAttackComponent::OnRep_CurrentTarget()
 		ClearTowerTimer(GunMeshHandle);
 }
 
-void UTowerAttackComponent::ServerOnTowerLevelUp()
+void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 {
 	if (!GetOwner()->HasAuthority()) return;
 	if (TowerId <= 0) return;
@@ -340,7 +341,7 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 
 	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
 	UTowerPropertyData* PropertyData = DataManager->GetTowerPropertyData(TowerId);
-	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel));
+	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel-1));
 	AttackDelay = TowerUpgradeValue->AttackDelay;
 	//SetAttackTimer();
 
@@ -368,7 +369,31 @@ void UTowerAttackComponent::OnRep_bAoeEffect()
 
 void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQuantize InLocation)
 {
-	UE_LOG(LogTemp, Log, TEXT("Multicast"))
+	UE_LOG(LogTemp, Log, TEXT("Multicast"));
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, InLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
 		ENCPoolMethod::AutoRelease);
+}
+
+void UTowerAttackComponent::ClientOnClickedUpgrade()
+{
+	uint8 MaxLevel = static_cast<uint8>(ELevelValue::MaxLevel);
+	if (CurrentLevel >= MaxLevel) return;
+	
+	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);	// Already +1 by enum
+	int32 Cost = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerCost(TowerId, NextLevel);
+	
+	APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>();
+	int32 CurrentGold = GameState->GetGold();
+
+	if (CurrentGold >= Cost)
+	{
+		GameState->AddGold(-Cost);
+		Server_OnTowerLevelUp();
+		OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("업그레이드 실패: 골드가 부족함"));
+		OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
+	}
 }

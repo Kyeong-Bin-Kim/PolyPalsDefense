@@ -7,15 +7,15 @@
 #include "DataAsset/Tower/TowerEnums.h"
 #include "BuildTowerComponent.generated.h"
 
-DECLARE_DELEGATE(FTryBuildButNotEnoughGold)
+class UTowerDataManager;
+class UTowerHandleComponent;
+class APreviewBuilding;
+class APlacedTower;
+class APolyPalsGamePawn;
+class APolyPalsController;
 
-UENUM()
-enum class EBuildState
-{
-	None = 0,
-	SerchingPlace,
-	DecidePlacementLocation
-};
+
+DECLARE_DELEGATE(FTryBuildButNotEnoughGold)
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYPALSDEFENSE_API UBuildTowerComponent : public UActorComponent
@@ -29,6 +29,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	virtual void InitializeComponent() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	// Call by gamepawn
@@ -59,11 +60,15 @@ public:
 
 private:
 	UPROPERTY()
-	TObjectPtr<class UTowerDataManager> TowerDataManager;
+	TObjectPtr<UTowerDataManager> TowerDataManager;
 	UPROPERTY()
-	TObjectPtr<class APreviewBuilding> PreviewBuilding;
+	TObjectPtr<APreviewBuilding> PreviewBuilding;
 	UPROPERTY()
-	TSubclassOf<class APlacedTower> PlacedTowerBlueClass;
+	TSubclassOf<APlacedTower> PlacedTowerBlueClass;
+	UPROPERTY()
+	TObjectPtr<APolyPalsGamePawn> GamePawn;
+	UPROPERTY()
+	TObjectPtr<UTowerHandleComponent> TowerHandleComponent;
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
@@ -71,6 +76,6 @@ private:
 	uint8 TowerOnSerchingQue = 0;
 	EBuildState BuildState = EBuildState::None;
 	
-	friend class APolyPalsGamePawn;
-	friend class APolyPalsController;
+	friend APolyPalsGamePawn;
+	friend APolyPalsController;
 };

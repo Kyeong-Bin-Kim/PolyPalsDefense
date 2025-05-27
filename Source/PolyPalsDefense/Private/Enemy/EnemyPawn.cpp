@@ -181,7 +181,7 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
             FVector LocalLocation = Mesh->GetComponentTransform().InverseTransformPosition(BoneLocation);
             CollisionSphere->SetRelativeLocation(LocalLocation);
 
-            UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 중심 본 기준 위치 적용: %s"), *LocalLocation.ToString());
+            //UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 중심 본 기준 위치 적용: %s"), *LocalLocation.ToString());
         }
     }
 

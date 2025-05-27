@@ -31,8 +31,15 @@ enum class EAttackMethod : uint8
 UENUM()
 enum class ELevelValue : uint8
 {
-	None			UMETA(Hidden),
 	Level1			UMETA(DisplayName = "1레벨"),
 	Level2			UMETA(DisplayName = "2레벨"),
-	Level3			UMETA(DisplayName = "3레벨")
+	Level3			UMETA(DisplayName = "3레벨"),
+	MaxLevel		UMETA(Hidden)
+};
+UENUM()
+enum class EBuildState : uint8
+{
+	None = 0,
+	SerchingPlace,
+	DecidePlacementLocation
 };

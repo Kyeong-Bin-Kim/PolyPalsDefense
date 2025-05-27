@@ -59,13 +59,18 @@ private:
 	UFUNCTION()
 	void OnRep_CurrentTarget();
 
-	void ServerOnTowerLevelUp();
+	UFUNCTION(Server, Reliable)
+	void Server_OnTowerLevelUp();
+
 	UFUNCTION()
 	void OnRep_CurrentLevel();
 	UFUNCTION()
 	void OnRep_bAoeEffect();
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAoeEffect(FVector_NetQuantize InLocation);
+
+	UFUNCTION()
+	void ClientOnClickedUpgrade();
 
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLevel)
@@ -113,5 +118,6 @@ private:
 	TObjectPtr<class UNiagaraSystem> AoeEffect;
 	
 	friend APlacedTower;
+	friend class UTowerUpgradeWidget;
 
 };

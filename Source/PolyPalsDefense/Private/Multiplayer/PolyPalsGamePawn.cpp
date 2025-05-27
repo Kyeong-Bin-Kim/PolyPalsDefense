@@ -5,6 +5,7 @@
 #include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "Multiplayer/Components/PolyPalsGamePawn/TowerHandleComponent.h"
 #include "DataAsset/Tower/TowerEnums.h"
 
 #include "Net/UnrealNetwork.h"
@@ -28,8 +29,11 @@ APolyPalsGamePawn::APolyPalsGamePawn()
 	PolyPalsPlayCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PolyPalsPlayCameara"));
 	PolyPalsPlayCamera->SetupAttachment(SpringArm);
 
-	BuildTowerComponent = CreateDefaultSubobject <UBuildTowerComponent>(TEXT("BuildTowerComponent"));
+	BuildTowerComponent = CreateDefaultSubobject<UBuildTowerComponent>(TEXT("BuildTowerComponent"));
 	BuildTowerComponent->SetIsReplicated(true);
+
+	TowerHandleComponent = CreateDefaultSubobject<UTowerHandleComponent>(TEXT("TowerHandleComponent"));
+	TowerHandleComponent->SetIsReplicated(true);
 }
 
 // Called when the game starts or when spawned
@@ -71,6 +75,7 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 	bIsPossessed = true;
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
+	TowerHandleComponent->PolyPalsController = PolyPalsController;
 }
 
 void APolyPalsGamePawn::UnPossessed()
@@ -80,6 +85,7 @@ void APolyPalsGamePawn::UnPossessed()
 	bIsPossessed = false;
 	UnbindInputDelegate();
 	PolyPalsController = nullptr;
+	TowerHandleComponent->PolyPalsController = nullptr;
 	//BuildTowerComponent->ServerSetPlayerColor(EPlayerColor::None);
 }
 
@@ -98,7 +104,6 @@ void APolyPalsGamePawn::UnbindInputDelegate()
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.Unbind();
-			polypalsInputcomp->OnInputClick.Unbind();
 			polypalsInputcomp->OnInputRightClick.Unbind();
 			polypalsInputcomp->OnInputTower1.Unbind();
 			polypalsInputcomp->OnInputTower2.Unbind();
@@ -115,11 +120,13 @@ void APolyPalsGamePawn::OnRep_PolyPalsController()
 		if (polypalsInputcomp)
 		{
 			polypalsInputcomp->OnInputTest.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTest);
-			polypalsInputcomp->OnInputClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
-			polypalsInputcomp->OnInputRightClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputRightClick);
+			polypalsInputcomp->OnInputClick.AddUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
 			polypalsInputcomp->OnInputTower1.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower1);
 			polypalsInputcomp->OnInputTower2.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower2);
 			polypalsInputcomp->OnInputTower3.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower3);
+			polypalsInputcomp->OnInputRightClick.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputRightClick);
+
+			polypalsInputcomp->OnInputClick.AddUObject(TowerHandleComponent, &UTowerHandleComponent::ClientOnInputClick);
 		}
 
 		BuildTowerComponent->ClientSpawnPreviewBuilding();

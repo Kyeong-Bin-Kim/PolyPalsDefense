@@ -2,7 +2,9 @@
 
 
 #include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
+#include "Multiplayer/Components/PolyPalsGamePawn/TowerHandleComponent.h"
 #include "Multiplayer/PolyPalsGamePawn.h"
+#include "Multiplayer/PolyPalsController.h"
 #include "Multiplayer/PolyPalsState.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
 #include "Tower/PreviewBuilding.h"
@@ -18,6 +20,7 @@ UBuildTowerComponent::UBuildTowerComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
+	bWantsInitializeComponent = true;
 
 	ConstructorHelpers::FClassFinder<APlacedTower> TowerClass(TEXT("/Game/Blueprints/Towers/BP_PlacedTower.BP_PlacedTower_C"));
 	if (TowerClass.Succeeded())
@@ -34,6 +37,14 @@ void UBuildTowerComponent::BeginPlay()
 	ClientSpawnPreviewBuilding();
 }
 
+
+void UBuildTowerComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	GamePawn = GetOwner<APolyPalsGamePawn>();
+	TowerHandleComponent = GamePawn->TowerHandleComponent;
+}
 
 // Called every frame
 void UBuildTowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -52,9 +63,8 @@ void UBuildTowerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 {
-	APolyPalsGamePawn* gamePawn = GetOwner<APolyPalsGamePawn>();
-	if (!gamePawn) return;
-	if (gamePawn->HasAuthority()) return;
+	if (!GamePawn) return;
+	if (GamePawn->HasAuthority()) return;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -70,13 +80,13 @@ void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { Pl
 
 void UBuildTowerComponent::ClientOnInputTest()
 {
-	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
+	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
 	
 }
 
 void UBuildTowerComponent::ClientOnInputClick()
 {
-	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
+	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
 
 	if (BuildState == EBuildState::SerchingPlace)
 		SetBuildState(EBuildState::DecidePlacementLocation);
@@ -162,16 +172,20 @@ void UBuildTowerComponent::SetBuildState(EBuildState InState)
 
 void UBuildTowerComponent::OnNormal()
 {
+	TowerHandleComponent->SetBuildState(EBuildState::None);
 	TowerOnSerchingQue = 0;
 	PreviewBuilding->ShowPreviewBuilding(false);
 }
 
 void UBuildTowerComponent::OnSerchingPlace()
 {
+	TowerHandleComponent->SetBuildState(EBuildState::SerchingPlace);
 }
 
 void UBuildTowerComponent::OnDecidePlacementLocation()
 {
+	TowerHandleComponent->SetBuildState(EBuildState::DecidePlacementLocation);
+
 	if (PreviewBuilding->IsBuildable())
 	{
 		FVector_NetQuantize placeLocation = PreviewBuilding->GetActorLocation();
@@ -191,7 +205,8 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	SpawnLocation.Z += 80.f;
 
 	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-	Tower->ExternalInitializeTower(InTargetTower, PlayerColor);
+	APolyPalsController* OwnerController = GamePawn->GetPossessedController();
+	Tower->ExternalInitializeTower(InTargetTower, PlayerColor, OwnerController);
 
 	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);

@@ -67,7 +67,7 @@ void UPolyPalsInputComponent::InputTest(const FInputActionValue& Value)
 
 void UPolyPalsInputComponent::InputClick(const FInputActionValue& Value)
 {
-	OnInputClick.ExecuteIfBound();
+	OnInputClick.Broadcast();
 }
 
 void UPolyPalsInputComponent::InputRightClick(const FInputActionValue& Value)

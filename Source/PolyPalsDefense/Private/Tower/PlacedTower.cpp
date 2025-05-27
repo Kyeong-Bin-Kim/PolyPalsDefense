@@ -3,9 +3,12 @@
 
 #include "Tower/PlacedTower.h"
 #include "Tower/Components/TowerAttackComponent.h"
+#include "Tower/Components/TowerUpWidgetComponent.h"
+#include "Multiplayer/PolyPalsController.h"
 #include "Core/Subsystems/TowerDataManager.h"
 #include "DataAsset/Tower/TowerMaterialData.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
+#include "UI/TowerUpgradeWidget.h"
 
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
@@ -36,11 +39,15 @@ APlacedTower::APlacedTower()
 	GunMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("GunMeshComponent"));
 	GunMeshComponent->SetupAttachment(TowerMeshComponent, FName("GunAttachPoint"));
 
+	TowerUpWidgetComponent = CreateDefaultSubobject<UTowerUpWidgetComponent>(TEXT("TowerUpWidgetComponent"));
+	TowerUpWidgetComponent->SetupAttachment(RootBoxComponent);
+	ConstructorHelpers::FClassFinder<UTowerUpgradeWidget> UpWidgetClass(TEXT("/Game/UI/WBP_TowerUpgrade.WBP_TowerUpgrade_C"));
+	if (UpWidgetClass.Succeeded())
+		TowerUpWidgetClass = UpWidgetClass.Class;
+
 	MuzzleEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("MuzzleEffectComponent"));
 	MuzzleEffectComponent->SetupAttachment(GunMeshComponent, FName("MuzzleSocket"));
 	MuzzleEffectComponent->bAutoActivate = false;
-
-
 
 	TowerRangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("TowerRangeSphere"));
 	TowerRangeSphere->SetupAttachment(RootBoxComponent);
@@ -61,6 +68,12 @@ void APlacedTower::BeginPlay()
 	TowerRangeSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Ignore);
 	TowerRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &APlacedTower::OnBeginOverlap);
 	TowerRangeSphere->OnComponentEndOverlap.AddDynamic(this, &APlacedTower::OnEndOverlap);
+
+	if (HasAuthority())
+		TowerUpWidgetComponent->Deactivate();
+	else
+		ClientSetupTowerWidgetComponent();
+
 
 	//test code
 	//if (HasAuthority())
@@ -99,12 +112,17 @@ void APlacedTower::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 
-void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor)
+void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor, APolyPalsController* const InController)
 {
 	TowerId = InTowerId;
 	PlayerColor = InColor;
 	TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
 
+	if (IsValid(InController))
+	{
+		SetOwner(InController);
+		OwnerController = InController;
+	}
 	// test code
 	//OnRep_TowerId();
 	//OnRep_PlayerColor();
@@ -140,6 +158,18 @@ void APlacedTower::OnRep_TowerId()
 		GunMeshComponent->SetStaticMesh(PropertyData->GunMesh);
 		MuzzleEffectComponent->SetAsset(PropertyData->MuzzleEffect);
 	}
+}
+
+void APlacedTower::ClientSetupTowerWidgetComponent()
+{
+	TowerUpWidgetComponent->SetWidgetClass(TowerUpWidgetClass);
+	TowerUpWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	TowerUpWidgetComponent->SetDrawSize(FVector2D(85.f, 50.f));
+	TowerUpWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	TowerUpWidgetComponent->SetHiddenInGame(true);
+	UTowerUpgradeWidget* Widget = Cast<UTowerUpgradeWidget>(TowerUpWidgetComponent->GetWidget());
+	if (Widget)
+		Widget->SetOwnerByFuckingTower(this);
 }
 
 void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InColor)
@@ -180,8 +210,9 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 void APlacedTower::SetTowerCollision()
 {
 	TowerMeshComponent->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel2);
-	TowerMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	TowerMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	TowerMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel2, ECollisionResponse::ECR_Overlap);
+	TowerMeshComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_GameTraceChannel3, ECollisionResponse::ECR_Block);
 }
 
 void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
