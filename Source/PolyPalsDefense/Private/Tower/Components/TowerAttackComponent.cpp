@@ -57,6 +57,8 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UTowerAttackComponent, TowerId);
 	DOREPLIFETIME(UTowerAttackComponent, CurrentTarget);
 	DOREPLIFETIME(UTowerAttackComponent, bMuzzleEffect);
+	DOREPLIFETIME(UTowerAttackComponent, bAoeEffect);
+	DOREPLIFETIME(UTowerAttackComponent, AoeLocation);
 }
 
 void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -109,6 +111,7 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 	TowerAbility = Data->TowerAbility;
 	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
+
 }
 
 void UTowerAttackComponent::SetGunMeshTimer()
@@ -180,56 +183,59 @@ void UTowerAttackComponent::OnAttack()
 	{
 		if (TowerAbility != ETowerAbility::None)
 		{
-			//FCollisionShape Sphere = FCollisionShape::MakeSphere(200.f);
-			//TArray<FOverlapResult> OverlapResults;
+			FCollisionShape Sphere = FCollisionShape::MakeSphere(250.f);
+			TArray<FOverlapResult> OverlapResults;
 
-			//FCollisionQueryParams Params;
-			//Params.AddIgnoredActor(GetOwner());
-			//FCollisionResponseParams ResParams;
-			//ResParams.CollisionResponse = ECR_Overlap;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(GetOwner());
+			FCollisionResponseParams ResParams;
+			ResParams.CollisionResponse = ECR_Overlap;
 
+			DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 250.f, 8, FColor::Yellow, false, 1.5f);
 			
-			//GetWorld()->OverlapMultiByChannel(OverlapResults,
-			//	SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
-			//	Sphere, Params, ResParams);
-
-			///////////////
-
-			//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 200.f, 8, FColor::Yellow, false,
-			//	2.f);
-
-			//TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-			//ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
-
-			//TArray<AActor*> ActorsToIgnore;
-			//ActorsToIgnore.Add(GetOwner());
-
-			//TArray<AActor*> OutActors;
-
-			//UKismetSystemLibrary::SphereOverlapActors(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(),
-			//	200.f, ObjectTypes, nullptr, ActorsToIgnore, OutActors);
+			GetWorld()->OverlapMultiByChannel(OverlapResults,
+				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_Pawn,
+				Sphere, Params, ResParams);
 
 			switch (TowerAbility)
 			{
 			case ETowerAbility::Slow:
-				//for (const auto& Iter : OutActors)
-				//{
-				//	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter);
-				//	if (EnemyPawn)
-				//		EnemyPawn->ApplySlow(0.5f, 2.f);
-				//}
-				SpottedEnemy_Server[0]->ApplySlow(0.1f, 10.f);
+				for (const auto& Iter : OverlapResults)
+				{
+					USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent());
+					if (Collision)
+					{
+						AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner());
+						if (Enemy)
+						{
+							FString Name = Enemy->GetName();
+							UE_LOG(LogTemp, Log, TEXT("Slow AOE overlapped with enemy: %s "), *Name);
+							Enemy->ApplySlow(0.1f, 10.f);
+						}
+					}
+				}
 				break;
 			case ETowerAbility::Stun:
-				//for (const auto& Iter : OutActors)
-				//{
-				//	AEnemyPawn* EnemyPawn = Cast<AEnemyPawn>(Iter);
-				//	if (EnemyPawn)
-				//		EnemyPawn->ApplyStun(2.0f);
-				//}
-				SpottedEnemy_Server[0]->ApplyStun(10.f);
+				for (const auto& Iter : OverlapResults)
+				{
+					USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent());
+					if (Collision)
+					{
+						AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner());
+						if (Enemy)
+						{
+							FString Name = Enemy->GetName();
+							UE_LOG(LogTemp, Log, TEXT("Stun AOE overlapped with enemy: %s "), *Name);
+							Enemy->ApplyStun(10.f);
+						}
+					}
+				}
 				break;
 			}
+			Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
+			//AoeLocation = SpottedEnemy_Server[0]->GetActorLocation();
+			//bAoeEffect = true;
+
 		}
 
 		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
@@ -289,6 +295,7 @@ void UTowerAttackComponent::OnRep_TowerId()
 		FTowerUpgradeValue* UpgradeData = TowerData->UpgradeData.Find(ELevelValue::Level1);
 		AttackDelay = UpgradeData->AttackDelay;
 		MuzzleEffect = TowerData->MuzzleEffect;
+		AoeEffect = TowerData->AoeEffect;
 	}
 }
 
@@ -349,3 +356,19 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 	}
 }
 
+void UTowerAttackComponent::OnRep_bAoeEffect()
+{
+	UE_LOG(LogTemp, Log, TEXT("bAoeEffect Callback"))
+	if (bAoeEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, AoeLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
+			ENCPoolMethod::AutoRelease);
+	}
+}
+
+void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQuantize InLocation)
+{
+	UE_LOG(LogTemp, Log, TEXT("Multicast"))
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, InLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
+		ENCPoolMethod::AutoRelease);
+}

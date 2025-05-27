@@ -62,7 +62,10 @@ private:
 	void ServerOnTowerLevelUp();
 	UFUNCTION()
 	void OnRep_CurrentLevel();
-
+	UFUNCTION()
+	void OnRep_bAoeEffect();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayAoeEffect(FVector_NetQuantize InLocation);
 
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentLevel)
@@ -76,6 +79,12 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
 	bool bMuzzleEffect = false;
+
+	UPROPERTY(ReplicatedUsing = OnRep_bAoeEffect)
+	bool bAoeEffect = false;
+
+	UPROPERTY(Replicated)
+	FVector_NetQuantize AoeLocation;
 
 	ETowerState TowerState_Server = ETowerState::Idle;
 	
@@ -100,6 +109,8 @@ private:
 	TObjectPtr<class UNiagaraComponent> MuzzleEffectComponent;
 	UPROPERTY()
 	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
+	UPROPERTY()
+	TObjectPtr<class UNiagaraSystem> AoeEffect;
 	
 	friend APlacedTower;
 

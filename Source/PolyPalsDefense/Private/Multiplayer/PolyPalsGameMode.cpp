@@ -6,7 +6,7 @@
 APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
-	ExpectedPlayerCount = 3;
+	ExpectedPlayerCount = 2;
 }
 
 void APolyPalsGameMode::TriggerGameOver()

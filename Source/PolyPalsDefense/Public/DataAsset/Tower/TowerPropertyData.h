@@ -50,4 +50,6 @@ public:
 	TObjectPtr<UStaticMesh> GunMesh;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Visual")
 	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Visual")
+	TObjectPtr<class UNiagaraSystem> AoeEffect;
 };
