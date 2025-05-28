@@ -1,12 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Multiplayer/PolyPalsController.h"
-#include "Multiplayer/PolyPalsGamePawn.h"
-#include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
-#include "Multiplayer/Components/PolyPalsController/GamePawnComponent.h"
-#include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
-#include "Multiplayer/InputConfig.h"
+#include "PolyPalsController.h"
+#include "PolyPalsPlayerState.h"
+#include "PolyPalsState.h"
+#include "PolyPalsGamePawn.h"
+#include "Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "Components/PolyPalsController/GamePawnComponent.h"
+#include "Components/PolyPalsGamePawn/BuildTowerComponent.h"
+#include "InputConfig.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -36,6 +35,21 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(APolyPalsController, PlayerColor);
+}
+
+void APolyPalsController::Server_SetReady_Implementation(bool bReady)
+{
+	APolyPalsPlayerState* MyState = GetPlayerState<APolyPalsPlayerState>();
+	if (MyState)
+	{
+		MyState->SetReady(bReady);
+
+		APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>();
+		if (GameState)
+		{
+			GameState->UpdateReadyPlayers();
+		}
+	}
 }
 
 void APolyPalsController::SetPlayerColor(EPlayerColor InColor) { 

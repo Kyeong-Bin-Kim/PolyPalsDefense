@@ -1,15 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Tower/Components/TowerAttackComponent.h"
-#include "Tower/PlacedTower.h"
-#include "Multiplayer/PolyPalsController.h"
-#include "Multiplayer/PolyPalsState.h"
-#include "Core/Subsystems/TowerDataManager.h"
-#include "DataAsset/Tower/TowerPropertyData.h"
-#include "DataAsset/Tower/TowerMaterialData.h"
+#include "Components/TowerAttackComponent.h"
+#include "PlacedTower.h"
+#include "PolyPalsController.h"
+#include "PolyPalsPlayerState.h"
+#include "Subsystems/TowerDataManager.h"
+#include "Tower/TowerPropertyData.h"
+#include "Tower/TowerMaterialData.h"
 
-#include "Enemy/EnemyPawn.h"
+#include "EnemyPawn.h"
 
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
@@ -382,12 +382,12 @@ void UTowerAttackComponent::ClientOnClickedUpgrade()
 	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);	// Already +1 by enum
 	int32 Cost = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerCost(TowerId, NextLevel);
 	
-	APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>();
-	int32 CurrentGold = GameState->GetGold();
+	APolyPalsPlayerState* GamePlayerState = GetWorld()->GetGameState<APolyPalsPlayerState>();
+	int32 CurrentGold = GamePlayerState->GetPlayerGold();
 
 	if (CurrentGold >= Cost)
 	{
-		GameState->AddGold(-Cost);
+		GamePlayerState->AddGold(-Cost);
 		Server_OnTowerLevelUp();
 		OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
 	}

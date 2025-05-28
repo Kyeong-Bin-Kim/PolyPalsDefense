@@ -1,15 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "Multiplayer/Components/PolyPalsGamePawn/BuildTowerComponent.h"
-#include "Multiplayer/Components/PolyPalsGamePawn/TowerHandleComponent.h"
-#include "Multiplayer/PolyPalsGamePawn.h"
-#include "Multiplayer/PolyPalsController.h"
-#include "Multiplayer/PolyPalsState.h"
-#include "DataAsset/Tower/TowerPropertyData.h"
-#include "Tower/PreviewBuilding.h"
-#include "Tower/PlacedTower.h"
-#include "Core/Subsystems/TowerDataManager.h"
+#include "Components/PolyPalsGamePawn/BuildTowerComponent.h"
+#include "Components/PolyPalsGamePawn/TowerHandleComponent.h"
+#include "PolyPalsGamePawn.h"
+#include "PolyPalsController.h"
+#include "PolyPalsPlayerState.h"
+#include "Tower/TowerPropertyData.h"
+#include "PreviewBuilding.h"
+#include "PlacedTower.h"
+#include "Subsystems/TowerDataManager.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -105,7 +102,16 @@ void UBuildTowerComponent::ClientOnInputTower1()
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(1);
 		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 		int32 Require = UpgradeData->Cost;
-		int32 CurrentGold = GetWorld()->GetGameState<APolyPalsState>()->GetGold();
+
+		int32 CurrentGold = 0;
+
+		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
+			{
+				CurrentGold = PlayerState->GetPlayerGold();
+			}
+		}
 
 		if (CurrentGold >= Require)
 			OnSelectTower(1);
@@ -121,7 +127,16 @@ void UBuildTowerComponent::ClientOnInputTower2()
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(2);
 		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 		int32 Require = UpgradeData->Cost;
-		int32 CurrentGold = GetWorld()->GetGameState<APolyPalsState>()->GetGold();
+
+		int32 CurrentGold = 0;
+
+		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
+			{
+				CurrentGold = PlayerState->GetPlayerGold();
+			}
+		}
 
 		if (CurrentGold >= Require)
 			OnSelectTower(2);
@@ -137,7 +152,16 @@ void UBuildTowerComponent::ClientOnInputTower3()
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(3);
 		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 		int32 Require = UpgradeData->Cost;
-		int32 CurrentGold = GetWorld()->GetGameState<APolyPalsState>()->GetGold();
+		
+		int32 CurrentGold = 0;
+
+		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
+		{
+			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
+			{
+				CurrentGold = PlayerState->GetPlayerGold();
+			}
+		}
 
 		if (CurrentGold >= Require)
 			OnSelectTower(3);
@@ -211,7 +235,7 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 	int32 Require = UpgradeData->Cost;
-	GetWorld()->GetGameState<APolyPalsState>()->AddGold(-Require);
+	GetWorld()->GetGameState<APolyPalsPlayerState>()->AddGold(-Require);
 	//int32 Current = GetWorld()->GetGameState<APolyPalsState>()->GetGold();
 	//UE_LOG(LogTemp, Log, TEXT("Gold: %d"), Current)
 

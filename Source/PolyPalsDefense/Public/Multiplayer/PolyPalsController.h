@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "DataAsset/Tower/TowerEnums.h"
+#include "Tower/TowerEnums.h"
 #include "PolyPalsController.generated.h"
 
 class UPolyPalsInputComponent;
@@ -26,6 +26,9 @@ protected:
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetReady(bool bReady);
 
 	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
 	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }

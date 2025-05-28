@@ -69,8 +69,10 @@ void AWaveManager::StartRound(int32 RoundIndex)
     if (!HasAuthority() || !WaveSpawner)
         return;
 
-    if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
-        return;
+    if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+    {
+        GS->SetCurrentRound(RoundIndex);
+    }
 
     UE_LOG(LogTemp, Log, TEXT("[WaveManager] StartRound %d"), RoundIndex);
     WaveSpawner->StartWave(RoundIndex);

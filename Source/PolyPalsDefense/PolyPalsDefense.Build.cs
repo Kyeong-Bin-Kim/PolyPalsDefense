@@ -10,7 +10,7 @@ public class PolyPalsDefense : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(new string[]
-{
+        {
             Path.Combine(ModuleDirectory, "Public"),
             Path.Combine(ModuleDirectory, "Public/Core"),
             Path.Combine(ModuleDirectory, "Public/AssetManagement"),
@@ -23,18 +23,16 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public/Tower"),
             Path.Combine(ModuleDirectory, "Public/UI"),
             Path.Combine(ModuleDirectory, "Public/Map")
-});
+        });
 
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem", "Niagara"  });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
-
 		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
+		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
-	}
+        // Uncomment if you are using online features
+        // PrivateDependencyModuleNames.Add("OnlineSubsystem");
+
+        // To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+    }
 }

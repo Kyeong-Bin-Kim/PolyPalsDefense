@@ -1,45 +1,119 @@
 #include "PolyPalsState.h"
+#include "PolyPalsPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 APolyPalsState::APolyPalsState()
 {
+    ConnectedPlayers = 0;
+    ReadyPlayers = 0;
+    SelectedStage = NAME_None;
     bIsGameOver = false;
-    Gold = 1000;
 }
 
-void APolyPalsState::AddGold_Implementation(int32 Amount)
+void APolyPalsState::SetCurrentRound(int32 NewRound)
 {
-    Gold += Amount;
-    OnRep_Gold(); // 서버에서도 즉시 UI 갱신 가능
+    if (HasAuthority())
+    {
+        CurrentRound = NewRound;
+        OnRep_CurrentRound();
+    }
 }
 
-void APolyPalsState::OnRep_Gold()
+
+void APolyPalsState::OnRep_CurrentRound()
 {
-    UE_LOG(LogTemp, Log, TEXT("[PlayerState] 골드 갱신: %d"), Gold);
-
-    // UI 위젯 연동(내부에서 직접 브로드캐스트[권장] OR 위젯에서 Tick or Timer로 GetGold() 호출)
+    UE_LOG(LogTemp, Log, TEXT("[GameState] CurrentRound updated: %d"), CurrentRound);
 }
 
+// 게임 오버 상태 서버에서 설정
 void APolyPalsState::SetGameOver()
 {
-    // 서버 권한이 없거나 이미 게임 오버 상태면 처리 중단
     if (!HasAuthority() || bIsGameOver)
         return;
 
-    // 게임 오버 플래그 설정 및 이벤트 브로드캐스트
     bIsGameOver = true;
+
+    // 서버에서 이벤트 브로드캐스트 (서버 + 클라 동기화)
     OnGameOver.Broadcast();
 }
 
+// 선택된 스테이지 서버에서 설정
+void APolyPalsState::SetSelectedStage(FName Stage)
+{
+    if (HasAuthority())
+    {
+        SelectedStage = Stage;
+        OnRep_SelectedStage(); // 서버에서도 즉시 처리
+    }
+}
+
+// 서버에서 접속자 수 업데이트
+void APolyPalsState::UpdateConnectedPlayers(int32 Count)
+{
+    if (HasAuthority())
+    {
+        ConnectedPlayers = Count;
+        OnRep_ConnectedPlayers();
+    }
+}
+
+// 서버에서 Ready 완료 수 계산 및 갱신
+void APolyPalsState::UpdateReadyPlayers()
+{
+    int32 ReadyCount = 0;
+
+    // PlayerArray 순회하여 Ready 상태 카운트
+    for (APlayerState* PlayerState : PlayerArray)
+    {
+        APolyPalsPlayerState* MyState = Cast<APolyPalsPlayerState>(PlayerState);
+        if (MyState && MyState->IsReady())
+        {
+            ReadyCount++;
+        }
+    }
+
+    ReadyPlayers = ReadyCount;
+    OnRep_ReadyPlayers();
+
+    // 모든 플레이어가 준비 완료된 경우, 이벤트 발생
+    //if (ReadyPlayers == ConnectedPlayers && ConnectedPlayers > 0)
+    //{
+        OnAllPlayersReady.Broadcast();
+    //}
+}
+
+// 접속자 수 변경 시 클라에서 호출
+void APolyPalsState::OnRep_ConnectedPlayers()
+{
+    UE_LOG(LogTemp, Log, TEXT("[GameState] 접속자 수 갱신: %d"), ConnectedPlayers);
+}
+
+// Ready 수 변경 시 클라에서 호출
+void APolyPalsState::OnRep_ReadyPlayers()
+{
+    UE_LOG(LogTemp, Log, TEXT("[GameState] 준비 완료 수 갱신: %d"), ReadyPlayers);
+}
+
+// 선택된 스테이지 변경 시 클라에서 호출
+void APolyPalsState::OnRep_SelectedStage()
+{
+    UE_LOG(LogTemp, Log, TEXT("[GameState] 선택된 스테이지 갱신: %s"), *SelectedStage.ToString());
+}
+
+// 게임 오버 상태 변경 시 클라에서 호출
 void APolyPalsState::OnRep_GameOver()
 {
-    // 복제된 클라이언트에서도 이벤트 브로드캐스트
-    OnGameOver.Broadcast();
+    OnGameOver.Broadcast(); // 클라에서 이벤트 브로드캐스트
 }
 
+// Replication 변수 등록
 void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(APolyPalsState, ConnectedPlayers);
+    DOREPLIFETIME(APolyPalsState, ReadyPlayers);
+    DOREPLIFETIME(APolyPalsState, SelectedStage);
+    DOREPLIFETIME(APolyPalsState, CurrentRound);
     DOREPLIFETIME(APolyPalsState, bIsGameOver);
-    DOREPLIFETIME(APolyPalsState, Gold);
 }

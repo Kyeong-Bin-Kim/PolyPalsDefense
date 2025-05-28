@@ -1,22 +1,13 @@
 #include "PolyPalsGameMode.h"
 #include "PolyPalsState.h"
 #include "PolyPalsController.h"
-#include "Tower/TestEnemy.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
-	ExpectedPlayerCount = 2;
-}
-
-void APolyPalsGameMode::TriggerGameOver()
-{
-	// GameState를 PolyPalsState로 캐스트하여 SetGameOver 호출
-	AGameStateBase* GS = GameState;
-	if (APolyPalsState* PState = Cast<APolyPalsState>(GS))
-	{
-		PState->SetGameOver();
-	}
+	ExpectedPlayerCount = 3; // 테스트용
 }
 
 void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -52,17 +43,27 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 
 	// 접속자 수 카운트 (호스트 포함)
 	ConnectedPlayers++;
-	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"),
-		ConnectedPlayers, ExpectedPlayerCount);
+	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
-	// 기준 인원 도달 시 OnAllPlayersReady 브로드캐스트
-	if (ConnectedPlayers >= ExpectedPlayerCount)
+	// GameState 이벤트 바인딩 (처음 접속자일 때만 한 번)
+	//if (ConnectedPlayers == 1)
+	if (ConnectedPlayers >= ExpectedPlayerCount) // 테스트용, 모든 플레이어가 접속했을 때
 	{
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 		{
-			UE_LOG(LogTemp, Log, TEXT("All players ready! Broadcasting event."));
-			GS->OnAllPlayersReady.Broadcast();
+			// 모든 플레이어 준비 완료 이벤트 연결
+			//GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
+			GS->OnAllPlayersReady.Broadcast(); // 테스트용, 즉시 이벤트 발생
+
+			// 게임 오버 이벤트 연결
+			GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
 		}
+	}
+
+	// GameState에 접속자 수 업데이트
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		GS->UpdateConnectedPlayers(ConnectedPlayers);
 	}
 }
 
@@ -70,15 +71,65 @@ void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	/////////////////////// test code ///////////////////////
-	//FActorSpawnParameters Params;
-	//Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	// 메인 UI 생성 및 화면에 추가
+	//if (MainUIWidgetClass)
+	//{
+	//	MainUIWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainUIWidgetClass);
+	//	if (MainUIWidgetInstance)
+	//	{
+	//		MainUIWidgetInstance->AddToViewport();
+	//		UE_LOG(LogTemp, Log, TEXT("Main UI Widget 생성 및 표시 완료"));
+	//	}
+	//}
+	//else
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass가 설정되어 있지 않습니다!"));
+	//}
+}
 
-	//FTransform SpawnTrasform;
-	//SpawnTrasform.SetLocation(TestEnemySpawnLocation);
+void APolyPalsGameMode::TriggerGameOver()
+{
+	// GameState를 PolyPalsState로 캐스트하여 SetGameOver 호출
+	AGameStateBase* GS = GameState;
+	if (APolyPalsState* PState = Cast<APolyPalsState>(GS))
+	{
+		PState->SetGameOver();
+	}
+}
 
-	//GetWorld()->SpawnActor<ATestEnemy>(TestEnemyClass, SpawnTrasform);
-	//////////////////////////////////////////////////////////
+void APolyPalsGameMode::HandleAllPlayersReady()
+{
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] 모든 플레이어 준비 완료! %f초 뒤 게임 시작"), StartCountdownTime);
+
+	// 카운트다운 후 게임 시작
+	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
+	{
+		StartGameAfterCountdown();
+	});
+}
+
+void APolyPalsGameMode::StartGameAfterCountdown()
+{
+	FTimerHandle TimerHandle;
+
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	//{
+		// 맵으로 이동하여 게임 시작
+		//APolyPalsState* GS = GetGameState<APolyPalsState>();
+		//if (GS)
+		//{
+		//	FName StageToLoad = GS->GetSelectedStage();
+		//	UGameplayStatics::OpenLevel(this, StageToLoad, true);
+		//}
+	//}, StartCountdownTime, false);
+}
+
+void APolyPalsGameMode::HandleStateGameOver()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 게임 오버 처리 시작"));
+
+	// 빈 맵으로 복귀
+	UGameplayStatics::OpenLevel(this, FName("EmptyLevel"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)
