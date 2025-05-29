@@ -5,24 +5,8 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "TowerEnums.h"
+#include "TowerStructs.h"
 #include "TowerPropertyData.generated.h"
-
-USTRUCT(BlueprintType)
-struct FTowerUpgradeValue
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float Damage;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float AttackDelay;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float Range;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite,meta = (ClampMin = "0"))
-	int32 Cost;
-
-	FTowerUpgradeValue() : Damage(1.f), AttackDelay(1.f), Range(1.f), Cost(0) {}
-};
 
 UCLASS()
 class POLYPALSDEFENSE_API UTowerPropertyData : public UPrimaryDataAsset
@@ -40,11 +24,15 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value")
 	uint8 TowerId;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value")
-	ETowerAbility TowerAbility;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value")
 	TMap<ELevelValue, FTowerUpgradeValue> UpgradeData;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value")
-	EAttackMethod AttackMethod;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value|Ability")
+	ETowerAbility TowerAbility;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value|Ability", meta = (EditCondition = "TowerAbility == ETowerAbility::Stun", EditConditionHides))
+	TMap<ELevelValue, FStunDetail> StunDetails;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Value|Ability", meta = (EditCondition = "TowerAbility == ETowerAbility::Slow", EditConditionHides))
+	TMap<ELevelValue, FSlowDetail> SlowDetails;
+
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Visual")
 	TObjectPtr<UStaticMesh> TowerMesh;

@@ -59,7 +59,6 @@ UTowerPropertyData* UTowerDataManager::GetTowerPropertyData(const uint8 InTowerI
 	else
 	{
 		UTowerPropertyData** ErrorData = TowerProperties.Find(0);
-		ensure(false);
 		UE_LOG(LogTemp, Warning, TEXT("존재하지 않는 타워 데이터가 요청되어 빈 타워가 반환됨. 요청: %d"), InTowerId);
 		return *ErrorData;
 	}
@@ -75,6 +74,58 @@ int32 UTowerDataManager::GetTowerCost(uint8 InTowerId, ELevelValue InLevel)
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(InLevel);
 
 	return UpgradeData->Cost;
+}
+
+float UTowerDataManager::GetAbilityDuration(uint8 InTowerId, uint8 InLevel)
+{
+	float Duration = 0.f;
+	if (!TowerProperties.Contains(InTowerId)) return Duration;
+
+	UTowerPropertyData** FoundData = TowerProperties.Find(InTowerId);
+	UTowerPropertyData* TowerData = *FoundData;
+
+	ELevelValue TowerLevel = static_cast<ELevelValue>(InLevel - 1);
+	ETowerAbility TowerAbility = TowerData->TowerAbility;
+	switch (TowerAbility)
+	{
+	case ETowerAbility::Slow:
+	{
+		FSlowDetail* FoundDetail = TowerData->SlowDetails.Find(TowerLevel);
+		Duration = FoundDetail->Duration;
+		break;
+	}
+	case ETowerAbility::Stun:
+	{
+		FStunDetail* FoundDetail = TowerData->StunDetails.Find(TowerLevel);
+		Duration = FoundDetail->Duration;
+		break;
+	}
+	}
+
+	return Duration;
+}
+
+float UTowerDataManager::GetAbilityIntensity(uint8 InTowerId, uint8 InLevel)
+{
+	float Intensity = 0.f;
+	if (!TowerProperties.Contains(InTowerId)) return Intensity;
+
+	UTowerPropertyData** FoundData = TowerProperties.Find(InTowerId);
+	UTowerPropertyData* TowerData = *FoundData;
+
+	ELevelValue TowerLevel = static_cast<ELevelValue>(InLevel - 1);
+	ETowerAbility TowerAbility = TowerData->TowerAbility;
+	switch (TowerAbility)
+	{
+	case ETowerAbility::Slow:
+	{
+		FSlowDetail* FoundDetail = TowerData->SlowDetails.Find(TowerLevel);
+		Intensity = FoundDetail->Intensity;
+		break;
+	}
+	}
+
+	return Intensity;
 }
 
 void UTowerDataManager::LoadMaterialData()

@@ -103,7 +103,6 @@ void APolyPalsGamePawn::UnbindInputDelegate()
 		UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
 		if (polypalsInputcomp)
 		{
-			polypalsInputcomp->OnInputTest.Unbind();
 			polypalsInputcomp->OnInputRightClick.Unbind();
 			polypalsInputcomp->OnInputTower1.Unbind();
 			polypalsInputcomp->OnInputTower2.Unbind();
@@ -119,7 +118,6 @@ void APolyPalsGamePawn::OnRep_PolyPalsController()
 		UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();
 		if (polypalsInputcomp)
 		{
-			polypalsInputcomp->OnInputTest.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTest);
 			polypalsInputcomp->OnInputClick.AddUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputClick);
 			polypalsInputcomp->OnInputTower1.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower1);
 			polypalsInputcomp->OnInputTower2.BindUObject(BuildTowerComponent, &UBuildTowerComponent::ClientOnInputTower2);

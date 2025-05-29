@@ -75,12 +75,6 @@ void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 
 void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { PlayerColor = InColor; }
 
-void UBuildTowerComponent::ClientOnInputTest()
-{
-	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
-	
-}
-
 void UBuildTowerComponent::ClientOnInputClick()
 {
 	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
@@ -235,8 +229,7 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector
 	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 	int32 Require = UpgradeData->Cost;
-	GetWorld()->GetGameState<APolyPalsPlayerState>()->AddGold(-Require);
-	//int32 Current = GetWorld()->GetGameState<APolyPalsState>()->GetGold();
-	//UE_LOG(LogTemp, Log, TEXT("Gold: %d"), Current)
 
+	APolyPalsPlayerState* PolypalsPlayerState = GamePawn->GetController<APolyPalsController>()->GetPlayerState<APolyPalsPlayerState>();
+	PolypalsPlayerState->AddGold(-Require);
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "DataAsset/Tower/TowerEnums.h"
+#include "DataAsset/Tower/TowerStructs.h"
 #include "TowerDataManager.generated.h"
 
 
@@ -22,6 +23,8 @@ public:
 	UTowerMaterialData* GetTowerMaterialData() const { return TowerMaterials; }
 	UTowerPropertyData* GetTowerPropertyData(const uint8 InTowerId);
 	int32 GetTowerCost(uint8 InTowerId, ELevelValue InLevel);
+	float GetAbilityDuration(uint8 InTowerId, uint8 InLevel);
+	float GetAbilityIntensity(uint8 InTowerId, uint8 InLevel);
 
 private:
 	void LoadMaterialData();

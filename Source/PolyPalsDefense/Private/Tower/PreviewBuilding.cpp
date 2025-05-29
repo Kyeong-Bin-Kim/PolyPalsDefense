@@ -165,6 +165,12 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 			NewSnappedLocation, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
 			Box, Params, ResParams);
 		
+		//for (const auto& Item : OverlapResults)
+		//{
+		//	FString Who = Item.Component->GetName();
+		//	UE_LOG(LogTemp, Log, TEXT("Overlapped Component: %s"), *Who);
+		//}
+
 		bool bFlag = false;
 		if (!bOverlaps)
 			bFlag = true;

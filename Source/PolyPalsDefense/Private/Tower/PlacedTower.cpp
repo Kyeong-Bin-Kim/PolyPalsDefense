@@ -69,6 +69,8 @@ void APlacedTower::BeginPlay()
 	TowerRangeSphere->OnComponentBeginOverlap.AddDynamic(this, &APlacedTower::OnBeginOverlap);
 	TowerRangeSphere->OnComponentEndOverlap.AddDynamic(this, &APlacedTower::OnEndOverlap);
 
+
+	TowerUpWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	if (HasAuthority())
 		TowerUpWidgetComponent->Deactivate();
 	else
@@ -167,6 +169,7 @@ void APlacedTower::ClientSetupTowerWidgetComponent()
 	TowerUpWidgetComponent->SetDrawSize(FVector2D(85.f, 50.f));
 	TowerUpWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	TowerUpWidgetComponent->SetHiddenInGame(true);
+
 	UTowerUpgradeWidget* Widget = Cast<UTowerUpgradeWidget>(TowerUpWidgetComponent->GetWidget());
 	if (Widget)
 		Widget->SetOwnerByFuckingTower(this);

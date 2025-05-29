@@ -38,7 +38,6 @@ public:
 private:
 	void SetPlayerColorByController(EPlayerColor InColor);
 
-	void ClientOnInputTest();
 	void ClientOnInputClick();
 	void ClientOnInputRightClick();
 	void ClientOnInputTower1();

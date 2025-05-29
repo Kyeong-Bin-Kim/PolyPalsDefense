@@ -12,7 +12,7 @@
 
 UTowerHandleComponent::UTowerHandleComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	//bWantsInitializeComponent = true;
 }
 
@@ -25,7 +25,7 @@ void UTowerHandleComponent::BeginPlay()
 
 void UTowerHandleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 }
 
@@ -46,12 +46,17 @@ void UTowerHandleComponent::ClientOnInputClick()
 		PolyPalsController->GetHitResultUnderCursor(ECollisionChannel::ECC_GameTraceChannel3, true, HitResult);
 		AActor* ClickedActor = HitResult.GetActor();
 		APlacedTower* ClickedTower = Cast<APlacedTower>(ClickedActor);
-		if (ClickedTower)
+		if (ClickedTower && ClickedTower->GetOwner())
 		{
 			if (FocusedTower)
 				FocusedTower->SetWidgetHidden(true);
 			FocusedTower = ClickedTower;
 			FocusedTower->SetWidgetHidden(false);
+		}
+		else
+		{
+			if (FocusedTower)
+				FocusedTower->SetWidgetHidden(true);
 		}
 	}
 }

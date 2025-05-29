@@ -47,8 +47,6 @@ void UTowerAttackComponent::InitializeComponent()
 	OwnerTower = GetOwner<APlacedTower>();
 	GunMeshComponent = OwnerTower->GunMeshComponent;
 	MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
-
-	//MuzzleEffectComponent = OwnerTower->MuzzleEffectComponent;
 }
 
 void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -105,11 +103,22 @@ void UTowerAttackComponent::ClientUpdateGunMeshRotation()
 void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 {
 	TowerId = InTowerId;
-	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
+	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
+	UTowerPropertyData* Data = DataManager->GetTowerPropertyData(TowerId);
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 	Damage = UpgradeData->Damage;
 	AttackDelay = UpgradeData->AttackDelay;
 	TowerAbility = Data->TowerAbility;
+	switch (TowerAbility)
+	{
+	case ETowerAbility::Slow:
+		AbilityDuration = DataManager->GetAbilityDuration(TowerId, 1);
+		AbilityIntensity = DataManager->GetAbilityIntensity(TowerId, 1);
+		break;
+	case ETowerAbility::Stun:
+		AbilityDuration = DataManager->GetAbilityDuration(TowerId, 1);
+		break;
+	}
 	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 
@@ -192,7 +201,7 @@ void UTowerAttackComponent::OnAttack()
 			FCollisionResponseParams ResParams;
 			ResParams.CollisionResponse = ECR_Overlap;
 
-			DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 250.f, 8, FColor::Yellow, false, 1.5f);
+			//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 250.f, 8, FColor::Yellow, false, 1.5f);
 			
 			GetWorld()->OverlapMultiByChannel(OverlapResults,
 				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_Pawn,
@@ -211,7 +220,7 @@ void UTowerAttackComponent::OnAttack()
 						{
 							FString Name = Enemy->GetName();
 							UE_LOG(LogTemp, Log, TEXT("Slow AOE overlapped with enemy: %s "), *Name);
-							Enemy->ApplySlow(0.1f, 10.f);
+							Enemy->ApplySlow(AbilityIntensity, AbilityDuration);
 						}
 					}
 				}
@@ -227,25 +236,20 @@ void UTowerAttackComponent::OnAttack()
 						{
 							FString Name = Enemy->GetName();
 							UE_LOG(LogTemp, Log, TEXT("Stun AOE overlapped with enemy: %s "), *Name);
-							Enemy->ApplyStun(10.f);
+							Enemy->ApplyStun(AbilityDuration);
 						}
 					}
 				}
 				break;
 			}
 			Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
-			//AoeLocation = SpottedEnemy_Server[0]->GetActorLocation();
-			//bAoeEffect = true;
-
 		}
 
 		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
-		DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red, false, 0.4f);
-		//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 35.f, 12.f, FColor::Blue, false, 0.3f);
+		//DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red, false, 0.4f);
 		CurrentTarget = SpottedEnemy_Server[0];
 		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
 		UE_LOG(LogTemp, Log, TEXT("ApplyDamage: %f"), Damage);
-		//UGameplayStatics::ApplyDamage(CurrentTarget, Damage, nullptr, nullptr, nullptr);
 		bMuzzleEffect = !bMuzzleEffect;
 		SetTowerState(ETowerState::Delay);
 	}
@@ -315,7 +319,8 @@ void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 	if (!GetWorld()) return;
 
 	CurrentLevel++;
-	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(TowerId);
+	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
+	UTowerPropertyData* Data = DataManager->GetTowerPropertyData(TowerId);
 	
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 
@@ -332,6 +337,17 @@ void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 	Damage = UpgradeData->Damage;
 	AttackDelay = UpgradeData->AttackDelay;
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
+
+	switch (TowerAbility)
+	{
+	case ETowerAbility::Slow:
+		AbilityDuration = DataManager->GetAbilityDuration(TowerId, CurrentLevel);
+		AbilityIntensity = DataManager->GetAbilityIntensity(TowerId, CurrentLevel);
+		break;
+	case ETowerAbility::Stun:
+		AbilityDuration = DataManager->GetAbilityDuration(TowerId, CurrentLevel);
+		break;
+	}
 }
 
 void UTowerAttackComponent::OnRep_CurrentLevel()
@@ -381,19 +397,25 @@ void UTowerAttackComponent::ClientOnClickedUpgrade()
 	
 	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);	// Already +1 by enum
 	int32 Cost = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerCost(TowerId, NextLevel);
-	
-	APolyPalsPlayerState* GamePlayerState = GetWorld()->GetGameState<APolyPalsPlayerState>();
-	int32 CurrentGold = GamePlayerState->GetPlayerGold();
 
-	if (CurrentGold >= Cost)
+	APolyPalsController* ProjectController = GetOwner()->GetOwner<APolyPalsController>();
+	
+	if (ProjectController)
 	{
-		GamePlayerState->AddGold(-Cost);
-		Server_OnTowerLevelUp();
-		OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("업그레이드 실패: 골드가 부족함"));
-		OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
+		APolyPalsPlayerState* ProjectPlayerState = ProjectController->GetPlayerState<APolyPalsPlayerState>();
+		int32 CurrentGold = ProjectPlayerState->GetPlayerGold();
+
+		if (CurrentGold >= Cost)
+		{
+			ProjectPlayerState->AddGold(-Cost);
+			Server_OnTowerLevelUp();
+			OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Log, TEXT("업그레이드 실패: 골드가 부족함"));
+			OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
+		}
+
 	}
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "DataAsset/Tower/TowerEnums.h"
+#include "DataAsset/Tower/TowerStructs.h"
 #include "TowerAttackComponent.generated.h"
 
 
@@ -100,6 +101,8 @@ private:
 	float Damage = 0.f;
 	float AttackDelay = -1.f;
 	ETowerAbility TowerAbility = ETowerAbility::None;
+	float AbilityDuration = 0.f;
+	float AbilityIntensity = 0.f;
 
 	FTimerHandle AttackHandle;
 	FTimerHandle GunMeshHandle;

@@ -29,7 +29,7 @@ protected:
 
     // 개인 골드 (Replicated)
     UPROPERTY(Replicated)
-    int32 PlayerGold = 0;
+    int32 PlayerGold = 20000;
 
     // Replication 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
