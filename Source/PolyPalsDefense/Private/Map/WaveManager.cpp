@@ -94,6 +94,16 @@ void AWaveManager::StartFirstRound()
     );
 }
 
+int32 AWaveManager::GetTotalEnemiesThisWave() const
+{
+    return WaveSpawner ? WaveSpawner->TotalEnemiesThisWave : 0;
+}
+
+int32 AWaveManager::GetRemainingEnemiesThisWave() const
+{
+    return WaveSpawner ? WaveSpawner->RemainingEnemies : 0;
+}
+
 float AWaveManager::GetRoundElapsedTime() const
 {
     if (!HasAuthority()) return 0.f;
@@ -149,5 +159,11 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
         {
             PState->SetGameOver();
         }
+    }
+
+	// 남은 적 수 업데이트
+    if (WaveSpawner)
+    {
+        WaveSpawner->OnEnemyKilled(); // 새 함수 호출
     }
 }

@@ -8,7 +8,11 @@
 #include "PlacedTower.h"
 #include "Subsystems/TowerDataManager.h"
 
+#include "UI/TowerUpgradeWidget.h" 
+#include "Blueprint/UserWidget.h"
+
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/PlayerController.h"
 
 
 // Sets default values for this component's properties
@@ -75,13 +79,65 @@ void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 
 void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { PlayerColor = InColor; }
 
+<<<<<<< HEAD
+=======
+void UBuildTowerComponent::ClientOnInputTest()
+{
+	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
+	
+}
+>>>>>>> UI
 void UBuildTowerComponent::ClientOnInputClick()
 {
 	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
 
 	if (BuildState == EBuildState::SerchingPlace)
+	{
 		SetBuildState(EBuildState::DecidePlacementLocation);
+		return;
+	}
+
+	// GetOwner는 AActor*이므로 반드시 APawn으로 캐스팅 후 GetController
+	APawn* PawnOwner = Cast<APawn>(GetOwner());
+	if (!PawnOwner) return;
+
+	APlayerController* PC = Cast<APlayerController>(PawnOwner->GetController());
+	if (!PC) return;
+
+	// 마우스 아래 액터 추적
+	FHitResult HitResult;
+	PC->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), false, HitResult);
+
+	APlacedTower* ClickedTower = Cast<APlacedTower>(HitResult.GetActor());
+	if (ClickedTower)
+	{
+		AController* LocalController = PC;
+		if (ClickedTower->GetOwner() && ClickedTower->GetOwner() != LocalController)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("타워의 오너가 로컬 컨트롤러와 다릅니다. UI 생략"));
+			return;
+		}
+		UE_LOG(LogTemp, Log, TEXT("PlacedTower Clicked: %s"), *ClickedTower->GetName());
+
+		// 업그레이드 위젯 생성
+		if (TowerUpgradeWidgetClass)
+		{
+			if (UpgradeWidgetInstance)
+			{
+				UpgradeWidgetInstance->RemoveFromParent();
+				UpgradeWidgetInstance = nullptr;
+			}
+
+			UpgradeWidgetInstance = CreateWidget<UTowerUpgradeWidget>(PC, TowerUpgradeWidgetClass);
+			if (UpgradeWidgetInstance)
+			{
+				UpgradeWidgetInstance->SetTargetTower(ClickedTower);
+				UpgradeWidgetInstance->AddToViewport();
+			}
+		}
+	}
 }
+
 
 void UBuildTowerComponent::ClientOnInputRightClick()
 {

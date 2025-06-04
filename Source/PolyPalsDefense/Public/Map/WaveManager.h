@@ -38,6 +38,11 @@ public:
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     int32 GetCurrentRoundIndex() const { return CurrentRoundIndex; }
 
+	// 현재 라운드의 총 적 수
+    int32 GetTotalEnemiesThisWave() const;
+	// 현재 라운드의 남은 적 수
+    int32 GetRemainingEnemiesThisWave() const;
+
     // 라운드 타이머 값 (진행 시간)
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     float GetRoundElapsedTime() const;
@@ -45,6 +50,7 @@ public:
     // 사전 준비 시간
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     float GetPreparationTime() const { return PreparationTime; }
+
 
 public:
     // 라운드를 시작하는 함수
@@ -54,6 +60,10 @@ public:
     // 적이 골인했을 때 생명 감소 처리
     UFUNCTION()
     void HandleEnemyReachedGoal(AEnemyPawn* Enemy);
+
+    // 남은 적 수
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    int32 GetEnemiesRemaining() const { return EnemiesLeft; }
 
 private:
     // 첫 웨이브 시작 지연용
@@ -92,4 +102,7 @@ protected:
 
     UPROPERTY(EditAnywhere, Category = "Game")
     int32 BossDamageToLife = 10;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
+    int32 EnemiesLeft = 0;
 };

@@ -27,11 +27,18 @@ protected:
     UFUNCTION()
     void HandleGameOver();
 
+
 public:
     // 라운드를 시작하는 함수
     UFUNCTION(BlueprintCallable, Category = "Wave")
     void StartWave(int32 RoundIndex);
 
+    UFUNCTION()
+    void OnEnemyKilled();
+
+
+    int32 TotalEnemiesThisWave = 0;
+    int32 RemainingEnemies = 0;
 protected:
     // 에디터에서 지정하거나 자동 검색될 StageActor 참조
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
@@ -53,4 +60,5 @@ private:
 
     // SpawnNextEnemy 호출
     void SpawnNextEnemy();
+
 };

@@ -88,4 +88,9 @@ protected:
 	FTimerHandle VisualSetupHandle;
 
 	friend UTowerAttackComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TObjectPtr<class UWidgetComponent> LevelWidgetComponent;
+
+
 };

@@ -72,6 +72,11 @@ void AWaveSpawner::HandleGameOver()
     SetActorEnableCollision(false);
 }
 
+void AWaveSpawner::OnEnemyKilled()
+{
+    RemainingEnemies = FMath::Max(0, RemainingEnemies - 1);
+}
+
 void AWaveSpawner::StartWave(int32 RoundIndex)
 {
     if (!HasAuthority())
@@ -126,7 +131,13 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         true,            // bLoop
         SpawnInterval    // InitialDelay: 다음 호출까지 기다릴 시간
     );
+
+
+    TotalEnemiesThisWave = TotalToSpawn;
+    RemainingEnemies = TotalToSpawn;
+
 }
+
 
 void AWaveSpawner::SpawnNextEnemy()
 {
