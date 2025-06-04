@@ -66,6 +66,12 @@ private:
 	uint8 TowerOnSerchingQue = 0;
 	EBuildState BuildState = EBuildState::None;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UTowerUpgradeWidget> TowerUpgradeWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UTowerUpgradeWidget> UpgradeWidgetInstance;
+
 	friend class APolyPalsGamePawn;
 	friend class APolyPalsController;
 };

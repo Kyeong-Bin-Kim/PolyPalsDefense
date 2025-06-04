@@ -7,6 +7,10 @@
 #include "DataAsset/Tower/TowerMaterialData.h"
 #include "DataAsset/Tower/TowerPropertyData.h"
 
+#include "Tower/PreviewBuilding.h"
+#include "UI/TowerLevelWidget.h"
+#include "Components/WidgetComponent.h"
+
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -41,6 +45,14 @@ APlacedTower::APlacedTower()
 	TowerAttackComponent->SetIsReplicated(true);
 	SetTowerCollision();
 	Tags.Add(FName("Tower"));
+
+	LevelWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LevelWidgetComponent"));
+	LevelWidgetComponent->SetupAttachment(RootComponent);
+	LevelWidgetComponent->SetRelativeLocation(FVector(-210.f, -525.f, 220.f)); // 타워 아래쪽
+	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen); // 또는 World
+	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // 크기 조절
+	LevelWidgetComponent->SetVisibility(true); // 초기엔 숨겨두기
+
 }
 
 // Called when the game starts or when spawned

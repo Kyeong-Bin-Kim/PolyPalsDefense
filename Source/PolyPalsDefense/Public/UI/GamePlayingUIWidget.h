@@ -1,9 +1,10 @@
-// GamePlayingUIWidget.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "GamePlayingUIWidget.generated.h"
+
+class AWaveManager;
 
 UCLASS()
 class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
@@ -12,6 +13,7 @@ class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
 
 public:
     virtual void NativeConstruct() override;
+    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
     UFUNCTION(BlueprintCallable)
     void SetRound(int32 Current, int32 Total);
@@ -70,6 +72,9 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     class UButton* Tower3Button;
+
+    UPROPERTY()
+    AWaveManager* WaveManagerRef;
 
     bool bIsTowerPanelVisible = false;
 };
