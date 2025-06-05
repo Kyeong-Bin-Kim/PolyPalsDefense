@@ -13,6 +13,9 @@
 #include "Tower/PreviewBuilding.h"
 #include "UI/TowerLevelWidget.h"
 #include "Components/WidgetComponent.h"
+#include "UI/PolyPalsHUD.h"
+#include "PolyPalsPlayerState.h"
+#include "PolyPalsController.h"
 
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
@@ -130,7 +133,14 @@ void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor
 {
 	TowerId = InTowerId;
 	PlayerColor = InColor;
-	TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
+	if (TowerAttackComponent)
+	{
+		TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("TowerAttackComponent is null in ExternalInitializeTower!"));
+	}
 
 	if (IsValid(InController))
 	{
@@ -182,9 +192,10 @@ void APlacedTower::ClientSetupTowerWidgetComponent()
 	TowerUpWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	TowerUpWidgetComponent->SetHiddenInGame(true);
 
-	UTowerUpgradeWidget* Widget = Cast<UTowerUpgradeWidget>(TowerUpWidgetComponent->GetWidget());
-	if (Widget)
-		Widget->SetOwnerByFuckingTower(this);
+	if (UTowerUpgradeWidget* Widget = Cast<UTowerUpgradeWidget>(TowerUpWidgetComponent->GetWidget()))
+	{
+		Widget->SetTargetTower(this); 
+	}
 }
 
 void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InColor)
@@ -225,6 +236,57 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 void APlacedTower::SetWidgetHidden(bool bIsDeactice)
 {
 	TowerUpWidgetComponent->SetHiddenInGame(bIsDeactice);
+}
+
+void APlacedTower::UpgradeTower()
+{
+	//if (!HasAuthority()) return; // 서버에서만 처리
+
+	if (Level >= MaxLevel)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Upgrade failed: Already max level."));
+		return;
+	}
+
+	APolyPalsController* PC = Cast<APolyPalsController>(GetOwner()); // 더 안전한 방식
+	APolyPalsPlayerState* PS = PC ? Cast<APolyPalsPlayerState>(PC->PlayerState) : nullptr;
+
+	if (PS && PS->GetPlayerGold() >= UpgradeCost)
+	{
+		// 골드 차감
+		PS->AddGold(-UpgradeCost);
+
+		// 레벨 증가
+		Level++;
+
+		// 외형 변경 및 레벨 텍스트 갱신
+		UpdateTowerAppearance();
+		UpdateLevelText();
+
+		// 로컬 클라이언트라면 HUD도 갱신
+		if (PC->IsLocalController())
+		{
+			if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
+			{
+				HUD->UpdateGoldOnUI(PS->GetPlayerGold());
+			}
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Tower upgraded! New Level: %d"), Level);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Upgrade failed: Not enough gold."));
+	}
+}
+
+
+void APlacedTower::UpdateTowerAppearance()
+{
+}
+
+void APlacedTower::UpdateLevelText()
+{
 }
 
 void APlacedTower::SetTowerCollision()

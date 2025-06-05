@@ -4,8 +4,14 @@
 #include "Blueprint/UserWidget.h"
 #include "GamePlayingUIWidget.generated.h"
 
-class AWaveManager;
+class UTextBlock;
+class UHorizontalBox;
+class UButton;
 
+/**
+ * 실제 게임플레이 중 UI를 담당하는 위젯 클래스
+ * (생명, 골드, 라운드, 적 수, 웨이브 시간, 타워 버튼 패널 등)
+ */
 UCLASS()
 class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
 {
@@ -13,26 +19,32 @@ class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
 
 public:
     virtual void NativeConstruct() override;
-    virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
+    /** 라운드 UI 표시 */
     UFUNCTION(BlueprintCallable)
     void SetRound(int32 Current, int32 Total);
 
+    /** 골드 UI 표시 */
     UFUNCTION(BlueprintCallable)
     void SetGold(int32 Gold);
 
+    /** 생명 UI 표시 */
     UFUNCTION(BlueprintCallable)
     void SetLife(int32 Life);
 
+    /** 남은 적 수 UI 표시 */
     UFUNCTION(BlueprintCallable)
-    void SetEnemiesRemaining(int32 Count);
+    void SetEnemiesRemaining(int32 Current, int32 Total);
 
+    /** 다음 웨이브 시간 UI 표시 */
     UFUNCTION(BlueprintCallable)
     void SetNextWaveTime(float Seconds);
 
+    /** 타워 패널 열기/닫기 버튼 */
     UFUNCTION()
     void OnToggleTowerButtonClicked();
 
+    /** 타워 버튼 클릭 처리 */
     UFUNCTION()
     void OnTower1ButtonClicked();
 
@@ -43,38 +55,37 @@ public:
     void OnTower3ButtonClicked();
 
 protected:
+    /** 위젯 바인딩 요소들 */
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* RoundText;
-
-    UPROPERTY(meta = (BindWidget))
-    class UTextBlock* GoldText;
+    UTextBlock* RoundText;
 
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* LifeText;
+    UTextBlock* GoldText;
 
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* EnemiesRemainingText;
+    UTextBlock* LifeText;
 
     UPROPERTY(meta = (BindWidget))
-    class UTextBlock* NextWaveTimeText;
+    UTextBlock* EnemiesRemainingText;
 
     UPROPERTY(meta = (BindWidget))
-    class UHorizontalBox* TowerIconsBox;
+    UTextBlock* NextWaveTimeText;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* ToggleTowerButton;
+    UHorizontalBox* TowerIconsBox;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Tower1Button;
+    UButton* ToggleTowerButton;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Tower2Button;
+    UButton* Tower1Button;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Tower3Button;
+    UButton* Tower2Button;
 
-    UPROPERTY()
-    AWaveManager* WaveManagerRef;
+    UPROPERTY(meta = (BindWidget))
+    UButton* Tower3Button;
 
+private:
     bool bIsTowerPanelVisible = false;
 };

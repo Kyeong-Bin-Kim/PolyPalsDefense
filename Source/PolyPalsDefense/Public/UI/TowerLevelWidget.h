@@ -7,7 +7,7 @@
 class UImage;
 class UTexture2D;
 
-UCLASS(Blueprintable)
+UCLASS()
 class POLYPALSDEFENSE_API UTowerLevelWidget : public UUserWidget
 {
 	GENERATED_BODY()

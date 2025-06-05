@@ -8,6 +8,8 @@
 class AWaveSpawner;
 class AEnemyPawn;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWaveInfoChanged);
+
 UCLASS()
 class POLYPALSDEFENSE_API AWaveManager : public AActor
 {
@@ -16,85 +18,93 @@ class POLYPALSDEFENSE_API AWaveManager : public AActor
 public:
     AWaveManager();
 
+    UPROPERTY(BlueprintAssignable, Category = "Event")
+    FOnWaveInfoChanged OnWaveInfoChanged;
+
+    UFUNCTION()
+    void NotifyWaveInfoChanged();
+
+    // 리플리케이션 설정
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 protected:
     virtual void BeginPlay() override;
 
-    // 플레이어 준비 완료 시 호출
     UFUNCTION()
     void OnPlayersReady();
 
-    // 게임 오버 이벤트 핸들러
     UFUNCTION()
     void HandleGameOver();
 
+    // 리플리케이션 동기화 콜백
+    UFUNCTION()
+    void OnRep_PlayerLife();
+
+    UFUNCTION()
+    void OnRep_CurrentRound();
+
+
 public:
     // === UI용 Getter ===
-
-    // 현재 생명 수
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     int32 GetRemainingLives() const { return PlayerLife; }
 
-    // 현재 라운드 인덱스
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     int32 GetCurrentRoundIndex() const { return CurrentRoundIndex; }
 
-	// 현재 라운드의 총 적 수
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+    int32 GetTotalRoundCount() const { return TotalRoundCount; }
+
     int32 GetTotalEnemiesThisWave() const;
-	// 현재 라운드의 남은 적 수
     int32 GetRemainingEnemiesThisWave() const;
 
-    // 라운드 타이머 값 (진행 시간)
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     float GetRoundElapsedTime() const;
 
-    // 사전 준비 시간
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     float GetPreparationTime() const { return PreparationTime; }
 
+    UFUNCTION(BlueprintPure, Category = "Wave|UI")
+	float GetRoundDuration() const { return RoundDuration; }
 
-public:
-    // 라운드를 시작하는 함수
-    UFUNCTION(BlueprintCallable, Category = "Wave")
-    void StartRound(int32 RoundIndex);
 
-    // 적이 골인했을 때 생명 감소 처리
-    UFUNCTION()
-    void HandleEnemyReachedGoal(AEnemyPawn* Enemy);
-
-    // 남은 적 수
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     int32 GetEnemiesRemaining() const { return EnemiesLeft; }
 
+    UFUNCTION(BlueprintCallable, Category = "Wave")
+    void StartRound(int32 RoundIndex);
+
+    UFUNCTION()
+    void HandleEnemyReachedGoal(AEnemyPawn* Enemy);
+
+    UFUNCTION()
+    bool IsInPreparationPhase() const { return bIsPreparingPhase; }
+
 private:
-    // 첫 웨이브 시작 지연용
     UFUNCTION()
     void StartFirstRound();
 
-    // 라운드 종료 시 호출
     void EndRound();
 
-    // 현재 라운드 인덱스
+    UPROPERTY(ReplicatedUsing = OnRep_CurrentRound, VisibleAnywhere, Category = "Wave")
     int32 CurrentRoundIndex = 1;
-    FTimerHandle RoundTimerHandle;
 
-    // 타이머 시작 시간 기록
+    int32 TotalRoundCount = 10;
+    FTimerHandle RoundTimerHandle;
     float RoundStartTimestamp = 0.f;
 
 protected:
-    // 에디터에서 지정하거나 월드에서 자동 검색될 단일 스포너
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
     AWaveSpawner* WaveSpawner;
 
-    // 사전 준비 시간
     UPROPERTY(EditAnywhere, Category = "Wave")
     float PreparationTime = 30.f;
 
-    // 라운드 지속 시간
     UPROPERTY(EditAnywhere, Category = "Wave")
     float RoundDuration = 60.f;
 
-    // 플레이어 생명 및 데미지 설정
-    UPROPERTY(EditAnywhere, Category = "Game")
+    // 클라이언트 동기화를 위한 리플리케이션 설정
+    UPROPERTY(ReplicatedUsing = OnRep_PlayerLife, VisibleAnywhere, Category = "Game")
     int32 PlayerLife = 50;
 
     UPROPERTY(EditAnywhere, Category = "Game")
@@ -105,4 +115,7 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wave")
     int32 EnemiesLeft = 0;
+
+private:
+    bool bIsPreparingPhase = true;
 };

@@ -48,6 +48,13 @@ public:
 
 	void SetWidgetHidden(bool bIsDeactice);
 
+	UFUNCTION()
+	void UpgradeTower();
+
+	void UpdateTowerAppearance();
+	void UpdateLevelText();
+
+
 private:
 	void SetTowerCollision();
 
@@ -91,6 +98,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TObjectPtr<class UWidgetComponent> LevelWidgetComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Upgrade")
+	int32 Level = 1;
+
+	UPROPERTY(EditAnywhere, Category = "Upgrade")
+	int32 MaxLevel = 3;
+
+	UPROPERTY(EditAnywhere, Category = "Upgrade")
+	int32 UpgradeCost = 500;
 
 
 };

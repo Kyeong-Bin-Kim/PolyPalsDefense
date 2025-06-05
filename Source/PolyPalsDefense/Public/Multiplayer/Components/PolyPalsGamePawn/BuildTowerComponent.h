@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "DataAsset/Tower/TowerEnums.h"
+#include "UI/TowerUpgradeWidget.h"
 #include "BuildTowerComponent.generated.h"
 
 class UTowerDataManager;
@@ -17,18 +18,18 @@ class APolyPalsController;
 
 DECLARE_DELEGATE(FTryBuildButNotEnoughGold)
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class POLYPALSDEFENSE_API UBuildTowerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UBuildTowerComponent();
 
 protected:
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	virtual void InitializeComponent() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -74,18 +75,18 @@ private:
 
 	uint8 TowerOnSerchingQue = 0;
 	EBuildState BuildState = EBuildState::None;
-	
-<<<<<<< HEAD
-	friend APolyPalsGamePawn;
+
+	//<<<<<<< HEAD
+		friend APolyPalsGamePawn;
 	friend APolyPalsController;
-=======
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	//=======
+		UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UTowerUpgradeWidget> TowerUpgradeWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UTowerUpgradeWidget> UpgradeWidgetInstance;
-
 	friend class APolyPalsGamePawn;
 	friend class APolyPalsController;
->>>>>>> UI
+
+	//>>>>>>> UI
 };

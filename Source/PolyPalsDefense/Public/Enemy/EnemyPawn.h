@@ -29,6 +29,8 @@ public:
     // 데이터 에셋으로 초기화
     void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
+    void RewardGoldToPlayer();
+
     // AssetManager로부터 에셋 ID로 초기화
     void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 

@@ -12,6 +12,8 @@
 #include "UI/EnemyHealthBarWidget.h"
 #include "WaveManager.h"
 #include "Net/UnrealNetwork.h"
+#include "PolyPalsPlayerState.h"
+
 
 AEnemyPawn::AEnemyPawn()
 {
@@ -197,6 +199,29 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
     SplineMovement->Initialize(InSpline, EffectiveSpeed);
 }
 
+void AEnemyPawn::RewardGoldToPlayer()
+{
+    if (!HasAuthority()) return; // 반드시 서버에서만 실행
+
+    if (!EnemyData) return;
+
+    int32 RewardGold = EnemyData->Reward.Gold;
+
+    // 서버에서 모든 PlayerController에게 골드 지급
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        if (APlayerController* PC = It->Get())
+        {
+            if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
+            {
+                PS->AddGold(RewardGold); // 골드 지급
+                UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] %s에게 %d 골드 지급됨"), *PS->GetPlayerName(), RewardGold);
+            }
+        }
+    }
+}
+
+
 void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(InAssetId);
@@ -232,7 +257,8 @@ void AEnemyPawn::ApplyStun(float Duration)
 
 void AEnemyPawn::HandleEnemyDeath()
 {
-    Destroy(); // 풀링 시스템과 연동 시 ReleaseEnemy로 교체 가능
+    RewardGoldToPlayer();  // 골드 지급
+    Destroy();             // 풀링이면 ReleaseEnemy로 교체
 }
 
 void AEnemyPawn::SetIsActive(bool bNewActive)

@@ -79,14 +79,7 @@ void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 
 void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { PlayerColor = InColor; }
 
-<<<<<<< HEAD
-=======
-void UBuildTowerComponent::ClientOnInputTest()
-{
-	UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input test"));
-	
-}
->>>>>>> UI
+
 void UBuildTowerComponent::ClientOnInputClick()
 {
 	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));

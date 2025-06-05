@@ -3,28 +3,34 @@
 #include "Enemy/EnemyPawn.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "PolyPalsHUD.h"
+#include "Net/UnrealNetwork.h"
 
 AWaveManager::AWaveManager()
 {
     PrimaryActorTick.bCanEverTick = false;
+    bReplicates = true; // 리플리케이션 활성화
+}
+
+void AWaveManager::NotifyWaveInfoChanged()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[WaveManager] NotifyWaveInfoChanged() called"));
+    OnWaveInfoChanged.Broadcast();
 }
 
 void AWaveManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 서버 전용: 클라이언트에서는 이 함수 바로 리턴
-    if (!HasAuthority())
-        return;
+    //if (!HasAuthority())
+    //    return;
 
-    // 이벤트 구독: 플레이어 준비, 게임오버
     if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
     {
         PState->OnAllPlayersReady.AddDynamic(this, &AWaveManager::OnPlayersReady);
         PState->OnGameOver.AddDynamic(this, &AWaveManager::HandleGameOver);
     }
 
-    // WaveSpawner 바인딩
     if (!WaveSpawner)
     {
         WaveSpawner = Cast<AWaveSpawner>(
@@ -41,7 +47,6 @@ void AWaveManager::OnPlayersReady()
 {
     UE_LOG(LogTemp, Log, TEXT("[WaveManager] All players ready. Preparing for %.1f sec"), PreparationTime);
 
-    // 준비 시간이 지난 뒤 첫 라운드를 시작
     GetWorld()->GetTimerManager().SetTimer(
         RoundTimerHandle,
         this, &AWaveManager::StartFirstRound,
@@ -54,9 +59,8 @@ void AWaveManager::HandleGameOver()
 {
     UE_LOG(LogTemp, Warning, TEXT("[WaveSpawner] HandleGameOver() fired"));
 
-    // 게임 오버 시 라운드 타이머 정리 및 스포너 비활성화
     GetWorld()->GetTimerManager().ClearTimer(RoundTimerHandle);
-   
+
     if (WaveSpawner)
     {
         WaveSpawner->SetActorTickEnabled(false);
@@ -66,9 +70,10 @@ void AWaveManager::HandleGameOver()
 
 void AWaveManager::StartRound(int32 RoundIndex)
 {
-    if (!HasAuthority() || !WaveSpawner)
-        return;
+    //if (HasAuthority() || !WaveSpawner)
+    //    return;
 
+    bIsPreparingPhase = false;
     if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
     {
         GS->SetCurrentRound(RoundIndex);
@@ -80,12 +85,10 @@ void AWaveManager::StartRound(int32 RoundIndex)
 
 void AWaveManager::StartFirstRound()
 {
+    bIsPreparingPhase = true;
     StartRound(CurrentRoundIndex);
-
-    // 시작 시간 기록 (UI용)
     RoundStartTimestamp = GetWorld()->GetTimeSeconds();
 
-    // 종료 타이머 설정
     GetWorld()->GetTimerManager().SetTimer(
         RoundTimerHandle,
         this, &AWaveManager::EndRound,
@@ -101,32 +104,33 @@ int32 AWaveManager::GetTotalEnemiesThisWave() const
 
 int32 AWaveManager::GetRemainingEnemiesThisWave() const
 {
-    return WaveSpawner ? WaveSpawner->RemainingEnemies : 0;
+    TArray<AActor*> FoundEnemies;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyPawn::StaticClass(), FoundEnemies);
+    return FoundEnemies.Num();
 }
+
+
 
 float AWaveManager::GetRoundElapsedTime() const
 {
-    if (!HasAuthority()) return 0.f;
+    //if (!HasAuthority()) return 0.f;
 
     return GetWorld()->GetTimeSeconds() - RoundStartTimestamp;
 }
 
 void AWaveManager::EndRound()
 {
-    if (!HasAuthority())
-        return;
+    //if (!HasAuthority())
+    //    return;
 
-    // 게임오버 상태면 무시
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
 
-    // 다음 라운드로 이동
     CurrentRoundIndex++;
     UE_LOG(LogTemp, Log, TEXT("[WaveManager] Round ended. Next Round %d"), CurrentRoundIndex);
 
     StartRound(CurrentRoundIndex);
 
-    // 타이머 재설정
     GetWorld()->GetTimerManager().SetTimer(
         RoundTimerHandle,
         this, &AWaveManager::EndRound,
@@ -135,8 +139,8 @@ void AWaveManager::EndRound()
 
 void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
 {
-    if (!HasAuthority())
-        return;
+    //if (!HasAuthority())
+    //    return;
 
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
@@ -148,22 +152,52 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
     PlayerLife -= Damage;
     UE_LOG(LogTemp, Warning, TEXT("[WaveManager] Player Life: %d"), PlayerLife);
 
-    Enemy->Destroy();
-
     if (PlayerLife <= 0)
     {
         UE_LOG(LogTemp, Error, TEXT("[WaveManager] Game Over!"));
 
-        // GameState를 통해 게임오버 설정
         if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
         {
             PState->SetGameOver();
         }
     }
 
-	// 남은 적 수 업데이트
     if (WaveSpawner)
     {
-        WaveSpawner->OnEnemyKilled(); // 새 함수 호출
+        WaveSpawner->OnEnemyKilled();
     }
+
+    NotifyWaveInfoChanged(); // 서버용 Broadcast
+
+    Enemy->Destroy();
+}
+
+// 리플리케이션 속성 설정
+void AWaveManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AWaveManager, PlayerLife); // 기존
+    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // 추가
+}
+
+// 클라이언트에서 값 복제 시 실행
+void AWaveManager::OnRep_PlayerLife()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_PlayerLife: %d"), PlayerLife);
+
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+    {
+        if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
+        {
+            HUD->UpdateWaveInfoOnUI();
+        }
+    }
+}
+
+void AWaveManager::OnRep_CurrentRound()
+{
+    UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_CurrentRound: %d"), CurrentRoundIndex);
+
+    NotifyWaveInfoChanged(); // UI에 반영되도록 델리게이트 호출
 }
