@@ -241,6 +241,16 @@ void AEnemyPawn::ReceiveDamage(float DamageAmount)
     {
         Status->TakeDamage(DamageAmount);
     }
+
+    // 체력바 업데이트 추가
+    if (HealthBarWidget && HealthBarWidget->GetUserWidgetObject())
+    {
+        if (UEnemyHealthBarWidget* Widget = Cast<UEnemyHealthBarWidget>(HealthBarWidget->GetUserWidgetObject()))
+        {
+            float Ratio = GetHealth() / GetMaxHealth();
+            Widget->SetHealthBarRatio(Ratio);
+        }
+    }
 }
 
 void AEnemyPawn::ApplySlow(float Ratio, float Duration)

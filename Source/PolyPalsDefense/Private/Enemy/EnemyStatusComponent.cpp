@@ -2,6 +2,8 @@
 #include "TimerManager.h"
 #include "GameFramework/Actor.h"
 #include "Net/UnrealNetwork.h"
+#include "Enemy/EnemyPawn.h"
+#include "UI/EnemyHealthBarWidget.h"
 
 UEnemyStatusComponent::UEnemyStatusComponent()
 {
@@ -20,8 +22,18 @@ void UEnemyStatusComponent::BeginPlay()
 
 void UEnemyStatusComponent::OnRep_CurrentHealth()
 {
-    // 체력 UI 동기화 등 처리 (HUD 바인딩에서 처리 가능)
-    UE_LOG(LogTemp, Log, TEXT("[EnemyStatus] OnRep_CurrentHealth: %.1f"), CurrentHealth);
+    if (AEnemyPawn* Owner = Cast<AEnemyPawn>(GetOwner()))
+    {
+        float Ratio = CurrentHealth / MaxHealth;
+
+        if (Owner->HealthBarWidget && Owner->HealthBarWidget->GetUserWidgetObject())
+        {
+            if (UEnemyHealthBarWidget* Widget = Cast<UEnemyHealthBarWidget>(Owner->HealthBarWidget->GetUserWidgetObject()))
+            {
+                Widget->SetHealthBarRatio(Ratio);
+            }
+        }
+    }
 }
 
 void UEnemyStatusComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -66,8 +66,9 @@ APlacedTower::APlacedTower()
 
 	LevelWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LevelWidgetComponent"));
 	LevelWidgetComponent->SetupAttachment(RootComponent);
-	LevelWidgetComponent->SetRelativeLocation(FVector(-210.f, -525.f, 220.f)); // 타워 아래쪽
-	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen); // 또는 World
+	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // 타워 아래쪽
+	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // 타워 위쪽을 바라보도록 회전
+	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // 또는 World
 	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // 크기 조절
 	LevelWidgetComponent->SetVisibility(true); // 초기엔 숨겨두기
 
@@ -91,7 +92,7 @@ void APlacedTower::BeginPlay()
 	else
 		ClientSetupTowerWidgetComponent();
 
-
+	UpdateLevelText();
 	//test code
 	//if (HasAuthority())
 	//{
@@ -287,6 +288,13 @@ void APlacedTower::UpdateTowerAppearance()
 
 void APlacedTower::UpdateLevelText()
 {
+	if (!LevelWidgetComponent) return;
+
+	UTowerLevelWidget* LevelWidget = Cast<UTowerLevelWidget>(LevelWidgetComponent->GetUserWidgetObject());
+	if (LevelWidget)
+	{
+		LevelWidget->UpdateLevelUI(Level); // 현재 타워 레벨 전달
+	}
 }
 
 void APlacedTower::SetTowerCollision()
