@@ -2,9 +2,10 @@
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
 #include "PolyPalsGamePawn.h"
-#include "Components/PolyPalsController/PolyPalsInputComponent.h"
-#include "Components/PolyPalsController/GamePawnComponent.h"
-#include "Components/PolyPalsGamePawn/BuildTowerComponent.h"
+#include "PolyPalsController/PolyPalsInputComponent.h"
+#include "PolyPalsController/GamePawnComponent.h"
+#include "PolyPalsGamePawn/BuildTowerComponent.h"
+#include "MainUIWidget.h"
 #include "InputConfig.h"
 
 #include "Net/UnrealNetwork.h"
@@ -27,7 +28,10 @@ void APolyPalsController::BeginPlay()
 	Super::BeginPlay();
 
 	if (IsLocalController())
+	{
 		bShowMouseCursor = true;
+		ShowMainUI();
+	}
 }
 
 void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -67,5 +71,28 @@ void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColo
 	{
 		UBuildTowerComponent* BuildTowerComp = GamePawnComponent->GetGamePawn()->GetBuildTowerComponent();
 		BuildTowerComp->SetPlayerColorByController(PlayerColor);
+	}
+}
+
+void APolyPalsController::ShowMainUI()
+{
+	if (!MainUIWidgetInstance && MainUIWidgetClass)
+	{
+		MainUIWidgetInstance = CreateWidget<UMainUIWidget>(this, MainUIWidgetClass);
+
+		if (UMainUIWidget* TypedWidget = Cast<UMainUIWidget>(MainUIWidgetInstance))
+		{
+			FString PlayerName;
+
+			// 기본 값
+			TypedWidget->SetPlayerNameText(TEXT("Player"));
+
+			// 2. Steam 연동된 경우: OSS 통해 가져오기 가능
+			// (별도 연동 필요: Steam OSS)
+
+			//TypedWidget->SetPlayerNameText(PlayerName);
+		}
+
+		MainUIWidgetInstance->AddToViewport();
 	}
 }

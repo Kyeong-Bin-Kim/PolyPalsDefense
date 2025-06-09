@@ -25,13 +25,6 @@ void APolyPalsPlayerState::SetReady(bool bReady)
 
 void APolyPalsPlayerState::AddGold(int32 Amount)
 {
-    //if (!HasAuthority())
-    //{
-    //    PlayerGold += Amount;
-
-
-    //    OnRep_PlayerGold();
-    //}
     PlayerGold += Amount;
 
 

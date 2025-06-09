@@ -9,6 +9,7 @@
 
 class UPolyPalsInputComponent;
 class UGamePawnComponent;
+class UMainUIWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsController : public APlayerController
@@ -21,7 +22,6 @@ public:
 
 protected:
 	virtual void SetupInputComponent() override;
-
 	virtual void BeginPlay() override;
 
 public:
@@ -38,12 +38,22 @@ public:
 
 private:
 	void InitializeControllerDataByGameMode(EPlayerColor InColor);
+	void ShowMainUI();
 
 protected:
 	UPROPERTY()
 	TObjectPtr<UPolyPalsInputComponent> PolyPalsInputComponent;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UGamePawnComponent> GamePawnComponent;
+
+	// UI 위젯 클래스
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
+
+	// UI 인스턴스
+	UPROPERTY()
+	TObjectPtr<UUserWidget> MainUIWidgetInstance;
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;

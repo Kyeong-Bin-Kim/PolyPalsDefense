@@ -76,10 +76,10 @@ void APolyPalsState::UpdateReadyPlayers()
     OnRep_ReadyPlayers();
 
     // 모든 플레이어가 준비 완료된 경우, 이벤트 발생
-    //if (ReadyPlayers == ConnectedPlayers && ConnectedPlayers > 0)
-    //{
+    if (ReadyPlayers == ConnectedPlayers && ConnectedPlayers > 0)
+    {
         OnAllPlayersReady.Broadcast();
-    //}
+    }
 }
 
 // 접속자 수 변경 시 클라에서 호출

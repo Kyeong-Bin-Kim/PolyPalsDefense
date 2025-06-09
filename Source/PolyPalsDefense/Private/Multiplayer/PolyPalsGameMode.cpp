@@ -7,7 +7,6 @@
 APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
-	ExpectedPlayerCount = 3; // 테스트용
 }
 
 void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -46,14 +45,12 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
 	// GameState 이벤트 바인딩 (처음 접속자일 때만 한 번)
-	//if (ConnectedPlayers == 1)
-	if (ConnectedPlayers >= ExpectedPlayerCount) // 테스트용, 모든 플레이어가 접속했을 때
+	if (ConnectedPlayers == 1)
 	{
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 		{
 			// 모든 플레이어 준비 완료 이벤트 연결
-			//GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
-			GS->OnAllPlayersReady.Broadcast(); // 테스트용, 즉시 이벤트 발생
+			GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
 
 			// 게임 오버 이벤트 연결
 			GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
@@ -71,20 +68,21 @@ void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
 
+	// 리슨 서버로 테스트 시 필요
 	// 메인 UI 생성 및 화면에 추가
-	//if (MainUIWidgetClass)
-	//{
-	//	MainUIWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainUIWidgetClass);
-	//	if (MainUIWidgetInstance)
-	//	{
-	//		MainUIWidgetInstance->AddToViewport();
-	//		UE_LOG(LogTemp, Log, TEXT("Main UI Widget 생성 및 표시 완료"));
-	//	}
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass가 설정되어 있지 않습니다!"));
-	//}
+	if (MainUIWidgetClass)
+	{
+		MainUIWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainUIWidgetClass);
+		if (MainUIWidgetInstance)
+		{
+			MainUIWidgetInstance->AddToViewport();
+			UE_LOG(LogTemp, Log, TEXT("Main UI Widget 생성 및 표시 완료"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass가 설정되어 있지 않습니다!"));
+	}
 }
 
 void APolyPalsGameMode::TriggerGameOver()
@@ -112,16 +110,16 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 {
 	FTimerHandle TimerHandle;
 
-	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
-	//{
-		// 맵으로 이동하여 게임 시작
-		//APolyPalsState* GS = GetGameState<APolyPalsState>();
-		//if (GS)
-		//{
-		//	FName StageToLoad = GS->GetSelectedStage();
-		//	UGameplayStatics::OpenLevel(this, StageToLoad, true);
-		//}
-	//}, StartCountdownTime, false);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+	{
+		//맵으로 이동하여 게임 시작
+		APolyPalsState* GS = GetGameState<APolyPalsState>();
+		if (GS)
+		{
+			FName StageToLoad = GS->GetSelectedStage();
+			UGameplayStatics::OpenLevel(this, StageToLoad, true);
+		}
+	}, StartCountdownTime, false);
 }
 
 void APolyPalsGameMode::HandleStateGameOver()
