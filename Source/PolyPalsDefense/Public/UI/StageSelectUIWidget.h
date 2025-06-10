@@ -1,9 +1,11 @@
-// StageSelectUIWidget.h
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "StageSelectUIWidget.generated.h"
+
+class ULobbyUIWidget;
+class UMainUIWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API UStageSelectUIWidget : public UUserWidget
@@ -18,27 +20,27 @@ protected:
     class UButton* ExitGame;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Stage1;
+    class UButton* DirtStage;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* Stage2;
+    class UButton* SnowStage;
 
-    UPROPERTY(meta = (BindWidget))
-    class UButton* Stage3;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<ULobbyUIWidget> LobbyUIWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+    TSubclassOf<UMainUIWidget> MainUIWidgetClass;
+
+    UFUNCTION()
+    void OnDirtClicked();
+
+    UFUNCTION()
+    void OnSnowClicked();
 
     UFUNCTION()
     void OnExitGameClicked();
 
-    UFUNCTION()
-    void OnEasyClicked();
-
-    UFUNCTION()
-    void OnNormalClicked();
-
-    UFUNCTION()
-    void OnHardClicked();
-
-    void OnStageSelected(FName StageName);
+    void HandleStageSelected(FName StageName);
     void OpenLobbyUI();
 
     FName LastSelectedStage;

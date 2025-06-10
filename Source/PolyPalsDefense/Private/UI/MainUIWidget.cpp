@@ -1,9 +1,9 @@
-// MainUIWidget.cpp
-
 #include "UI/MainUIWidget.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
+#include "StageSelectUIWidget.h"
+#include "LobbyUIWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -15,8 +15,8 @@ void UMainUIWidget::NativeConstruct()
     if (ExitGame) ExitGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnExitGameClicked);
     //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); 추후 추가 예정
     if (StartGame) StartGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnStartGameClicked);
-    if (MakeRoom) MakeRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnMakeRoomClicked);
-    if (FindRoom) FindRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnFindRoomClicked);
+    if (CreateRoom) CreateRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnCreateRoomClicked);
+    if (SearchRoom) SearchRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnSearchRoomClicked);
 
     if (MultiplayerButtons)
     {
@@ -26,7 +26,7 @@ void UMainUIWidget::NativeConstruct()
     if (StartGame)
     {
         // 원래 스타일 백업
-        CachedStartButtonStyle = StartGame->WidgetStyle;
+        CachedStartButtonStyle = StartGame->GetStyle();
     }
 }
 
@@ -104,16 +104,45 @@ void UMainUIWidget::SetPlayerNameText(const FString& Name)
     }
 }
 
-void UMainUIWidget::OnMakeRoomClicked()
+void UMainUIWidget::OnCreateRoomClicked()
 {
     if (APlayerController* PC = GetOwningPlayer())
     {
-        UUserWidget* StageSelectUI = CreateWidget(PC, LoadClass<UUserWidget>(nullptr, TEXT("/Game/UI/WBP_StageSelectUI.WBP_StageSelectUI_C")));
-        if (StageSelectUI) StageSelectUI->AddToViewport();
+        if (StageSelectWidgetClass)
+        {
+            // 생성
+            UStageSelectUIWidget* StageUIWidget = CreateWidget<UStageSelectUIWidget>(GetWorld(), StageSelectWidgetClass);
+
+            if (StageUIWidget)
+            {
+                // Viewport 추가
+                StageUIWidget->AddToViewport();
+
+                // 기존 Main UI는 제거
+                this->RemoveFromParent();
+            }
+        }
     }
 }
 
-void UMainUIWidget::OnFindRoomClicked()
+void UMainUIWidget::HandleStageSelected(FName StageName)
+{
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        if (LobbyUIWidgetClass)
+        {
+            ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(PC, LobbyUIWidgetClass);
+
+            if (LobbyWidget)
+            {
+                LobbyWidget->SetSelectedStage(StageName);
+                LobbyWidget->AddToViewport();
+            }
+        }
+    }
+}
+
+void UMainUIWidget::OnSearchRoomClicked()
 {
     if (APlayerController* PC = GetOwningPlayer())
     {

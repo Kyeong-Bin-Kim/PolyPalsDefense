@@ -1,10 +1,10 @@
-// MainUIWidget.h
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "MainUIWidget.generated.h"
+
+class UStageSelectUIWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API UMainUIWidget : public UUserWidget
@@ -27,10 +27,10 @@ protected:
     class UButton* ExitGame;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* MakeRoom;
+    class UButton* CreateRoom;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* FindRoom;
+    class UButton* SearchRoom;
 
     // 추후 추가 예정
     //UPROPERTY(meta = (BindWidget))
@@ -42,6 +42,12 @@ protected:
 
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* PlayerNameText;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class UStageSelectUIWidget> StageSelectWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class ULobbyUIWidget> LobbyUIWidgetClass;
 
     // Functions
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
@@ -56,10 +62,13 @@ protected:
     void OnStartGameClicked();
 
     UFUNCTION()
-    void OnMakeRoomClicked();
+    void OnCreateRoomClicked();
 
     UFUNCTION()
-    void OnFindRoomClicked();
+    void OnSearchRoomClicked();
+
+    UFUNCTION()
+    void HandleStageSelected(FName SelectedStage);
 
     // Bindable Menu State
     bool bIsMultiplayerMenuOpen = false;

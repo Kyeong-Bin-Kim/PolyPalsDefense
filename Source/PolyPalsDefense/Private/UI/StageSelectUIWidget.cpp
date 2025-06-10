@@ -1,6 +1,6 @@
-// StageSelectUIWidget.cpp
-#include "UI/StageSelectUIWidget.h"
-#include "UI/LobbyUIWidget.h"
+#include "StageSelectUIWidget.h"
+#include "LobbyUIWidget.h"
+#include "MainUIWidget.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/UserWidget.h"
@@ -9,45 +9,45 @@ void UStageSelectUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    if (ExitGame)
-    {
-        ExitGame->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnExitGameClicked);
-    }
-    if (Stage1)
-    {
-        Stage1->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnEasyClicked);
-    }
-    if (Stage2)
-    {
-        Stage2->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnNormalClicked);
-    }
-    if (Stage3)
-    {
-        Stage3->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnHardClicked);
-    }
+    if (ExitGame){ExitGame->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnExitGameClicked);}
+    if (DirtStage){DirtStage->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnDirtClicked);}
+    if (SnowStage){SnowStage->OnClicked.AddDynamic(this, &UStageSelectUIWidget::OnSnowClicked);}
 }
+
+void UStageSelectUIWidget::OnDirtClicked()
+{
+    HandleStageSelected(TEXT("Dirt"));
+}
+
+void UStageSelectUIWidget::OnSnowClicked()
+{
+    HandleStageSelected(TEXT("Snow"));
+}
+
 
 void UStageSelectUIWidget::OnExitGameClicked()
 {
-    RemoveFromParent();
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        if (MainUIWidgetClass)
+        {
+            UMainUIWidget* MainUI = CreateWidget<UMainUIWidget>(PC, MainUIWidgetClass);
+
+            if (MainUI)
+            {
+                MainUI->AddToViewport();
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass is not set on StageSelectUIWidget"));
+        }
+    }
+
+    RemoveFromParent();  // StageSelect는 제거
 }
 
-void UStageSelectUIWidget::OnEasyClicked()
-{
-    OnStageSelected("Stage1");
-}
-
-void UStageSelectUIWidget::OnNormalClicked()
-{
-    OnStageSelected("Stage2");
-}
-
-void UStageSelectUIWidget::OnHardClicked()
-{
-    OnStageSelected("Stage3");
-}
-
-void UStageSelectUIWidget::OnStageSelected(FName StageName)
+void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
     LastSelectedStage = StageName;
     OpenLobbyUI();
@@ -57,16 +57,21 @@ void UStageSelectUIWidget::OpenLobbyUI()
 {
     if (APlayerController* PC = GetOwningPlayer())
     {
-        ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(
-            PC, LoadClass<ULobbyUIWidget>(nullptr, TEXT("/Game/UI/WBP_Lobby.WBP_Lobby_C"))
-        );
-
-        if (LobbyWidget)
+        if (LobbyUIWidgetClass)
         {
-            LobbyWidget->SetSelectedStage(LastSelectedStage); 
-            LobbyWidget->AddToViewport();
+            ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(PC, LobbyUIWidgetClass);
+            if (LobbyWidget)
+            {
+                LobbyWidget->SetSelectedStage(LastSelectedStage);
+                LobbyWidget->AddToViewport();
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("LobbyUIWidgetClass not set!"));
         }
     }
 
+    // StageSelect는 제거
     RemoveFromParent();
 }
