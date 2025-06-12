@@ -8,16 +8,25 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 
-void APolyPalsHUD::BeginPlay()
+void APolyPalsHUD::TryBindToWaveManager()
 {
-    Super::BeginPlay();
-    if (GetNetMode() != NM_Client)
+    if (bIsWaveManagerBound)
     {
-        // 서버에서는 UI 생성 X
         return;
     }
+
+    AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
+    if (!WaveManager)
+    {
+        // 아직 WaveManager가 없다면 조금 뒤에 다시 시도
+        GetWorldTimerManager().SetTimer(TimerHandle_FindWaveManager, this, &APolyPalsHUD::TryBindToWaveManager, 1.0f, false);
+        return;
+    }
+
+    bIsWaveManagerBound = true;
+
     // 위젯 생성
-    if (GamePlayingWidgetClass)
+    if (!GamePlayingWidget && GamePlayingWidgetClass)
     {
         GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
         if (GamePlayingWidget)
@@ -50,15 +59,23 @@ void APolyPalsHUD::BeginPlay()
         true
     );
 
-    // 웨이브 매니저 델리게이트 바인딩
-    if (AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass())))
-    {
-        WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
+    WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
 
-        // 다음 웨이브 예정 시간 미리 받아둠
-        float TargetTime = WaveManager->GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
-        NextWaveTargetTimestamp = TargetTime;
+    float TargetTime = WaveManager->GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
+    NextWaveTargetTimestamp = TargetTime;
+}
+
+void APolyPalsHUD::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (GetNetMode() != NM_Client)
+    {
+        // 서버에서는 UI 생성 X
+        return;
     }
+    // 게임 시작 시점에 WaveManager가 존재할 수 있으므로 주기적으로 확인
+    GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
 
     // 디버그용 로그
     if (GEngine)

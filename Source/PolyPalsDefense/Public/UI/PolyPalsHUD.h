@@ -42,6 +42,15 @@ private:
     UPROPERTY()
     FTimerHandle TimerHandle_UpdateWaveInfo;
 
+    /** WaveManager가 스폰될 때까지 주기적으로 탐색 */
+    UPROPERTY()
+    FTimerHandle TimerHandle_FindWaveManager;
+
+    /** WaveManager 바인딩 시도 함수 */
+    void TryBindToWaveManager();
+
+    bool bIsWaveManagerBound = false;
+
     /** 다음 웨이브 시작 타임스탬프 */
     float NextWaveTargetTimestamp = -1.f;
 
