@@ -39,6 +39,7 @@ public:
 
 	void SetLobbyUIInstance(class ULobbyUIWidget* InWidget);
 	void UpdateReadyUI(class APolyPalsPlayerState* ChangedPlayerState, bool bIsReady);
+	void RefreshLobbyUI();
 
 private:
 	void InitializeControllerDataByGameMode(EPlayerColor InColor);

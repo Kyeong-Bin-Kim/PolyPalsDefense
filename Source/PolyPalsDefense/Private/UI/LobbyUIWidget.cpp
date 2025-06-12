@@ -1,11 +1,12 @@
 #include "LobbyUIWidget.h"
 #include "PolyPalsState.h"
 #include "PolyPalsPlayerState.h"
+#include "PolyPalsController.h"
+#include "GameFramework/PlayerController.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
-#include "PolyPalsController.h"
 
 void ULobbyUIWidget::NativeConstruct()
 {
@@ -102,5 +103,34 @@ void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
             const bool bNowReady = !PS->IsReady();
             PS->SetReadyState(bNowReady);  // 서버에 상태 전달
         }
+    }
+}
+
+void ULobbyUIWidget::RefreshPlayerSlots(const TArray<APlayerState*>& PlayerStates)
+{
+    int32 Index = 0;
+
+    for (UPlayerSlotWidget* PlayerSlot : PlayerSlotWidgets)
+    {
+        if (!PlayerSlot)
+            continue;
+
+        APolyPalsPlayerState* TargetState = nullptr;
+        bool bLocal = false;
+
+        if (Index < PlayerStates.Num())
+        {
+            TargetState = Cast<APolyPalsPlayerState>(PlayerStates[Index]);
+            if (TargetState)
+            {
+                if (APlayerController* PC = Cast<APlayerController>(TargetState->GetOwner()))
+                {
+                    bLocal = PC->IsLocalController();
+                }
+            }
+        }
+
+        PlayerSlot->ConfigureSlot(TargetState, bLocal);
+        ++Index;
     }
 }

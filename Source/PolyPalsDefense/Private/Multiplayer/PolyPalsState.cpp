@@ -1,5 +1,7 @@
 #include "PolyPalsState.h"
 #include "PolyPalsPlayerState.h"
+#include "PolyPalsController.h"
+#include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
 APolyPalsState::APolyPalsState()
@@ -86,12 +88,34 @@ void APolyPalsState::UpdateReadyPlayers()
 void APolyPalsState::OnRep_ConnectedPlayers()
 {
     UE_LOG(LogTemp, Log, TEXT("[GameState] 접속자 수 갱신: %d"), ConnectedPlayers);
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+        {
+            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            {
+                PPC->RefreshLobbyUI();
+            }
+        }
+    }
 }
 
 // Ready 수 변경 시 클라에서 호출
 void APolyPalsState::OnRep_ReadyPlayers()
 {
     UE_LOG(LogTemp, Log, TEXT("[GameState] 준비 완료 수 갱신: %d"), ReadyPlayers);
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+        {
+            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            {
+                PPC->RefreshLobbyUI();
+            }
+        }
+    }
 }
 
 // 선택된 스테이지 변경 시 클라에서 호출

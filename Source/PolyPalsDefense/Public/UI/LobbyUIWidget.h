@@ -4,6 +4,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerSlotWidget.h"
 #include "Components/TextBlock.h"
+#include "GameFramework/PlayerState.h"
 #include "LobbyUIWidget.generated.h"
 
 class APolyPalsPlayerState;
@@ -28,6 +29,9 @@ public:
     void UpdateLobbyInfo(int32 ConnectedPlayers, int32 ReadyPlayers, FName CurrentStage, bool bIsHost);
 
     void UpdatePlayerSlotReadyState(APolyPalsPlayerState* ChangedState, bool bNewReady);
+
+    // PlayerArray 정보를 이용해 슬롯 UI를 갱신
+    void RefreshPlayerSlots(const TArray<APlayerState*>& PlayerStates);
 
 protected:
     UPROPERTY(meta = (BindWidget))

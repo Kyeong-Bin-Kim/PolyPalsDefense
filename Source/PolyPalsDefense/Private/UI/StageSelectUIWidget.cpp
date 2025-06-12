@@ -80,6 +80,7 @@ void UStageSelectUIWidget::OpenLobbyUI()
                 if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
                 {
                     PPC->SetLobbyUIInstance(LobbyWidget);
+                    PPC->RefreshLobbyUI();
                 }
             }
         }

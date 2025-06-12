@@ -81,6 +81,19 @@ void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState
 	}
 }
 
+void APolyPalsController::RefreshLobbyUI()
+{
+	if (!IsLocalController() || !LobbyUIInstance)
+	{
+		return;
+	}
+	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+	{
+		LobbyUIInstance->UpdateLobbyInfo(GS->GetConnectedPlayers(), GS->GetReadyPlayers(), GS->GetSelectedStage(), HasAuthority());
+		LobbyUIInstance->RefreshPlayerSlots(GS->PlayerArray);
+	}
+}
+
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)
 {
 	PlayerColor = InColor;

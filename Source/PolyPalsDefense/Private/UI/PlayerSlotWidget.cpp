@@ -73,3 +73,44 @@ void UPlayerSlotWidget::UpdateReadyVisual(bool bReady)
     }
 }
 
+void UPlayerSlotWidget::ConfigureSlot(APolyPalsPlayerState* InPlayerState, bool bIsLocalPlayer)
+{
+    AssignedPlayerState = InPlayerState;
+
+    if (PlayerNameText)
+    {
+        if (InPlayerState)
+        {
+            PlayerNameText->SetVisibility(ESlateVisibility::Visible);
+            PlayerNameText->SetText(FText::FromString(InPlayerState->GetPlayerName()));
+        }
+        else
+        {
+            PlayerNameText->SetVisibility(ESlateVisibility::Collapsed);
+        }
+    }
+
+    if (ReadyButton)
+    {
+        if (InPlayerState)
+        {
+            ReadyButton->SetVisibility(ESlateVisibility::Visible);
+            ReadyButton->SetIsEnabled(bIsLocalPlayer);
+        }
+        else
+        {
+            ReadyButton->SetVisibility(ESlateVisibility::Collapsed);
+            ReadyButton->SetIsEnabled(false);
+        }
+    }
+
+    if (InPlayerState)
+    {
+        UpdateReadyVisual(InPlayerState->IsReady());
+    }
+    else
+    {
+        UpdateReadyVisual(false);
+    }
+}
+

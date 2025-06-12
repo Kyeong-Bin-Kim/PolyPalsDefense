@@ -33,6 +33,13 @@ public:
     UFUNCTION()
     void UpdateReadyVisual(bool bReady);
 
+    /**
+     * 플레이어 할당 및 슬롯 상태 갱신
+     * @param InPlayerState 할당할 플레이어 상태, nullptr이면 슬롯 비움
+     * @param bIsLocalPlayer 해당 슬롯이 로컬 플레이어인지 여부
+     */
+    void ConfigureSlot(APolyPalsPlayerState* InPlayerState, bool bIsLocalPlayer);
+
 protected:
     UPROPERTY()
     APolyPalsPlayerState* AssignedPlayerState;
