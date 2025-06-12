@@ -29,6 +29,9 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable)
+	void Server_SetSelectedStage(FName StageName);
+
+	UFUNCTION(Server, Reliable)
 	void Server_SetReady(bool bReady);
 
 	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }

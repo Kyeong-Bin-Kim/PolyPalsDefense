@@ -52,6 +52,15 @@ void UStageSelectUIWidget::OnExitGameClicked()
 void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
     LastSelectedStage = StageName;
+
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        {
+            PPC->Server_SetSelectedStage(StageName);
+        }
+    }
+
     OpenLobbyUI();
 }
 

@@ -42,6 +42,14 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APolyPalsController, PlayerColor);
 }
 
+void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName)
+{
+	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+	{
+		GS->SetSelectedStage(StageName);
+	}
+}
+
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
 {
 	APolyPalsPlayerState* MyState = GetPlayerState<APolyPalsPlayerState>();

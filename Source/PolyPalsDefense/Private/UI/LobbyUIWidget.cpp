@@ -98,10 +98,13 @@ void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 {
     if (APlayerController* PC = ClickedSlot->GetOwningPlayer())
     {
-        if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
         {
-            const bool bNowReady = !PS->IsReady();
-            PS->SetReadyState(bNowReady);  // 서버에 상태 전달
+            if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
+            {
+                const bool bNowReady = !PS->IsReady();
+                PPC->Server_SetReady(bNowReady);
+            }
         }
     }
 }
