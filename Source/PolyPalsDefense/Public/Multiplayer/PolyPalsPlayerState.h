@@ -14,7 +14,7 @@ public:
 	virtual void BeginPlay() override;
 
     // Ready 상태 설정
-    void SetReady(bool bReady);
+    void SetReadyState(bool bReady);
 
     // Ready 상태 조회
     bool IsReady() const { return bIsReady; }
@@ -24,6 +24,9 @@ public:
 
     // 현재 개인 골드 조회
     int32 GetPlayerGold() const { return PlayerGold; }
+
+    UFUNCTION()
+    void OnRep_IsReady();
 
     UFUNCTION()
     void OnRep_PlayerGold();

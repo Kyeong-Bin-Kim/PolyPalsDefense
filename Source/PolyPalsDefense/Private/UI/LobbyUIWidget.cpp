@@ -1,4 +1,6 @@
-#include "UI/LobbyUIWidget.h"
+#include "LobbyUIWidget.h"
+#include "PolyPalsState.h"
+#include "PolyPalsPlayerState.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
@@ -13,12 +15,6 @@ void ULobbyUIWidget::NativeConstruct()
     if (ExitGame)
     {
         ExitGame->OnClicked.AddDynamic(this, &ULobbyUIWidget::OnExitGameClicked);
-    }
-
-    // 게임 시작 버튼 바인딩
-    if (StartGame)
-    {
-        StartGame->OnClicked.AddDynamic(this, &ULobbyUIWidget::OnStartGameClicked);
     }
 
     // PlayerSlotBox 안의 PlayerSlot들을 모두 수집
@@ -39,9 +35,18 @@ void ULobbyUIWidget::SetSelectedStage(FName InStageName)
 {
     SelectedStageName = InStageName;
 
-    if (Stage)
+    if (StageText)
     {
-        Stage->SetText(FText::FromName(SelectedStageName));
+        StageText->SetText(FText::FromName(SelectedStageName));
+    }
+}
+
+void ULobbyUIWidget::SetRoomTitle(const FString& InRoomTitle)
+{
+    if (RoomTitleText)
+    {
+        FString RoomName = FString::Printf(TEXT("%s's ROOM"), *InRoomTitle);
+        RoomTitleText->SetText(FText::FromString(RoomName));
     }
 }
 
@@ -57,53 +62,45 @@ void ULobbyUIWidget::UpdateLobbyInfo(int32 ConnectedPlayers, int32 ReadyPlayers,
         TotalReadyText->SetText(FText::AsNumber(ReadyPlayers));
     }
 
-    if (Stage)
+    if (StageText)
     {
-        Stage->SetText(FText::FromName(CurrentStage));
-    }
-
-    if (StartGame)
-    {
-        StartGame->SetVisibility(bIsHost ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+        StageText->SetText(FText::FromName(CurrentStage));
     }
 }
 
-void ULobbyUIWidget::DisableAllReadyButtons()
+void ULobbyUIWidget::UpdatePlayerSlotReadyState(APolyPalsPlayerState* PlayerState, bool bReady)
 {
     for (UPlayerSlotWidget* PlayerSlot : PlayerSlotWidgets)
     {
-        if (PlayerSlot)
+        if (PlayerSlot && PlayerSlot->GetAssignedPlayerState() == PlayerState)
         {
-            PlayerSlot->SetReadyButtonActive(false);
+            PlayerSlot->UpdateReadyVisual(bReady);
+            break;
         }
     }
+
+    // 총 준비 수 텍스트 갱신
+    if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+    {
+        int32 ReadyCount = GS->GetReadyPlayers();
+        TotalReadyText->SetText(FText::FromString(FString::Printf(TEXT("%d"), ReadyCount)));
+    }
 }
+
 
 void ULobbyUIWidget::OnExitGameClicked()
 {
     RemoveFromParent();
 }
 
-void ULobbyUIWidget::OnStartGameClicked()
-{
-    RemoveFromParent();
-
-    UWorld* World = GetWorld();
-    if (World)
-    {
-        UGameplayStatics::OpenLevel(World, FName("TowerTest"), true);
-    }
-}
-
 void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 {
-    APlayerController* PC = GetOwningPlayer();
-    if (PC)
+    if (APlayerController* PC = ClickedSlot->GetOwningPlayer())
     {
-        APolyPalsController* MyPC = Cast<APolyPalsController>(PC);
-        if (MyPC)
+        if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
         {
-            MyPC->Server_SetReady(true); // 서버로 Ready 전송
+            const bool bNowReady = !PS->IsReady();
+            PS->SetReadyState(bNowReady);  // 서버에 상태 전달
         }
     }
 }

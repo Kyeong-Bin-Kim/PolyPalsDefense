@@ -1,4 +1,5 @@
 #include "PlayerSlotWidget.h"
+#include "Components/TextBlock.h"
 #include "Components/Button.h"
 
 void UPlayerSlotWidget::NativeConstruct()
@@ -9,39 +10,66 @@ void UPlayerSlotWidget::NativeConstruct()
     if (ReadyButton)
     {
         ReadyButton->OnClicked.AddDynamic(this, &UPlayerSlotWidget::OnReadyButtonClicked);
+        DefaultStyle = ReadyButton->GetStyle();
     }
 }
 
 void UPlayerSlotWidget::OnReadyButtonClicked()
 {
-    // Ready 버튼 클릭 시 델리게이트 브로드캐스트
-    OnReadyClicked.Broadcast(this);
+    bIsReady = !bIsReady;
 
-    // 디버그 로그 출력
-    UE_LOG(LogTemp, Log, TEXT("Ready button clicked on slot: %s"), *GetName());
-}
-
-void UPlayerSlotWidget::SetReadyButtonActive(bool bIsActive)
-{
     if (ReadyButton)
     {
-        // Ready 버튼 활성/비활성
-        ReadyButton->SetIsEnabled(bIsActive);
+        FButtonStyle Style = ReadyButton->GetStyle();
 
-        // 버튼 스타일 복사 후 색상 적용
-        FButtonStyle Style = ReadyButton->GetStyle(); // Getter 사용
-
-        if (!bIsActive)
+        if (bIsReady)
         {
-            Style.Normal.TintColor = FSlateColor(ReadyInactiveColor); // 비활성화 색상
+            // 눌림 상태: 모든 이미지 눌림으로 고정
+            Style.Normal = Style.Pressed;
+            Style.Hovered = Style.Pressed;
         }
         else
         {
-            Style.Normal.TintColor = FSlateColor(ReadyActiveColor); // 활성화 색상
+            // 초기 상태 복귀
+            Style.Normal = DefaultStyle.Normal;
+            Style.Hovered = DefaultStyle.Hovered;
         }
 
-        // 스타일 적용
-        ReadyButton->SetStyle(Style); // Setter 사용
+        ReadyButton->SetStyle(Style);
+    }
+
+    OnReadyClicked.Broadcast(this);
+    UE_LOG(LogTemp, Log, TEXT("Ready toggled: %s (%s)"), *GetName(), bIsReady ? TEXT("Ready") : TEXT("Unready"));
+}
+
+void UPlayerSlotWidget::SetPlayerName(const FString& Name)
+{
+    if (PlayerNameText)
+    {
+        PlayerNameText->SetText(FText::FromString(Name));
+    }
+}
+
+void UPlayerSlotWidget::UpdateReadyVisual(bool bReady)
+{
+    bIsReady = bReady;
+
+    if (ReadyButton)
+    {
+        FButtonStyle ButtonStyle = ReadyButton->GetStyle();
+
+        if (bReady)
+        {
+            ButtonStyle.Normal = ButtonStyle.Pressed;
+            ButtonStyle.Hovered = ButtonStyle.Pressed;
+        }
+        else
+        {
+            ButtonStyle.Normal = DefaultStyle.Normal;
+            ButtonStyle.Hovered = DefaultStyle.Hovered;
+        }
+
+        ReadyButton->SetStyle(ButtonStyle);
     }
 }
 

@@ -1,5 +1,7 @@
 #include "PolyPalsPlayerState.h"
+#include "PolyPalsController.h"
 #include "PolyPalsHUD.h"
+#include "LobbyUIWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -14,12 +16,12 @@ void APolyPalsPlayerState::BeginPlay()
     }
 }
 
-
-void APolyPalsPlayerState::SetReady(bool bReady)
+void APolyPalsPlayerState::SetReadyState(bool bReady)
 {
-    if (!HasAuthority())
+    if (HasAuthority())
     {
-        bIsReady = bReady; // 서버에서 Ready 값 설정
+        bIsReady = bReady;
+        OnRep_IsReady();
     }
 }
 
@@ -29,6 +31,19 @@ void APolyPalsPlayerState::AddGold(int32 Amount)
 
 
     OnRep_PlayerGold();
+}
+
+void APolyPalsPlayerState::OnRep_IsReady()
+{
+    UE_LOG(LogTemp, Log, TEXT("[PlayerState] Ready 상태 변경됨: %s"), bIsReady ? TEXT("O") : TEXT("X"));
+
+    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    {
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        {
+            PPC->UpdateReadyUI(this, bIsReady);
+        }
+    }
 }
 
 void APolyPalsPlayerState::OnRep_PlayerGold()

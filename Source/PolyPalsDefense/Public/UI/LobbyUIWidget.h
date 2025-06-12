@@ -6,6 +6,8 @@
 #include "Components/TextBlock.h"
 #include "LobbyUIWidget.generated.h"
 
+class APolyPalsPlayerState;
+
 UCLASS()
 class POLYPALSDEFENSE_API ULobbyUIWidget : public UUserWidget
 {
@@ -18,25 +20,21 @@ public:
     UFUNCTION(BlueprintCallable)
     void SetSelectedStage(FName InStageName);
 
+    UFUNCTION(BlueprintCallable)
+    void SetRoomTitle(const FString& InRoomTitle);
+
     // 외부에서 로비 상태 업데이트 (플레이어 수, 준비 수, 스테이지, 방장 여부)
     UFUNCTION(BlueprintCallable)
     void UpdateLobbyInfo(int32 ConnectedPlayers, int32 ReadyPlayers, FName CurrentStage, bool bIsHost);
 
-    // 모든 PlayerSlot Ready 버튼 비활성화
-    void DisableAllReadyButtons();
+    void UpdatePlayerSlotReadyState(APolyPalsPlayerState* ChangedState, bool bNewReady);
 
 protected:
     UPROPERTY(meta = (BindWidget))
-    class UButton* ExitGame;
+    class UTextBlock* RoomTitleText;
 
     UPROPERTY(meta = (BindWidget))
-    class UButton* StartGame;
-
-    UPROPERTY(meta = (BindWidget))
-    class UVerticalBox* PlayerSlotBox;
-
-    UPROPERTY(meta = (BindWidget))
-    class UTextBlock* Stage;
+    class UTextBlock* StageText;
 
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* TotalReadyText;
@@ -44,16 +42,20 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* MaxPlayerCountText;
 
-    UFUNCTION()
-    void OnExitGameClicked();
+    UPROPERTY(meta = (BindWidget))
+    class UVerticalBox* PlayerSlotBox;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* ExitGame;
 
     UFUNCTION()
-    void OnStartGameClicked();
+    void OnExitGameClicked();
 
     UFUNCTION()
     void HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot);
 
     // 현재 로비에 등록된 PlayerSlot들
+    UPROPERTY(meta = (BindWidgetOptional), BlueprintReadOnly, Category = "Lobby", meta = (AllowPrivateAccess = "true"))
     TArray<UPlayerSlotWidget*> PlayerSlotWidgets;
 
     // 선택된 스테이지 이름

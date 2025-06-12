@@ -6,6 +6,7 @@
 #include "PolyPalsController/GamePawnComponent.h"
 #include "PolyPalsGamePawn/BuildTowerComponent.h"
 #include "MainUIWidget.h"
+#include "LobbyUIWidget.h"
 #include "InputConfig.h"
 
 #include "Net/UnrealNetwork.h"
@@ -46,7 +47,7 @@ void APolyPalsController::Server_SetReady_Implementation(bool bReady)
 	APolyPalsPlayerState* MyState = GetPlayerState<APolyPalsPlayerState>();
 	if (MyState)
 	{
-		MyState->SetReady(bReady);
+		MyState->SetReadyState(bReady);
 
 		APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>();
 		if (GameState)
@@ -61,6 +62,23 @@ void APolyPalsController::SetPlayerColor(EPlayerColor InColor) {
 	UE_LOG(LogTemp, Log, TEXT("APolyPalsController: Player color set to: %d"), EnumToInt);
 	PlayerColor = InColor; 
 
+}
+
+void APolyPalsController::SetLobbyUIInstance(ULobbyUIWidget* InWidget)
+{
+	LobbyUIInstance = InWidget;
+}
+
+void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState, bool bIsReady)
+{
+	if (LobbyUIInstance)
+	{
+		LobbyUIInstance->UpdatePlayerSlotReadyState(ChangedPlayerState, bIsReady);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance가 없습니다. Ready 상태를 UI에 반영할 수 없습니다."));
+	}
 }
 
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)

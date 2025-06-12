@@ -8,6 +8,9 @@
 // Ready 버튼 클릭 시 위젯 자신을 넘기는 델리게이트 선언
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnReadyClicked, UPlayerSlotWidget*, ClickedSlot);
 
+class APolyPalsPlayerState;
+class UTextBlock;
+
 UCLASS()
 class POLYPALSDEFENSE_API UPlayerSlotWidget : public UUserWidget
 {
@@ -20,24 +23,36 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "Event")
     FOnReadyClicked OnReadyClicked;
 
-    // Ready 버튼 활성/비활성 및 색상 설정
+    void SetPlayerName(const FString& Name);
+
     UFUNCTION(BlueprintCallable)
-    void SetReadyButtonActive(bool bIsActive);
+    APolyPalsPlayerState* GetAssignedPlayerState() const { return AssignedPlayerState; }
+
+    void SetAssignedPlayerState(APolyPalsPlayerState* InState) { AssignedPlayerState = InState; }
+
+    UFUNCTION()
+    void UpdateReadyVisual(bool bReady);
 
 protected:
-    // Ready 버튼 (블루프린트에서 바인딩)
+    UPROPERTY()
+    APolyPalsPlayerState* AssignedPlayerState;
+
+    // Ready 상태를 토글하는 내부 상태 값
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State")
+    bool bIsReady = false;
+
+    // Ready 버튼 기본 스타일 저장용
+    FButtonStyle DefaultStyle;
+
+    // 플레이어 이름 텍스트 위젯
+    UPROPERTY(meta = (BindWidget))
+    class UTextBlock* PlayerNameText;
+
+    // Ready 버튼
     UPROPERTY(meta = (BindWidget))
     UButton* ReadyButton;
 
     // Ready 버튼 클릭 시 호출 함수
     UFUNCTION()
     void OnReadyButtonClicked();
-
-    // 활성화 색상 (디자이너가 블루프린트에서 설정 가능)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-    FLinearColor ReadyActiveColor = FLinearColor(0.6f, 0.6f, 0.6f, 1.f);
-
-    // 비활성화 색상 (디자이너가 블루프린트에서 설정 가능)
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
-    FLinearColor ReadyInactiveColor = FLinearColor(0.3f, 0.3f, 0.3f, 1.f);
 };
