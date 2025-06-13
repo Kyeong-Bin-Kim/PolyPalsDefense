@@ -8,7 +8,9 @@
 #include "MainUIWidget.h"
 #include "LobbyUIWidget.h"
 #include "InputConfig.h"
-
+#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "OnlineSubsystemTypes.h" 
 #include "Net/UnrealNetwork.h"
 
 APolyPalsController::APolyPalsController()
@@ -121,15 +123,27 @@ void APolyPalsController::ShowMainUI()
 
 		if (UMainUIWidget* TypedWidget = Cast<UMainUIWidget>(MainUIWidgetInstance))
 		{
-			FString PlayerName;
+			// 로컬 플레이어 이름 설정 (디폴트)
+			FString PlayerName = TEXT("Player");
 
-			// 기본 값
-			TypedWidget->SetPlayerNameText(TEXT("Player"));
+			TypedWidget->SetPlayerNameText(PlayerName);
 
 			// 2. Steam 연동된 경우: OSS 통해 가져오기 가능
 			// (별도 연동 필요: Steam OSS)
+			if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
+			{
+				IOnlineIdentityPtr Identity = OSS->GetIdentityInterface();
+				if (Identity.IsValid())
+				{
+					TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0);
+					if (UserId.IsValid())
+					{
+						PlayerName = Identity->GetPlayerNickname(*UserId);
+					}
+				}
+			}
 
-			//TypedWidget->SetPlayerNameText(PlayerName);
+			TypedWidget->SetPlayerNameText(PlayerName);
 		}
 
 		MainUIWidgetInstance->AddToViewport();
