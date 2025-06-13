@@ -1,5 +1,6 @@
 #include "PolyPalsGameMode.h"
 #include "PolyPalsState.h"
+#include "PolyPalsPlayerState.h"
 #include "PolyPalsController.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -41,7 +42,14 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 	}
 
 	// 접속자 수 카운트 (호스트 포함)
+	if (APolyPalsPlayerState* PS = NewPlayer->GetPlayerState<APolyPalsPlayerState>())
+	{
+		PS->SetSlotIndex(ConnectedPlayers);
+	}
+
+	// 접속자 수 증가
 	ConnectedPlayers++;
+
 	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
 	// GameState 이벤트 바인딩 (처음 접속자일 때만 한 번)
@@ -82,6 +90,25 @@ void APolyPalsGameMode::StartPlay()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass가 설정되어 있지 않습니다!"));
+	}
+
+	// 초기 골드 지급
+	FString CurrentMap = GetWorld()->GetMapName();
+
+	if (!CurrentMap.Contains(TEXT("EmptyLevel")))
+	{
+		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+		{
+			int32 PlayerCount = GS->PlayerArray.Num();
+			int32 StartingGold = CalculateStartingGold(PlayerCount);
+			for (APlayerState* PS : GS->PlayerArray)
+			{
+				if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
+				{
+					PPS->SetInitialGold(StartingGold);
+				}
+			}
+		}
 	}
 }
 
@@ -133,4 +160,11 @@ void APolyPalsGameMode::HandleStateGameOver()
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)
 {
 	DecreaseRemainingEnemyCount(); // 남은 적 수 감소
+}
+
+int32 APolyPalsGameMode::CalculateStartingGold(int32 PlayerCount) const
+{
+	int32 Calculated = StartingGoldMax - (PlayerCount - 1) * StartingGoldStep;
+
+	return FMath::Clamp(Calculated, StartingGoldMin, StartingGoldMax);
 }

@@ -25,12 +25,30 @@ void APolyPalsPlayerState::SetReadyState(bool bReady)
     }
 }
 
+void APolyPalsPlayerState::SetSlotIndex(int32 Index)
+{
+    if (HasAuthority())
+    {
+        SlotIndex = Index;
+        OnRep_SlotIndex();
+    }
+}
+
 void APolyPalsPlayerState::AddGold(int32 Amount)
 {
     PlayerGold += Amount;
 
 
     OnRep_PlayerGold();
+}
+
+void APolyPalsPlayerState::SetInitialGold(int32 Amount)
+{
+    if (HasAuthority())
+    {
+        PlayerGold = Amount;
+        OnRep_PlayerGold();
+    }
 }
 
 void APolyPalsPlayerState::OnRep_IsReady()
@@ -42,6 +60,17 @@ void APolyPalsPlayerState::OnRep_IsReady()
         if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
         {
             PPC->UpdateReadyUI(this, bIsReady);
+        }
+    }
+}
+
+void APolyPalsPlayerState::OnRep_SlotIndex()
+{
+    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    {
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        {
+            PPC->RefreshLobbyUI();
         }
     }
 }
@@ -65,6 +94,7 @@ void APolyPalsPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
     DOREPLIFETIME(APolyPalsPlayerState, bIsReady); // Ready 상태 복제
     DOREPLIFETIME(APolyPalsPlayerState, PlayerGold); // 개인 골드 복제
+    DOREPLIFETIME(APolyPalsPlayerState, SlotIndex);
 }
 
 bool APolyPalsPlayerState::SpendGold(int32 Amount)

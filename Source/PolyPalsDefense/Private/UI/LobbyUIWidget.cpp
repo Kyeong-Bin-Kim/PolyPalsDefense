@@ -111,6 +111,20 @@ void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 
 void ULobbyUIWidget::RefreshPlayerSlots(const TArray<APlayerState*>& PlayerStates)
 {
+    TArray<APolyPalsPlayerState*> SortedStates;
+    for (APlayerState* PS : PlayerStates)
+    {
+        if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
+        {
+            SortedStates.Add(PPS);
+        }
+    }
+
+    SortedStates.Sort([](const APolyPalsPlayerState& A, const APolyPalsPlayerState& B)
+        {
+            return A.GetSlotIndex() < B.GetSlotIndex();
+        });
+
     int32 Index = 0;
 
     for (UPlayerSlotWidget* PlayerSlot : PlayerSlotWidgets)
@@ -121,15 +135,13 @@ void ULobbyUIWidget::RefreshPlayerSlots(const TArray<APlayerState*>& PlayerState
         APolyPalsPlayerState* TargetState = nullptr;
         bool bLocal = false;
 
-        if (Index < PlayerStates.Num())
+        if (Index < SortedStates.Num())
         {
-            TargetState = Cast<APolyPalsPlayerState>(PlayerStates[Index]);
-            if (TargetState)
+            TargetState = SortedStates[Index];
+
+            if (APlayerController* PC = Cast<APlayerController>(TargetState->GetOwner()))
             {
-                if (APlayerController* PC = Cast<APlayerController>(TargetState->GetOwner()))
-                {
-                    bLocal = PC->IsLocalController();
-                }
+                bLocal = PC->IsLocalController();
             }
         }
 

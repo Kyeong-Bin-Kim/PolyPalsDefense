@@ -19,8 +19,16 @@ public:
     // Ready 상태 조회
     bool IsReady() const { return bIsReady; }
 
+	// Slot Index 설정 및 조회
+    void SetSlotIndex(int32 Index);
+
+    int32 GetSlotIndex() const { return SlotIndex; }
+
     // 개인 골드 추가
     void AddGold(int32 Amount);
+
+    // 초기 골드 설정
+    void SetInitialGold(int32 Amount);
 
     // 현재 개인 골드 조회
     int32 GetPlayerGold() const { return PlayerGold; }
@@ -29,15 +37,21 @@ public:
     void OnRep_IsReady();
 
     UFUNCTION()
+    void OnRep_SlotIndex();
+
+    UFUNCTION()
     void OnRep_PlayerGold();
 protected:
     // Ready 상태 (Replicated)
     UPROPERTY(Replicated)
     bool bIsReady = false;
 
+    UPROPERTY(ReplicatedUsing = OnRep_SlotIndex)
+    int32 SlotIndex = -1;
+
     // 개인 골드 (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_PlayerGold)
-    int32 PlayerGold = 20000;
+    int32 PlayerGold = 0;
 
     // Replication 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

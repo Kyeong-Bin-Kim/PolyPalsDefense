@@ -106,10 +106,24 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Game")
 	float StartCountdownTime = 5.0f;
 
+	// 플레이어 시작 골드 계산용 최대/최소/감소 단위
+	UPROPERTY(EditDefaultsOnly, Category = "Economy")
+	int32 StartingGoldMax = 2000;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Economy")
+	int32 StartingGoldMin = 500;
+
+	// 플레이어 한 명이 추가될 때마다 감소할 골드
+	UPROPERTY(EditDefaultsOnly, Category = "Economy")
+	int32 StartingGoldStep = 500;
+
 protected:
 	// GameState의 AllPlayersReady 이벤트 처리
 	UFUNCTION()
 	void HandleAllPlayersReady();
+
+	// 플레이어 수에 따른 시작 골드 계산
+	int32 CalculateStartingGold(int32 PlayerCount) const;
 
 	// GameState의 GameOver 이벤트 처리
 	UFUNCTION()
