@@ -83,12 +83,12 @@ protected:
 	UPROPERTY(Replicated)
 	TObjectPtr<APolyPalsController> OwnerController;
 	
-
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerColor)
 	EPlayerColor PlayerColor = EPlayerColor::None;
 
 	UPROPERTY(EditInstanceOnly, ReplicatedUsing = OnRep_TowerId)
 	int16 TowerId = -1;
+
 	UPROPERTY(EditDefaultsOnly)
 	FName AttackTargetTag = FName("Enemy");
 

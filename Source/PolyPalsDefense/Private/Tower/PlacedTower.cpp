@@ -110,6 +110,7 @@ void APlacedTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
+	DOREPLIFETIME(APlacedTower, OwnerController);
 	DOREPLIFETIME(APlacedTower, TowerId);
 	DOREPLIFETIME(APlacedTower, PlayerColor);
 }

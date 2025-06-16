@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "LobbyInfo.h"
 #include "LobbySlotWidget.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnJoinLobbyClicked, const FString&, LobbyID);
@@ -13,7 +14,7 @@ class POLYPALSDEFENSE_API ULobbySlotWidget : public UUserWidget
 
 public:
     UFUNCTION(BlueprintCallable)
-    void SetupSlot(const FString& InLobbyID, const FString& InLobbyName, int32 InCurrentPlayers, int32 InMaxPlayers);
+    void SetupSlot(const FLobbyInfo& Info);
 
     UPROPERTY(BlueprintAssignable)
     FOnJoinLobbyClicked OnJoinLobbyClicked;
@@ -28,7 +29,7 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* JoinButton;
 
-    FString LobbyID;
+    FLobbyInfo LobbyInfo;
 
     virtual void NativeConstruct() override;
 

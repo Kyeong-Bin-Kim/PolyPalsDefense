@@ -12,23 +12,28 @@ void ULobbySlotWidget::NativeConstruct()
     }
 }
 
-void ULobbySlotWidget::SetupSlot(const FString& InLobbyID, const FString& InLobbyName, int32 InCurrentPlayers, int32 InMaxPlayers)
+void ULobbySlotWidget::SetupSlot(const FLobbyInfo& Info)
 {
-    LobbyID = InLobbyID;
+    LobbyInfo = Info;
 
     if (LobbyNameText)
     {
-        LobbyNameText->SetText(FText::FromString(InLobbyName));
+        LobbyNameText->SetText(FText::FromString(LobbyInfo.LobbyName));
     }
 
     if (PlayerCountText)
     {
-        FString PlayerText = FString::Printf(TEXT("%d/%d"), InCurrentPlayers, InMaxPlayers);
+        FString PlayerText = FString::Printf(TEXT("%d/%d"), LobbyInfo.CurrentPlayers, LobbyInfo.MaxPlayers);
         PlayerCountText->SetText(FText::FromString(PlayerText));
+    }
+
+    if (JoinButton)
+    {
+        JoinButton->SetIsEnabled(LobbyInfo.CurrentPlayers < LobbyInfo.MaxPlayers && !LobbyInfo.bInProgress);
     }
 }
 
 void ULobbySlotWidget::HandleJoinClicked()
 {
-    OnJoinLobbyClicked.Broadcast(LobbyID);
+    OnJoinLobbyClicked.Broadcast(LobbyInfo.SessionId);
 }

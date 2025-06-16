@@ -3,7 +3,10 @@
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/OnlineSessionInterface.h"
+#include "LobbyInfo.h"
 #include "PolyPalsGameInstance.generated.h"
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSessionsFound, const TArray<FLobbyInfo>&);
 
 class IOnlineSubsystem;
 
@@ -18,15 +21,25 @@ public:
     void LoginToSteam();
     void CreateSteamSession();
 
+    void FindSteamSessions();
+    void JoinSteamSession(const FString& LobbyID);
+
+    FOnSessionsFound OnSessionsFound;
+
 private:
     void OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
     void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+    void OnFindSessionsComplete(bool bWasSuccessful);
+    void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 
 private:
     IOnlineSubsystem* OnlineSubsystem = nullptr;
     IOnlineIdentityPtr IdentityInterface;
     IOnlineSessionPtr SessionInterface;
+    TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
     FDelegateHandle OnLoginCompleteHandle;
     FDelegateHandle OnCreateSessionCompleteHandle;
+    FDelegateHandle OnFindSessionsCompleteHandle;
+    FDelegateHandle OnJoinSessionCompleteHandle;
 };

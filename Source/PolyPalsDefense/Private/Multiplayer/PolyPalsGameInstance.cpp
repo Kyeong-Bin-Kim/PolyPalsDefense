@@ -1,6 +1,8 @@
 #include "PolyPalsGameInstance.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Online/OnlineSessionNames.h"
+#include "Kismet/GameplayStatics.h"
 
 void UPolyPalsGameInstance::Init()
 {
@@ -59,4 +61,79 @@ void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccess
 void UPolyPalsGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
     UE_LOG(LogTemp, Log, TEXT("Session creation %s"), bWasSuccessful ? TEXT("succeeded") : TEXT("failed"));
+}
+
+void UPolyPalsGameInstance::FindSteamSessions()
+{
+    if (SessionInterface.IsValid())
+    {
+        SessionSearch = MakeShareable(new FOnlineSessionSearch());
+        SessionSearch->MaxSearchResults = 100;
+        SessionSearch->bIsLanQuery = false;
+        SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+        OnFindSessionsCompleteHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnFindSessionsComplete));
+        SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+    }
+}
+
+void UPolyPalsGameInstance::JoinSteamSession(const FString& LobbyID)
+{
+    if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
+        return;
+
+    const FOnlineSessionSearchResult* Found = SessionSearch->SearchResults.FindByPredicate([&](const FOnlineSessionSearchResult& Result)
+        {
+            return Result.GetSessionIdStr() == LobbyID;
+        });
+
+    if (Found)
+    {
+        OnJoinSessionCompleteHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnJoinSessionComplete));
+        SessionInterface->JoinSession(0, NAME_GameSession, *Found);
+    }
+}
+
+void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
+{
+    if (SessionInterface.IsValid())
+    {
+        SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(OnFindSessionsCompleteHandle);
+    }
+
+    TArray<FLobbyInfo> Results;
+    if (bWasSuccessful && SessionSearch.IsValid())
+    {
+        for (const FOnlineSessionSearchResult& Result : SessionSearch->SearchResults)
+        {
+            FLobbyInfo Info;
+            Info.SessionId = Result.GetSessionIdStr();
+            Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
+            Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
+            Info.LobbyName = Result.Session.OwningUserName;
+            Result.Session.SessionSettings.Get(TEXT("InProgress"), Info.bInProgress);
+            Results.Add(Info);
+        }
+    }
+
+    OnSessionsFound.Broadcast(Results);
+}
+
+void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
+    if (SessionInterface.IsValid())
+    {
+        SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);
+
+        if (Result == EOnJoinSessionCompleteResult::Success)
+        {
+            FString ConnectString;
+            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
+            {
+                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+                {
+                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
+                }
+            }
+        }
+    }
 }

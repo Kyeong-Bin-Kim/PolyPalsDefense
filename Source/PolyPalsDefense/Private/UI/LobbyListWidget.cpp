@@ -2,37 +2,77 @@
 #include "LobbySlotWidget.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
+#include "Components/EditableTextBox.h"
+#include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
 
 void ULobbyListWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // 예시로 임시 방 ID로 초기화
-    PopulateLobbyList({ TEXT("Room001"), TEXT("Room002"), TEXT("Room003") });
+    if (SearchButton)
+    {
+        SearchButton->OnClicked.AddDynamic(this, &ULobbyListWidget::HandleSearchClicked);
+    }
+
+    if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+    {
+        GI->OnSessionsFound.AddUObject(this, &ULobbyListWidget::PopulateLobbyList);
+        GI->FindSteamSessions();
+    }
 }
 
-void ULobbyListWidget::PopulateLobbyList(const TArray<FString>& LobbyIDs)
+void ULobbyListWidget::PopulateLobbyList(const TArray<FLobbyInfo>& LobbyInfos)
 {
-    if (!LobbySlotClass || !LobbySlotContainer) return;
+    CachedLobbies = LobbyInfos;
+    ApplySearchFilter();
+}
+
+void ULobbyListWidget::ApplySearchFilter()
+{
+    if (!LobbySlotClass || !LobbySlotContainer)
+        return;
 
     LobbySlotContainer->ClearChildren();
 
-    for (const FString& ID : LobbyIDs)
+    FString Query;
+    if (SearchBox)
     {
+        Query = SearchBox->GetText().ToString().ToUpper().Replace(TEXT(" "), TEXT(""));
+    }
+
+    for (const FLobbyInfo& Info : CachedLobbies)
+    {
+        if (Info.CurrentPlayers >= Info.MaxPlayers || Info.bInProgress)
+            continue;
+
+        FString NameKey = Info.LobbyName.ToUpper().Replace(TEXT(" "), TEXT(""));
+        if (!Query.IsEmpty() && !NameKey.Contains(Query))
+            continue;
+
         ULobbySlotWidget* LobbySlot = CreateWidget<ULobbySlotWidget>(GetWorld(), LobbySlotClass);
         if (LobbySlot)
         {
-            LobbySlot->SetupSlot(ID, FString::Printf(TEXT("방 이름 %s"), *ID), FMath::RandRange(1, 4), 4);
+            LobbySlot->SetupSlot(Info);
             LobbySlot->OnJoinLobbyClicked.AddDynamic(this, &ULobbyListWidget::HandleJoinLobby);
-            LobbySlotContainer->AddChildToVerticalBox(LobbySlot);
+
+            if (UVerticalBoxSlot* BoxSlot = LobbySlotContainer->AddChildToVerticalBox(LobbySlot))
+            {
+                BoxSlot->SetVerticalAlignment(VAlign_Top);
+            }
         }
     }
 }
 
+void ULobbyListWidget::HandleSearchClicked()
+{
+    ApplySearchFilter();
+}
+
 void ULobbyListWidget::HandleJoinLobby(const FString& LobbyID)
 {
-    UE_LOG(LogTemp, Log, TEXT("Joining Lobby: %s"), *LobbyID);
-
-    // 입장 로직 구현 가능 (서버 연동 등)
+    if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+    {
+        GI->JoinSteamSession(LobbyID);
+    }
 }
