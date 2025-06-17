@@ -4,6 +4,7 @@
 #include "Components/TextBlock.h"
 #include "StageSelectUIWidget.h"
 #include "LobbyUIWidget.h"
+#include "LobbyListWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -32,7 +33,10 @@ void UMainUIWidget::NativeConstruct()
 
 void UMainUIWidget::OnExitGameClicked()
 {
-    UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        UKismetSystemLibrary::QuitGame(this, PC, EQuitPreference::Quit, false);
+    }
 }
 
 void UMainUIWidget::OnSettingsClicked()
@@ -146,7 +150,18 @@ void UMainUIWidget::OnSearchRoomClicked()
 {
     if (APlayerController* PC = GetOwningPlayer())
     {
-        UUserWidget* LobbyListUI = CreateWidget(PC, LoadClass<UUserWidget>(nullptr, TEXT("/Game/UI/WBP_LobbyList.WBP_LobbyList_C")));
-        if (LobbyListUI) LobbyListUI->AddToViewport();
+        if (LobbyListWidgetClass)
+        {
+            ULobbyListWidget* LobbyListWidget = CreateWidget<ULobbyListWidget>(PC, LobbyListWidgetClass);
+            if (LobbyListWidget)
+            {
+                LobbyListWidget->AddToViewport();
+                RemoveFromParent();
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Failed to load lobby list widget."));
+        }
     }
 }

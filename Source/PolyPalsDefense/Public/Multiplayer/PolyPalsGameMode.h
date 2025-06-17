@@ -117,6 +117,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Economy")
 	int32 StartingGoldStep = 500;
 
+	// 스테이지 이름과 로드할 맵 이름 매핑
+	UPROPERTY(EditDefaultsOnly, Category = "Stage")
+	TMap<FName, FString> StageMapPaths;
+
 protected:
 	// GameState의 AllPlayersReady 이벤트 처리
 	UFUNCTION()

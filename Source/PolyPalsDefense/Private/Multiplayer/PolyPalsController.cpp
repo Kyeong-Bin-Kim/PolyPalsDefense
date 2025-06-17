@@ -79,6 +79,19 @@ void APolyPalsController::SetLobbyUIInstance(ULobbyUIWidget* InWidget)
 	LobbyUIInstance = InWidget;
 }
 
+void APolyPalsController::UpdatePlayerNickname(const FString& NewName)
+{
+	if (APolyPalsPlayerState* PS = GetPlayerState<APolyPalsPlayerState>())
+	{
+		PS->SetPlayerName(NewName);
+	}
+
+	if (UMainUIWidget* Widget = Cast<UMainUIWidget>(MainUIWidgetInstance))
+	{
+		Widget->SetPlayerNameText(NewName);
+	}
+}
+
 void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState, bool bIsReady)
 {
 	if (LobbyUIInstance)

@@ -8,6 +8,10 @@
 APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
+
+	// 기본 스테이지-맵 매핑 설정
+	StageMapPaths.Add(TEXT("Dirt"), TEXT("DirtStage"));
+	StageMapPaths.Add(TEXT("Snow"), TEXT("SnowStage"));
 }
 
 void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -76,22 +80,6 @@ void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	// 리슨 서버로 테스트 시 필요
-	// 메인 UI 생성 및 화면에 추가
-	if (MainUIWidgetClass)
-	{
-		MainUIWidgetInstance = CreateWidget<UUserWidget>(GetWorld(), MainUIWidgetClass);
-		if (MainUIWidgetInstance)
-		{
-			MainUIWidgetInstance->AddToViewport();
-			UE_LOG(LogTemp, Log, TEXT("Main UI Widget 생성 및 표시 완료"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass가 설정되어 있지 않습니다!"));
-	}
-
 	// 초기 골드 지급
 	FString CurrentMap = GetWorld()->GetMapName();
 
@@ -141,11 +129,23 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 	{
 		//맵으로 이동하여 게임 시작
 		APolyPalsState* GS = GetGameState<APolyPalsState>();
+
 		if (GS)
 		{
-			FName StageToLoad = GS->GetSelectedStage();
-			UGameplayStatics::OpenLevel(this, StageToLoad, true);
+			FName StageKey = GS->GetSelectedStage();
+			FString MapName;
+			if (StageMapPaths.Contains(StageKey))
+			{
+				MapName = StageMapPaths[StageKey];
+			}
+			else
+			{
+				MapName = StageKey.ToString();
+			}
+
+			UGameplayStatics::OpenLevel(this, FName(*MapName), true);
 		}
+
 	}, StartCountdownTime, false);
 }
 

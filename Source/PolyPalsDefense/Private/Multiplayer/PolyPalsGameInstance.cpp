@@ -1,4 +1,5 @@
 #include "PolyPalsGameInstance.h"
+#include "PolyPalsController.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
 #include "Online/OnlineSessionNames.h"
@@ -54,6 +55,16 @@ void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccess
     UE_LOG(LogTemp, Log, TEXT("Steam login %s"), bWasSuccessful ? TEXT("succeeded") : TEXT("failed"));
     if (bWasSuccessful)
     {
+        FString PlayerName = IdentityInterface.IsValid() ? IdentityInterface->GetPlayerNickname(UserId) : TEXT("");
+
+        if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+        {
+            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            {
+                PPC->UpdatePlayerNickname(PlayerName);
+            }
+        }
+
         CreateSteamSession();
     }
 }

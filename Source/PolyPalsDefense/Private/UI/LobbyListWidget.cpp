@@ -1,5 +1,7 @@
 #include "LobbyListWidget.h"
 #include "LobbySlotWidget.h"
+#include "MainUIWidget.h"
+#include "PolyPalsGameInstance.h"
 #include "Components/VerticalBox.h"
 #include "Components/VerticalBoxSlot.h"
 #include "Components/EditableTextBox.h"
@@ -13,6 +15,11 @@ void ULobbyListWidget::NativeConstruct()
     if (SearchButton)
     {
         SearchButton->OnClicked.AddDynamic(this, &ULobbyListWidget::HandleSearchClicked);
+    }
+
+    if (ExitButton)
+    {
+        ExitButton->OnClicked.AddDynamic(this, &ULobbyListWidget::OnExitGameClicked);
     }
 
     if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
@@ -67,6 +74,28 @@ void ULobbyListWidget::ApplySearchFilter()
 void ULobbyListWidget::HandleSearchClicked()
 {
     ApplySearchFilter();
+}
+
+void ULobbyListWidget::OnExitGameClicked()
+{
+    if (APlayerController* PC = GetOwningPlayer())
+    {
+        if (MainUIWidgetClass)
+        {
+            UMainUIWidget* MainUI = CreateWidget<UMainUIWidget>(PC, MainUIWidgetClass);
+
+            if (MainUI)
+            {
+                MainUI->AddToViewport();
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass is not set on StageSelectUIWidget"));
+        }
+    }
+
+    RemoveFromParent();  // StageSelect´Â Á¦°Å
 }
 
 void ULobbyListWidget::HandleJoinLobby(const FString& LobbyID)

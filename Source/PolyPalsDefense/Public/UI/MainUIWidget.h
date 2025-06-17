@@ -5,6 +5,8 @@
 #include "MainUIWidget.generated.h"
 
 class UStageSelectUIWidget;
+class ULobbyUIWidget;
+class ULobbyListWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API UMainUIWidget : public UUserWidget
@@ -48,6 +50,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<class ULobbyUIWidget> LobbyUIWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<class ULobbyListWidget> LobbyListWidgetClass;
 
     // Functions
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;

@@ -41,6 +41,7 @@ public:
 	void SetPlayerColor(EPlayerColor InColor);
 
 	void SetLobbyUIInstance(class ULobbyUIWidget* InWidget);
+	void UpdatePlayerNickname(const FString& NewName);
 	void UpdateReadyUI(class APolyPalsPlayerState* ChangedPlayerState, bool bIsReady);
 	void RefreshLobbyUI();
 
