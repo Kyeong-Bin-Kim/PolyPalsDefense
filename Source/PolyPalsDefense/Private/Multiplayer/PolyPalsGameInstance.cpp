@@ -40,14 +40,56 @@ void UPolyPalsGameInstance::LoginToSteam()
 
 void UPolyPalsGameInstance::CreateSteamSession()
 {
-    if (SessionInterface.IsValid())
+    if (!SessionInterface.IsValid() || !IdentityInterface.IsValid())
     {
-        FOnlineSessionSettings Settings;
-        Settings.bIsLANMatch = false;
-        Settings.NumPublicConnections = 4;
-        Settings.bShouldAdvertise = true;
-        SessionInterface->CreateSession(0, NAME_GameSession, Settings);
+        UE_LOG(LogTemp, Warning, TEXT("세션 인터페이스나 아이덴티티 인터페이스가 유효하지 않습니다."));
+        return;
     }
+
+    // 1) 이전에 같은 이름으로 만들어진 세션이 있으면 지우기
+    if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
+    {
+        SessionInterface->DestroySession(NAME_GameSession);
+    }
+
+    // 2) OnCreateSessionComplete 바인딩 (콜백에서 StartSession 등 후속 처리)
+    SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
+        FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
+    );
+
+    // 3) 세션 세팅
+    FOnlineSessionSettings Settings;
+    Settings.bIsLANMatch = false;
+    Settings.NumPublicConnections = 4;
+    Settings.bShouldAdvertise = true;
+    Settings.bUseLobbiesIfAvailable = true;     // Steam 로비 API 사용
+    Settings.bAllowJoinViaPresence = true;     // 프레젠스 조인 허용
+    Settings.bUsesPresence = true;     // 프레젠스 자체 사용 플래그 (★필수)
+    Settings.bAllowInvites = true;     // 친구 초대 허용
+
+    // 4) 호스트 닉네임 가져오기
+    FString PlayerName = TEXT("Host");
+    TSharedPtr<const FUniqueNetId> UserId = IdentityInterface->GetUniquePlayerId(0);
+    if (UserId.IsValid())
+    {
+        PlayerName = IdentityInterface->GetPlayerNickname(*UserId);
+    }
+
+    // 5) 커스텀 데이터 삽입
+    FString LobbyName = FString::Printf(TEXT("%s's Room"), *PlayerName);
+    Settings.Set(
+        TEXT("LobbyName"),
+        LobbyName,
+        EOnlineDataAdvertisementType::ViaOnlineService  // 혹은 ViaOnlineServiceAndPing
+    );
+    Settings.Set(
+        TEXT("InProgress"),
+        false,
+        EOnlineDataAdvertisementType::ViaOnlineService
+    );
+
+    // 6) 세션 생성 호출
+    SessionInterface->CreateSession(0, NAME_GameSession, Settings);
 }
 
 void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
@@ -120,7 +162,12 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
             Info.SessionId = Result.GetSessionIdStr();
             Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
             Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
-            Info.LobbyName = Result.Session.OwningUserName;
+            FString CustomName;
+            if (!Result.Session.SessionSettings.Get(TEXT("LobbyName"), CustomName))
+            {
+                CustomName = Result.Session.OwningUserName;
+            }
+            Info.LobbyName = CustomName;
             Result.Session.SessionSettings.Get(TEXT("InProgress"), Info.bInProgress);
             Results.Add(Info);
         }

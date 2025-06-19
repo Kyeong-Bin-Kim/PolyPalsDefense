@@ -23,7 +23,7 @@ void ULobbySlotWidget::SetupSlot(const FLobbyInfo& Info)
 
     if (PlayerCountText)
     {
-        FString PlayerText = FString::Printf(TEXT("%d/%d"), LobbyInfo.CurrentPlayers, LobbyInfo.MaxPlayers);
+        FString PlayerText = FString::Printf(TEXT("%d"), LobbyInfo.CurrentPlayers);
         PlayerCountText->SetText(FText::FromString(PlayerText));
     }
 

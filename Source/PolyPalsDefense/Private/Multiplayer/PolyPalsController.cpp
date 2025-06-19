@@ -8,6 +8,7 @@
 #include "MainUIWidget.h"
 #include "LobbyUIWidget.h"
 #include "InputConfig.h"
+#include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystemTypes.h" 
@@ -33,7 +34,12 @@ void APolyPalsController::BeginPlay()
 	if (IsLocalController())
 	{
 		bShowMouseCursor = true;
-		ShowMainUI();
+
+		const FString CurrentMapName = UGameplayStatics::GetCurrentLevelName(this, true);
+		if (CurrentMapName.Contains(TEXT("EmptyLevel")))
+		{
+			ShowMainUI();
+		}
 	}
 }
 
