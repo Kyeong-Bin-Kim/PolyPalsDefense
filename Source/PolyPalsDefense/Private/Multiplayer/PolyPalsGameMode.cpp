@@ -42,6 +42,17 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer);
 			ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 			PreparedColors.RemoveAt(0);
+
+			FString HostName;
+			if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+			{
+				if (GS->PlayerArray.Num() > 0 && GS->PlayerArray[0])
+				{
+					HostName = GS->PlayerArray[0]->GetPlayerName();
+				}
+			}
+
+			ProjectController->Client_ShowLobbyUI(HostName);
 		}
 	}
 

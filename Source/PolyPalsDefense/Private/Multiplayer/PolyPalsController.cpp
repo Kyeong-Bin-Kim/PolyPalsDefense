@@ -7,6 +7,7 @@
 #include "PolyPalsGamePawn/BuildTowerComponent.h"
 #include "MainUIWidget.h"
 #include "LobbyUIWidget.h"
+#include "UObject/ConstructorHelpers.h"
 #include "InputConfig.h"
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
@@ -55,6 +56,37 @@ void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName
 	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
 	{
 		GS->SetSelectedStage(StageName);
+	}
+}
+
+void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostName)
+{
+	if (!IsLocalController())
+	{
+		return;
+	}
+
+	if (MainUIWidgetInstance)
+	{
+		MainUIWidgetInstance->RemoveFromParent();
+		MainUIWidgetInstance = nullptr;
+	}
+
+	if (!LobbyUIInstance && LobbyUIWidgetClass)
+	{
+		LobbyUIInstance = CreateWidget<ULobbyUIWidget>(this, LobbyUIWidgetClass);
+		if (LobbyUIInstance)
+		{
+			LobbyUIInstance->AddToViewport();
+			LobbyUIInstance->SetRoomTitle(HostName);
+			SetLobbyUIInstance(LobbyUIInstance);
+			RefreshLobbyUI();
+		}
+	}
+	else if (LobbyUIInstance)
+	{
+		LobbyUIInstance->SetRoomTitle(HostName);
+		RefreshLobbyUI();
 	}
 }
 

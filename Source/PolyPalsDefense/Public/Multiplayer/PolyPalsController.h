@@ -31,6 +31,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_SetSelectedStage(FName StageName);
 
+	UFUNCTION(Client, Reliable)
+	void Client_ShowLobbyUI(const FString& HostName);
+
 	UFUNCTION(Server, Reliable)
 	void Server_SetReady(bool bReady);
 
@@ -63,6 +66,9 @@ protected:
 	// UI 인스턴스
 	UPROPERTY()
 	TObjectPtr<UUserWidget> MainUIWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class ULobbyUIWidget> LobbyUIWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<class ULobbyUIWidget> LobbyUIInstance;
