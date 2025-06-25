@@ -127,8 +127,6 @@ void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccess
                 PPC->UpdatePlayerNickname(PlayerName);
             }
         }
-
-        CreateSteamSession();
     }
 }
 

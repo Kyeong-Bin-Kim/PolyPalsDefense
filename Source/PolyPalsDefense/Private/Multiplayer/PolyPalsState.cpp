@@ -122,6 +122,17 @@ void APolyPalsState::OnRep_ReadyPlayers()
 void APolyPalsState::OnRep_SelectedStage()
 {
     UE_LOG(LogTemp, Log, TEXT("[GameState] 선택된 스테이지 갱신: %s"), *SelectedStage.ToString());
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+        {
+            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            {
+                PPC->RefreshLobbyUI();
+            }
+        }
+    }
 }
 
 // 게임 오버 상태 변경 시 클라에서 호출

@@ -1,6 +1,7 @@
 #include "StageSelectUIWidget.h"
 #include "LobbyUIWidget.h"
 #include "MainUIWidget.h"
+#include "PolyPalsGameInstance.h"
 #include "PolyPalsController.h"
 #include "GameFramework/PlayerState.h"
 #include "Components/Button.h"
@@ -58,6 +59,14 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
         if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
         {
             PPC->Server_SetSelectedStage(StageName);
+
+            if (PC->HasAuthority())
+            {
+                if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+                {
+                    GI->CreateSteamSession();
+                }
+            }
         }
     }
 

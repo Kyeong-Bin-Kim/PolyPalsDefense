@@ -15,6 +15,7 @@ class POLYPALSDEFENSE_API ULobbyListWidget : public UUserWidget
 
 public:
     virtual void NativeConstruct() override;
+    virtual void NativeDestruct() override;
 
     void PopulateLobbyList(const TArray<FLobbyInfo>& LobbyInfos);
 
@@ -49,4 +50,7 @@ protected:
 private:
     TArray<FLobbyInfo> CachedLobbies;
     void ApplySearchFilter();
+
+    FTimerHandle RefreshTimerHandle;
+    void RefreshSessions();
 };

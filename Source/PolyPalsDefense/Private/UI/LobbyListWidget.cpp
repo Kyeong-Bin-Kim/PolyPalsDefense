@@ -26,6 +26,9 @@ void ULobbyListWidget::NativeConstruct()
     {
         GI->OnSessionsFound.AddUObject(this, &ULobbyListWidget::PopulateLobbyList);
         GI->FindSteamSessions();
+
+        FTimerDelegate RefreshDelegate = FTimerDelegate::CreateUObject(this, &ULobbyListWidget::RefreshSessions);
+        GetWorld()->GetTimerManager().SetTimer(RefreshTimerHandle, RefreshDelegate, 5.0f, true);
     }
 }
 
@@ -103,5 +106,25 @@ void ULobbyListWidget::HandleJoinLobby(const FString& LobbyID)
     if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
     {
         GI->JoinSteamSession(LobbyID);
+    }
+}
+
+void ULobbyListWidget::NativeDestruct()
+{
+    if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+    {
+        GI->OnSessionsFound.RemoveAll(this);
+    }
+
+    GetWorld()->GetTimerManager().ClearTimer(RefreshTimerHandle);
+
+    Super::NativeDestruct();
+}
+
+void ULobbyListWidget::RefreshSessions()
+{
+    if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+    {
+        GI->FindSteamSessions();
     }
 }
