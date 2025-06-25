@@ -1,7 +1,8 @@
-#include "PolyPalsGameInstance.h"
+ï»¿#include "PolyPalsGameInstance.h"
 #include "PolyPalsController.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "OnlineSubsystemUtils.h"
 #include "Online/OnlineSessionNames.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -9,23 +10,35 @@ void UPolyPalsGameInstance::Init()
 {
     Super::Init();
 
-    OnlineSubsystem = IOnlineSubsystem::Get();
-    if (OnlineSubsystem)
+    // 1) World ì»¨í…ìŠ¤íŠ¸ ê¸°ë°˜ OnlineSubsystem ê°€ì ¸ì˜¤ê¸°
+    IOnlineSubsystem* OSS = Online::GetSubsystem(GetWorld());
+    if (OSS)
     {
-        IdentityInterface = OnlineSubsystem->GetIdentityInterface();
-        SessionInterface = OnlineSubsystem->GetSessionInterface();
-
-        if (IdentityInterface.IsValid())
-        {
-            OnLoginCompleteHandle = IdentityInterface->AddOnLoginCompleteDelegate_Handle(0, FOnLoginCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnLoginComplete));
-        }
-
-        if (SessionInterface.IsValid())
-        {
-            OnCreateSessionCompleteHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete));
-        }
+        IdentityInterface = OSS->GetIdentityInterface();
+        SessionInterface = OSS->GetSessionInterface();
+        UE_LOG(LogTemp, Log, TEXT("Init(): Using OSS from world, Interface ì´ˆê¸°í™” ì™„ë£Œ"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Init(): World OSSë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."));
     }
 
+    // 2) ë¸ë¦¬ê²Œì´íŠ¸ ë°”ì¸ë”©
+    if (IdentityInterface.IsValid())
+    {
+        OnLoginCompleteHandle = IdentityInterface->AddOnLoginCompleteDelegate_Handle(
+            0,
+            FOnLoginCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnLoginComplete)
+        );
+    }
+    if (SessionInterface.IsValid())
+    {
+        OnCreateSessionCompleteHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
+            FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
+        );
+    }
+
+    // 3) Steam ë¡œê·¸ì¸ ì‹œë„
     LoginToSteam();
 }
 
@@ -42,53 +55,61 @@ void UPolyPalsGameInstance::CreateSteamSession()
 {
     if (!SessionInterface.IsValid() || !IdentityInterface.IsValid())
     {
-        UE_LOG(LogTemp, Warning, TEXT("¼¼¼Ç ÀÎÅÍÆäÀÌ½º³ª ¾ÆÀÌµ§Æ¼Æ¼ ÀÎÅÍÆäÀÌ½º°¡ À¯È¿ÇÏÁö ¾Ê½À´Ï´Ù."));
+        UE_LOG(LogTemp, Warning, TEXT("ì„¸ì…˜ ì¸í„°í˜ì´ìŠ¤ë‚˜ ì•„ì´ë´í‹°í‹° ì¸í„°í˜ì´ìŠ¤ê°€ ìœ íš¨í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."));
         return;
     }
 
-    // 1) ÀÌÀü¿¡ °°Àº ÀÌ¸§À¸·Î ¸¸µé¾îÁø ¼¼¼ÇÀÌ ÀÖÀ¸¸é Áö¿ì±â
+    // 1) ì´ì „ì— ê°™ì€ ì´ë¦„ìœ¼ë¡œ ë§Œë“¤ì–´ì§„ ì„¸ì…˜ì´ ìˆìœ¼ë©´ ì§€ìš°ê¸°
     if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
     {
         SessionInterface->DestroySession(NAME_GameSession);
     }
 
-    // 2) OnCreateSessionComplete ¹ÙÀÎµù (Äİ¹é¿¡¼­ StartSession µî ÈÄ¼Ó Ã³¸®)
+    if (OnCreateSessionCompleteHandle.IsValid())
+    {
+        SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteHandle);
+    }
+
+    // 2) OnCreateSessionComplete ë°”ì¸ë”© (ì½œë°±ì—ì„œ StartSession ë“± í›„ì† ì²˜ë¦¬)
     SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
         FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
     );
 
-    // 3) ¼¼¼Ç ¼¼ÆÃ
+    // 3) ì„¸ì…˜ ì„¸íŒ…
     FOnlineSessionSettings Settings;
-    Settings.bIsLANMatch = false;
-    Settings.NumPublicConnections = 4;
-    Settings.bShouldAdvertise = true;
-    Settings.bUseLobbiesIfAvailable = true;     // Steam ·Îºñ API »ç¿ë
-    Settings.bAllowJoinViaPresence = true;     // ÇÁ·¹Á¨½º Á¶ÀÎ Çã¿ë
-    Settings.bUsesPresence = true;     // ÇÁ·¹Á¨½º ÀÚÃ¼ »ç¿ë ÇÃ·¡±× (¡ÚÇÊ¼ö)
-    Settings.bAllowInvites = true;     // Ä£±¸ ÃÊ´ë Çã¿ë
+    Settings.bIsLANMatch                    = false;
+    Settings.NumPublicConnections           = 4;
+    Settings.bShouldAdvertise               = true;
+    Settings.bUseLobbiesIfAvailable         = true;     // Steam ë¡œë¹„ API ì‚¬ìš©
+    Settings.bAllowJoinViaPresence          = true;     // í”„ë ˆì  ìŠ¤ ì¡°ì¸ í—ˆìš©
+    Settings.bUsesPresence                  = true;     // í”„ë ˆì  ìŠ¤ ìì²´ ì‚¬ìš© í”Œë˜ê·¸
+    Settings.bAllowInvites                  = true;     // ì¹œêµ¬ ì´ˆëŒ€ í—ˆìš©
 
-    // 4) È£½ºÆ® ´Ğ³×ÀÓ °¡Á®¿À±â
+    // 4) í˜¸ìŠ¤íŠ¸ ë‹‰ë„¤ì„ ê°€ì ¸ì˜¤ê¸°
     FString PlayerName = TEXT("Host");
-    TSharedPtr<const FUniqueNetId> UserId = IdentityInterface->GetUniquePlayerId(0);
-    if (UserId.IsValid())
+
+    if (auto UserId = IdentityInterface->GetUniquePlayerId(0); UserId.IsValid())
     {
         PlayerName = IdentityInterface->GetPlayerNickname(*UserId);
     }
 
-    // 5) Ä¿½ºÅÒ µ¥ÀÌÅÍ »ğÀÔ
+    // 5) ì»¤ìŠ¤í…€ ë°ì´í„° ì‚½ì…
     FString LobbyName = FString::Printf(TEXT("%s's Room"), *PlayerName);
     Settings.Set(
         TEXT("LobbyName"),
         LobbyName,
-        EOnlineDataAdvertisementType::ViaOnlineService  // È¤Àº ViaOnlineServiceAndPing
+        EOnlineDataAdvertisementType::ViaOnlineService  // í˜¹ì€ ViaOnlineServiceAndPing
     );
     Settings.Set(
         TEXT("InProgress"),
-        false,
+        0,
         EOnlineDataAdvertisementType::ViaOnlineService
     );
 
-    // 6) ¼¼¼Ç »ı¼º È£Ãâ
+    UE_LOG(LogTemp, Log, TEXT("Flags @Create â€” LobbiesIfAvailable=%d, UsesPresence=%d"),
+        Settings.bUseLobbiesIfAvailable, Settings.bUsesPresence);
+
+    // 6) ì„¸ì…˜ ìƒì„± í˜¸ì¶œ
     SessionInterface->CreateSession(0, NAME_GameSession, Settings);
 }
 
@@ -113,20 +134,38 @@ void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccess
 
 void UPolyPalsGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
+    if (SessionInterface.IsValid())
+    {
+        SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteHandle);
+    }
+
     UE_LOG(LogTemp, Log, TEXT("Session creation %s"), bWasSuccessful ? TEXT("succeeded") : TEXT("failed"));
+
+    if (bWasSuccessful && SessionInterface.IsValid())
+    {
+        // StartSessionì„ í˜¸ì¶œ
+        SessionInterface->StartSession(SessionName);
+        UE_LOG(LogTemp, Log, TEXT("StartSession called for %s"), *SessionName.ToString());
+    }
 }
 
 void UPolyPalsGameInstance::FindSteamSessions()
 {
-    if (SessionInterface.IsValid())
-    {
-        SessionSearch = MakeShareable(new FOnlineSessionSearch());
-        SessionSearch->MaxSearchResults = 100;
-        SessionSearch->bIsLanQuery = false;
-        SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-        OnFindSessionsCompleteHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnFindSessionsComplete));
-        SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
-    }
+    if (!SessionInterface.IsValid())
+        return;
+
+    // ê²€ìƒ‰ ê°ì²´ ìƒì„± ë° ì„¤ì •
+    SessionSearch = MakeShared<FOnlineSessionSearch>();
+    SessionSearch->bIsLanQuery = false;
+    SessionSearch->MaxSearchResults = 100;
+    SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+    // ì½œë°± ë°”ì¸ë”©
+    OnFindSessionsCompleteHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(
+        FOnFindSessionsCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnFindSessionsComplete)
+    );
+
+    SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
 }
 
 void UPolyPalsGameInstance::JoinSteamSession(const FString& LobbyID)
@@ -134,15 +173,12 @@ void UPolyPalsGameInstance::JoinSteamSession(const FString& LobbyID)
     if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
         return;
 
-    const FOnlineSessionSearchResult* Found = SessionSearch->SearchResults.FindByPredicate([&](const FOnlineSessionSearchResult& Result)
-        {
-            return Result.GetSessionIdStr() == LobbyID;
-        });
-
-    if (Found)
+    if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
     {
-        OnJoinSessionCompleteHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnJoinSessionComplete));
-        SessionInterface->JoinSession(0, NAME_GameSession, *Found);
+        PendingJoinSessionId = LobbyID;
+        OnDestroySessionCompleteHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(
+            FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnDestroySessionForJoinComplete));
+        SessionInterface->DestroySession(NAME_GameSession);
     }
 }
 
@@ -156,18 +192,31 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
     TArray<FLobbyInfo> Results;
     if (bWasSuccessful && SessionSearch.IsValid())
     {
+        for (FOnlineSessionSearchResult& PatchResult : SessionSearch->SearchResults)
+        {
+            bool bPresence = PatchResult.Session.SessionSettings.bUsesPresence;
+            PatchResult.Session.SessionSettings.bUseLobbiesIfAvailable = bPresence;
+
+            UE_LOG(LogTemp, Log, TEXT("[FindResult] Patched Flags â€” LobbiesIfAvailable=%d, UsesPresence=%d"),
+                PatchResult.Session.SessionSettings.bUseLobbiesIfAvailable,
+                PatchResult.Session.SessionSettings.bUsesPresence);
+        }
+
         for (const FOnlineSessionSearchResult& Result : SessionSearch->SearchResults)
         {
             FLobbyInfo Info;
             Info.SessionId = Result.GetSessionIdStr();
             Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
             Info.CurrentPlayers = Info.MaxPlayers - Result.Session.NumOpenPublicConnections;
+
             FString CustomName;
+
             if (!Result.Session.SessionSettings.Get(TEXT("LobbyName"), CustomName))
             {
                 CustomName = Result.Session.OwningUserName;
             }
             Info.LobbyName = CustomName;
+
             Result.Session.SessionSettings.Get(TEXT("InProgress"), Info.bInProgress);
             Results.Add(Info);
         }
@@ -176,22 +225,102 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
     OnSessionsFound.Broadcast(Results);
 }
 
-void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)  
+{  
+    if (SessionInterface.IsValid())  
+    {  
+        SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);  
+
+        if (Result == EOnJoinSessionCompleteResult::Success)  
+        {  
+            FString ConnectString;  
+            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))  
+            {  
+                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))  
+                {  
+                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);  
+                }  
+            }  
+        }  
+        else  
+        {  
+            FString ResultString;  
+            switch (Result)  
+            {  
+                case EOnJoinSessionCompleteResult::Success:  
+                    ResultString = TEXT("Success");  
+                    break;  
+                case EOnJoinSessionCompleteResult::SessionIsFull:  
+                    ResultString = TEXT("Session is full");  
+                    break;  
+                case EOnJoinSessionCompleteResult::SessionDoesNotExist:  
+                    ResultString = TEXT("Session does not exist");  
+                    break;  
+                case EOnJoinSessionCompleteResult::CouldNotRetrieveAddress:  
+                    ResultString = TEXT("Could not retrieve address");  
+                    break;  
+                case EOnJoinSessionCompleteResult::AlreadyInSession:  
+                    ResultString = TEXT("Already in session");  
+                    break;  
+                case EOnJoinSessionCompleteResult::UnknownError:  
+                    ResultString = TEXT("Unknown error");  
+                    break;  
+                default:  
+                    ResultString = TEXT("Invalid result");  
+                    break;  
+            }  
+
+            UE_LOG(LogTemp, Warning, TEXT("Failed to join session: %s"), *ResultString);  
+        }  
+    }  
+}
+
+void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)
+{
+    if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
+        return;
+
+    // 1) ê²€ìƒ‰ ê²°ê³¼ì—ì„œ ì¼ì¹˜í•˜ëŠ” ì„¸ì…˜ ì°¾ê¸°
+    const FOnlineSessionSearchResult* Found = SessionSearch->SearchResults.FindByPredicate(
+        [&](const FOnlineSessionSearchResult& Result)
+        {
+            return Result.GetSessionIdStr() == LobbyID;
+        });
+
+    if (Found)
+    {
+        // 2) ë³µì‚¬ë³¸ ìƒì„± ë° í”Œë˜ê·¸ íŒ¨ì¹˜
+        FOnlineSessionSearchResult SearchResult = *Found;
+        SearchResult.Session.SessionSettings.bUseLobbiesIfAvailable =
+            SearchResult.Session.SessionSettings.bUsesPresence;
+
+        // 3) íŒ¨ì¹˜ëœ í”Œë˜ê·¸ ë¡œê·¸
+        UE_LOG(LogTemp, Log, TEXT("[Join] Patched Flags â€” LobbiesIfAvailable=%d, UsesPresence=%d"),
+            SearchResult.Session.SessionSettings.bUseLobbiesIfAvailable,
+            SearchResult.Session.SessionSettings.bUsesPresence);
+
+        // 4) JoinSession ì½œë°± ë°”ì¸ë”©
+        OnJoinSessionCompleteHandle = SessionInterface->AddOnJoinSessionCompleteDelegate_Handle(
+            FOnJoinSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnJoinSessionComplete)
+        );
+
+        // 5) íŒ¨ì¹˜ëœ ë³µì‚¬ë³¸ìœ¼ë¡œ Join í˜¸ì¶œ
+        SessionInterface->JoinSession(0, NAME_GameSession, SearchResult);
+    }
+}
+
+
+void UPolyPalsGameInstance::OnDestroySessionForJoinComplete(FName SessionName, bool bWasSuccessful)
 {
     if (SessionInterface.IsValid())
     {
-        SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);
+        SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteHandle);
+    }
 
-        if (Result == EOnJoinSessionCompleteResult::Success)
-        {
-            FString ConnectString;
-            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
-            {
-                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
-                {
-                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
-                }
-            }
-        }
+    if (!PendingJoinSessionId.IsEmpty())
+    {
+        FString Target = PendingJoinSessionId;
+        PendingJoinSessionId.Empty();
+        PerformJoinSession(Target);
     }
 }
