@@ -59,6 +59,8 @@ void UPolyPalsGameInstance::CreateSteamSession()
         return;
     }
 
+    UE_LOG(LogTemp, Log, TEXT("CreateSteamSession called"));
+
     // 1) 이전에 같은 이름으로 만들어진 세션이 있으면 지우기
     if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
     {
@@ -84,6 +86,9 @@ void UPolyPalsGameInstance::CreateSteamSession()
     Settings.bAllowJoinViaPresence          = true;     // 프레젠스 조인 허용
     Settings.bUsesPresence                  = true;     // 프레젠스 자체 사용 플래그
     Settings.bAllowInvites                  = true;     // 친구 초대 허용
+
+    Settings.Set(FName(TEXT("SEARCH_KEYWORDS")), FString(TEXT("PolyPalsDefense")),
+        EOnlineDataAdvertisementType::ViaOnlineService);
 
     // 4) 호스트 닉네임 가져오기
     FString PlayerName = TEXT("Host");
@@ -152,11 +157,16 @@ void UPolyPalsGameInstance::FindSteamSessions()
     if (!SessionInterface.IsValid())
         return;
 
+    UE_LOG(LogTemp, Log, TEXT("FindSteamSessions called"));
+
     // 검색 객체 생성 및 설정
     SessionSearch = MakeShared<FOnlineSessionSearch>();
     SessionSearch->bIsLanQuery = false;
     SessionSearch->MaxSearchResults = 100;
     SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
+
+    SessionSearch->QuerySettings.Set(FName(TEXT("SEARCH_KEYWORDS")), FString(TEXT("PolyPalsDefense")),
+        EOnlineComparisonOp::Equals);
 
     // 콜백 바인딩
     OnFindSessionsCompleteHandle = SessionInterface->AddOnFindSessionsCompleteDelegate_Handle(
@@ -171,12 +181,21 @@ void UPolyPalsGameInstance::JoinSteamSession(const FString& LobbyID)
     if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
         return;
 
+    UE_LOG(LogTemp, Log, TEXT("JoinSteamSession called with ID %s"), *LobbyID);
+
     if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
     {
+        UE_LOG(LogTemp, Log, TEXT("Existing session found. Destroying current session before join"));
+
         PendingJoinSessionId = LobbyID;
         OnDestroySessionCompleteHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(
             FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnDestroySessionForJoinComplete));
         SessionInterface->DestroySession(NAME_GameSession);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Log, TEXT("No existing session. Joining directly"));
+        PerformJoinSession(LobbyID);
     }
 }
 
@@ -186,6 +205,8 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
     {
         SessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(OnFindSessionsCompleteHandle);
     }
+
+    UE_LOG(LogTemp, Log, TEXT("OnFindSessionsComplete: Success=%d, NumResults=%d"), bWasSuccessful, SessionSearch.IsValid() ? SessionSearch->SearchResults.Num() : 0);
 
     TArray<FLobbyInfo> Results;
     if (bWasSuccessful && SessionSearch.IsValid())
@@ -202,6 +223,8 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 
         for (const FOnlineSessionSearchResult& Result : SessionSearch->SearchResults)
         {
+            UE_LOG(LogTemp, Log, TEXT("Found session %s"), *Result.GetSessionIdStr());
+
             FLobbyInfo Info;
             Info.SessionId = Result.GetSessionIdStr();
             Info.MaxPlayers = Result.Session.SessionSettings.NumPublicConnections;
@@ -225,48 +248,48 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 
 void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)  
 {  
-    if (SessionInterface.IsValid())  
-    {  
-        SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);  
+    if (SessionInterface.IsValid())
+    {
+        SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);
 
-        if (Result == EOnJoinSessionCompleteResult::Success)  
-        {  
-            FString ConnectString;  
-            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))  
-            {  
-                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))  
-                {  
-                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);  
-                }  
-            }  
-        }  
+        UE_LOG(LogTemp, Log, TEXT("OnJoinSessionComplete: %s Result=%d"), *SessionName.ToString(), (int32)Result);
+
+        if (Result == EOnJoinSessionCompleteResult::Success)
+        {
+            FString ConnectString;
+            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
+            {
+                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
+                {
+                    UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *ConnectString);
+                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
+                }
+            }
+        }
         else  
-        {  
-            FString ResultString;  
-            switch (Result)  
-            {  
-                case EOnJoinSessionCompleteResult::Success:  
-                    ResultString = TEXT("Success");  
-                    break;  
-                case EOnJoinSessionCompleteResult::SessionIsFull:  
-                    ResultString = TEXT("Session is full");  
-                    break;  
-                case EOnJoinSessionCompleteResult::SessionDoesNotExist:  
-                    ResultString = TEXT("Session does not exist");  
-                    break;  
-                case EOnJoinSessionCompleteResult::CouldNotRetrieveAddress:  
-                    ResultString = TEXT("Could not retrieve address");  
-                    break;  
-                case EOnJoinSessionCompleteResult::AlreadyInSession:  
-                    ResultString = TEXT("Already in session");  
-                    break;  
-                case EOnJoinSessionCompleteResult::UnknownError:  
-                    ResultString = TEXT("Unknown error");  
-                    break;  
-                default:  
-                    ResultString = TEXT("Invalid result");  
-                    break;  
-            }  
+        {
+            FString ResultString;
+            switch (Result)
+            {
+            case EOnJoinSessionCompleteResult::SessionIsFull:
+                ResultString = TEXT("Session is full");
+                break;
+            case EOnJoinSessionCompleteResult::SessionDoesNotExist:  
+                ResultString = TEXT("Session does not exist");  
+                break;  
+            case EOnJoinSessionCompleteResult::CouldNotRetrieveAddress:  
+                ResultString = TEXT("Could not retrieve address");  
+                break;  
+            case EOnJoinSessionCompleteResult::AlreadyInSession:  
+                ResultString = TEXT("Already in session");  
+                break;  
+            case EOnJoinSessionCompleteResult::UnknownError:  
+                ResultString = TEXT("Unknown error");  
+                break;  
+            default:  
+                ResultString = TEXT("Invalid result");  
+                break;  
+        }  
 
             UE_LOG(LogTemp, Warning, TEXT("Failed to join session: %s"), *ResultString);  
         }  
@@ -277,6 +300,8 @@ void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)
 {
     if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
         return;
+
+    UE_LOG(LogTemp, Log, TEXT("PerformJoinSession with ID %s"), *LobbyID);
 
     // 1) 검색 결과에서 일치하는 세션 찾기
     const FOnlineSessionSearchResult* Found = SessionSearch->SearchResults.FindByPredicate(
@@ -305,6 +330,10 @@ void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)
         // 5) 패치된 복사본으로 Join 호출
         SessionInterface->JoinSession(0, NAME_GameSession, SearchResult);
     }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Requested session %s not found in search results"), *LobbyID);
+    }
 }
 
 
@@ -314,6 +343,8 @@ void UPolyPalsGameInstance::OnDestroySessionForJoinComplete(FName SessionName, b
     {
         SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteHandle);
     }
+
+    UE_LOG(LogTemp, Log, TEXT("OnDestroySessionForJoinComplete: %s, Success=%d"), *SessionName.ToString(), bWasSuccessful);
 
     if (!PendingJoinSessionId.IsEmpty())
     {

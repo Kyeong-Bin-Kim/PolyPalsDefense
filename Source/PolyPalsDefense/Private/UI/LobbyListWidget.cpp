@@ -1,5 +1,6 @@
 #include "LobbyListWidget.h"
 #include "LobbySlotWidget.h"
+#include "PolyPalsController.h"
 #include "MainUIWidget.h"
 #include "PolyPalsGameInstance.h"
 #include "Components/VerticalBox.h"
@@ -11,6 +12,7 @@
 void ULobbyListWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+    UE_LOG(LogTemp, Log, TEXT("LobbyListWidget constructed"));
 
     if (SearchButton)
     {
@@ -81,30 +83,17 @@ void ULobbyListWidget::HandleSearchClicked()
 
 void ULobbyListWidget::OnExitGameClicked()
 {
-    if (APlayerController* PC = GetOwningPlayer())
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (MainUIWidgetClass)
-        {
-            UMainUIWidget* MainUI = CreateWidget<UMainUIWidget>(PC, MainUIWidgetClass);
-
-            if (MainUI)
-            {
-                MainUI->AddToViewport();
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass is not set on StageSelectUIWidget"));
-        }
+        PC->ShowMainUI();
     }
-
-    RemoveFromParent();  // StageSelect´Â Á¦°Å
 }
 
 void ULobbyListWidget::HandleJoinLobby(const FString& LobbyID)
 {
     if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
     {
+        UE_LOG(LogTemp, Log, TEXT("HandleJoinLobby called with ID %s"), *LobbyID);
         GI->JoinSteamSession(LobbyID);
     }
 }

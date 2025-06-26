@@ -20,15 +20,6 @@ class POLYPALSDEFENSE_API APolyPalsGameMode : public AGameModeBase
 public:
 	APolyPalsGameMode();
 
-protected:
-	// 메인 UI 위젯 클래스
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<UUserWidget> MainUIWidgetClass;
-
-	// 메인 UI 위젯 인스턴스
-	UPROPERTY()
-	UUserWidget* MainUIWidgetInstance;
-
 public:
 	// GameState를 통해 게임 오버를 트리거
 	UFUNCTION(BlueprintCallable, Category = "Game")

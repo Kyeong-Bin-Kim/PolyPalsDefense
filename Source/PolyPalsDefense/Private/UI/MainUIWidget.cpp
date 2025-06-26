@@ -1,4 +1,5 @@
 #include "UI/MainUIWidget.h"
+#include "PolyPalsController.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
@@ -110,58 +111,16 @@ void UMainUIWidget::SetPlayerNameText(const FString& Name)
 
 void UMainUIWidget::OnCreateRoomClicked()
 {
-    if (APlayerController* PC = GetOwningPlayer())
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (StageSelectWidgetClass)
-        {
-            // 생성
-            UStageSelectUIWidget* StageUIWidget = CreateWidget<UStageSelectUIWidget>(GetWorld(), StageSelectWidgetClass);
-
-            if (StageUIWidget)
-            {
-                // Viewport 추가
-                StageUIWidget->AddToViewport();
-
-                // 기존 Main UI는 제거
-                this->RemoveFromParent();
-            }
-        }
-    }
-}
-
-void UMainUIWidget::HandleStageSelected(FName StageName)
-{
-    if (APlayerController* PC = GetOwningPlayer())
-    {
-        if (LobbyUIWidgetClass)
-        {
-            ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(PC, LobbyUIWidgetClass);
-
-            if (LobbyWidget)
-            {
-                LobbyWidget->SetSelectedStage(StageName);
-                LobbyWidget->AddToViewport();
-            }
-        }
+        PC->ShowStageSelectUI();
     }
 }
 
 void UMainUIWidget::OnSearchRoomClicked()
 {
-    if (APlayerController* PC = GetOwningPlayer())
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (LobbyListWidgetClass)
-        {
-            ULobbyListWidget* LobbyListWidget = CreateWidget<ULobbyListWidget>(PC, LobbyListWidgetClass);
-            if (LobbyListWidget)
-            {
-                LobbyListWidget->AddToViewport();
-                RemoveFromParent();
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("Failed to load lobby list widget."));
-        }
+        PC->ShowLobbyListUI();
     }
 }

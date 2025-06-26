@@ -6,7 +6,6 @@
 #include "LobbyListWidget.generated.h"
 
 class ULobbySlotWidget;
-class UMainUIWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API ULobbyListWidget : public UUserWidget
@@ -34,9 +33,6 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<ULobbySlotWidget> LobbySlotClass;
-
-    UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
 
     UFUNCTION()
     void HandleJoinLobby(const FString& LobbyID);

@@ -7,6 +7,8 @@
 #include "PolyPalsGamePawn/BuildTowerComponent.h"
 #include "MainUIWidget.h"
 #include "LobbyUIWidget.h"
+#include "StageSelectUIWidget.h"
+#include "LobbyListWidget.h"
 #include "UObject/ConstructorHelpers.h"
 #include "InputConfig.h"
 #include "Kismet/GameplayStatics.h"
@@ -35,6 +37,7 @@ void APolyPalsController::BeginPlay()
 	if (IsLocalController())
 	{
 		bShowMouseCursor = true;
+		SetupInitialUIWidgets();
 
 		const FString CurrentMapName = UGameplayStatics::GetCurrentLevelName(this, true);
 		if (CurrentMapName.Contains(TEXT("EmptyLevel")))
@@ -66,28 +69,14 @@ void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostN
 		return;
 	}
 
-	if (MainUIWidgetInstance)
-	{
-		MainUIWidgetInstance->RemoveFromParent();
-		MainUIWidgetInstance = nullptr;
-	}
+	SetupInitialUIWidgets();
 
-	if (!LobbyUIInstance && LobbyUIWidgetClass)
-	{
-		LobbyUIInstance = CreateWidget<ULobbyUIWidget>(this, LobbyUIWidgetClass);
-		if (LobbyUIInstance)
-		{
-			LobbyUIInstance->AddToViewport();
-			LobbyUIInstance->SetRoomTitle(HostName);
-			SetLobbyUIInstance(LobbyUIInstance);
-			RefreshLobbyUI();
-		}
-	}
-	else if (LobbyUIInstance)
+	if (LobbyUIInstance)
 	{
 		LobbyUIInstance->SetRoomTitle(HostName);
-		RefreshLobbyUI();
 	}
+
+	ShowLobbyUI();
 }
 
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
@@ -155,6 +144,129 @@ void APolyPalsController::RefreshLobbyUI()
 	}
 }
 
+void APolyPalsController::HideAllUI()
+{
+	if (MainUIWidgetInstance) MainUIWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+	if (StageSelectWidgetInstance) StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+	if (LobbyListWidgetInstance) LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+	if (LobbyUIInstance) LobbyUIInstance->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void APolyPalsController::SetupInitialUIWidgets()
+{
+	if (!MainUIWidgetInstance && MainUIWidgetClass)
+	{
+		MainUIWidgetInstance = CreateWidget<UMainUIWidget>(this, MainUIWidgetClass);
+		if (MainUIWidgetInstance)
+		{
+			MainUIWidgetInstance->AddToViewport();
+			MainUIWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (!StageSelectWidgetInstance && StageSelectWidgetClass)
+	{
+		StageSelectWidgetInstance = CreateWidget<UStageSelectUIWidget>(this, StageSelectWidgetClass);
+		if (StageSelectWidgetInstance)
+		{
+			StageSelectWidgetInstance->AddToViewport();
+			StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (!LobbyListWidgetInstance && LobbyListWidgetClass)
+	{
+		LobbyListWidgetInstance = CreateWidget<ULobbyListWidget>(this, LobbyListWidgetClass);
+		if (LobbyListWidgetInstance)
+		{
+			LobbyListWidgetInstance->AddToViewport();
+			LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+
+	if (!LobbyUIInstance && LobbyUIWidgetClass)
+	{
+		LobbyUIInstance = CreateWidget<ULobbyUIWidget>(this, LobbyUIWidgetClass);
+		if (LobbyUIInstance)
+		{
+			LobbyUIInstance->AddToViewport();
+			LobbyUIInstance->SetVisibility(ESlateVisibility::Hidden);
+			SetLobbyUIInstance(LobbyUIInstance);
+		}
+	}
+}
+
+void APolyPalsController::ShowMainUI()
+{
+	SetupInitialUIWidgets();
+	HideAllUI();
+
+	if (UMainUIWidget* TypedWidget = Cast<UMainUIWidget>(MainUIWidgetInstance))
+	{
+		FString PlayerName = TEXT("Player");
+		if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
+		{
+			IOnlineIdentityPtr Identity = OSS->GetIdentityInterface();
+			if (Identity.IsValid())
+			{
+				TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0);
+				if (UserId.IsValid())
+				{
+					PlayerName = Identity->GetPlayerNickname(*UserId);
+				}
+			}
+		}
+		TypedWidget->SetPlayerNameText(PlayerName);
+	}
+
+	if (MainUIWidgetInstance)
+	{
+		MainUIWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void APolyPalsController::ShowStageSelectUI()
+{
+	SetupInitialUIWidgets();
+	HideAllUI();
+	if (StageSelectWidgetInstance)
+	{
+		StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void APolyPalsController::ShowLobbyListUI()
+{
+	SetupInitialUIWidgets();
+	HideAllUI();
+	if (LobbyListWidgetInstance)
+	{
+		LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void APolyPalsController::ShowLobbyUI()
+{
+	SetupInitialUIWidgets();
+	HideAllUI();
+	if (LobbyUIInstance)
+	{
+		LobbyUIInstance->SetVisibility(ESlateVisibility::Visible);
+		RefreshLobbyUI();
+	}
+}
+
+void APolyPalsController::ConfigureLobbyUI(FName InStageName, const FString& HostName)
+{
+	SetupInitialUIWidgets();
+	if (LobbyUIInstance)
+	{
+		LobbyUIInstance->SetSelectedStage(InStageName);
+		LobbyUIInstance->SetRoomTitle(HostName);
+	}
+	ShowLobbyUI();
+}
+
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)
 {
 	PlayerColor = InColor;
@@ -163,40 +275,5 @@ void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColo
 	{
 		UBuildTowerComponent* BuildTowerComp = GamePawnComponent->GetGamePawn()->GetBuildTowerComponent();
 		BuildTowerComp->SetPlayerColorByController(PlayerColor);
-	}
-}
-
-void APolyPalsController::ShowMainUI()
-{
-	if (!MainUIWidgetInstance && MainUIWidgetClass)
-	{
-		MainUIWidgetInstance = CreateWidget<UMainUIWidget>(this, MainUIWidgetClass);
-
-		if (UMainUIWidget* TypedWidget = Cast<UMainUIWidget>(MainUIWidgetInstance))
-		{
-			// 로컬 플레이어 이름 설정 (디폴트)
-			FString PlayerName = TEXT("Player");
-
-			TypedWidget->SetPlayerNameText(PlayerName);
-
-			// 2. Steam 연동된 경우: OSS 통해 가져오기 가능
-			// (별도 연동 필요: Steam OSS)
-			if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
-			{
-				IOnlineIdentityPtr Identity = OSS->GetIdentityInterface();
-				if (Identity.IsValid())
-				{
-					TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0);
-					if (UserId.IsValid())
-					{
-						PlayerName = Identity->GetPlayerNickname(*UserId);
-					}
-				}
-			}
-
-			TypedWidget->SetPlayerNameText(PlayerName);
-		}
-
-		MainUIWidgetInstance->AddToViewport();
 	}
 }

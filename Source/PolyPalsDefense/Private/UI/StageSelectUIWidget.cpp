@@ -1,8 +1,6 @@
 #include "StageSelectUIWidget.h"
-#include "LobbyUIWidget.h"
-#include "MainUIWidget.h"
-#include "PolyPalsGameInstance.h"
 #include "PolyPalsController.h"
+#include "PolyPalsGameInstance.h"
 #include "GameFramework/PlayerState.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -30,84 +28,35 @@ void UStageSelectUIWidget::OnSnowClicked()
 
 void UStageSelectUIWidget::OnExitGameClicked()
 {
-    if (APlayerController* PC = GetOwningPlayer())
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (MainUIWidgetClass)
-        {
-            UMainUIWidget* MainUI = CreateWidget<UMainUIWidget>(PC, MainUIWidgetClass);
-
-            if (MainUI)
-            {
-                MainUI->AddToViewport();
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("MainUIWidgetClass is not set on StageSelectUIWidget"));
-        }
+        PC->ShowMainUI();
     }
-
-    RemoveFromParent();  // StageSelect는 제거
 }
 
 void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
     LastSelectedStage = StageName;
 
-    if (APlayerController* PC = GetOwningPlayer())
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-        {
-            PPC->Server_SetSelectedStage(StageName);
+        PC->Server_SetSelectedStage(StageName);
 
-            if (PC->HasAuthority())
+        if (PC->HasAuthority())
+        {
+            if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
             {
-                if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
-                {
-                    GI->CreateSteamSession();
-                }
+                GI->CreateSteamSession();
             }
         }
-    }
 
-    OpenLobbyUI();
-}
+        FString PlayerName = TEXT("Unknown");
 
-void UStageSelectUIWidget::OpenLobbyUI()
-{
-    if (APlayerController* PC = GetOwningPlayer())
-    {
-        if (LobbyUIWidgetClass)
+        if (APlayerState* PS = PC->GetPlayerState<APlayerState>())
         {
-            ULobbyUIWidget* LobbyWidget = CreateWidget<ULobbyUIWidget>(PC, LobbyUIWidgetClass);
-            if (LobbyWidget)
-            {
-                LobbyWidget->SetSelectedStage(LastSelectedStage);
-
-                // 방 만든 사람의 이름을 기반으로 방 제목 설정
-                FString PlayerName = TEXT("Unknown");
-
-                if (APlayerState* PS = PC->GetPlayerState<APlayerState>())
-                {
-                    PlayerName = PS->GetPlayerName();
-                }
-
-                LobbyWidget->SetRoomTitle(PlayerName);
-                LobbyWidget->AddToViewport();
-
-                if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-                {
-                    PPC->SetLobbyUIInstance(LobbyWidget);
-                    PPC->RefreshLobbyUI();
-                }
-            }
+            PlayerName = PS->GetPlayerName();
         }
-        else
-        {
-            UE_LOG(LogTemp, Warning, TEXT("LobbyUIWidgetClass not set!"));
-        }
+
+        PC->ConfigureLobbyUI(StageName, PlayerName);
     }
-
-    // StageSelect는 제거
-    RemoveFromParent();
 }

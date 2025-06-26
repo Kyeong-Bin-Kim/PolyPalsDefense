@@ -45,15 +45,6 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UTextBlock* PlayerNameText;
 
-    UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<class UStageSelectUIWidget> StageSelectWidgetClass;
-
-    UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<class ULobbyUIWidget> LobbyUIWidgetClass;
-
-    UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<class ULobbyListWidget> LobbyListWidgetClass;
-
     // Functions
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
@@ -71,9 +62,6 @@ protected:
 
     UFUNCTION()
     void OnSearchRoomClicked();
-
-    UFUNCTION()
-    void HandleStageSelected(FName SelectedStage);
 
     // Bindable Menu State
     bool bIsMultiplayerMenuOpen = false;

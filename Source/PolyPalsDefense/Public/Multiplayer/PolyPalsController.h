@@ -10,6 +10,8 @@
 class UPolyPalsInputComponent;
 class UGamePawnComponent;
 class UMainUIWidget;
+class UStageSelectUIWidget;
+class ULobbyListWidget;
 class ULobbyUIWidget;
 
 UCLASS()
@@ -47,10 +49,13 @@ public:
 	void UpdatePlayerNickname(const FString& NewName);
 	void UpdateReadyUI(class APolyPalsPlayerState* ChangedPlayerState, bool bIsReady);
 	void RefreshLobbyUI();
-
-private:
 	void InitializeControllerDataByGameMode(EPlayerColor InColor);
+
 	void ShowMainUI();
+	void ShowStageSelectUI();
+	void ShowLobbyListUI();
+	void ShowLobbyUI();
+	void ConfigureLobbyUI(FName InStageName, const FString& HostName);
 
 protected:
 	UPROPERTY()
@@ -63,6 +68,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UStageSelectUIWidget> StageSelectWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UStageSelectUIWidget> StageSelectWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class ULobbyListWidget> LobbyListWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<ULobbyListWidget> LobbyListWidgetInstance;
+
 	// UI 인스턴스
 	UPROPERTY()
 	TObjectPtr<UUserWidget> MainUIWidgetInstance;
@@ -72,6 +89,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class ULobbyUIWidget> LobbyUIInstance;
+
+	void HideAllUI();
+	void SetupInitialUIWidgets();
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
