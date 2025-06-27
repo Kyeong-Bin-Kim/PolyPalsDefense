@@ -27,10 +27,8 @@ void ULobbyListWidget::NativeConstruct()
     if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
     {
         GI->OnSessionsFound.AddUObject(this, &ULobbyListWidget::PopulateLobbyList);
-        GI->FindSteamSessions();
-
-        FTimerDelegate RefreshDelegate = FTimerDelegate::CreateUObject(this, &ULobbyListWidget::RefreshSessions);
-        GetWorld()->GetTimerManager().SetTimer(RefreshTimerHandle, RefreshDelegate, 5.0f, true);
+        
+        StartRefreshing();
     }
 }
 
@@ -105,7 +103,7 @@ void ULobbyListWidget::NativeDestruct()
         GI->OnSessionsFound.RemoveAll(this);
     }
 
-    GetWorld()->GetTimerManager().ClearTimer(RefreshTimerHandle);
+    StopRefreshing();
 
     Super::NativeDestruct();
 }
@@ -116,4 +114,38 @@ void ULobbyListWidget::RefreshSessions()
     {
         GI->FindSteamSessions();
     }
+}
+
+void ULobbyListWidget::SetVisibility(ESlateVisibility InVisibility)
+{
+    Super::SetVisibility(InVisibility);
+
+    // 숨김/표시 상태에 따라 새로고침 시작/중지
+    if (InVisibility == ESlateVisibility::Visible)
+    {
+        StartRefreshing();
+    }
+    else if (InVisibility == ESlateVisibility::Hidden)
+    {
+        StopRefreshing();
+    }
+}
+
+void ULobbyListWidget::StartRefreshing()
+{
+    if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
+    {
+        GI->FindSteamSessions();
+
+        if (!GetWorld()->GetTimerManager().IsTimerActive(RefreshTimerHandle))
+        {
+            FTimerDelegate RefreshDelegate = FTimerDelegate::CreateUObject(this, &ULobbyListWidget::RefreshSessions);
+            GetWorld()->GetTimerManager().SetTimer(RefreshTimerHandle, RefreshDelegate, 5.0f, true);
+        }
+    }
+}
+
+void ULobbyListWidget::StopRefreshing()
+{
+    GetWorld()->GetTimerManager().ClearTimer(RefreshTimerHandle);
 }

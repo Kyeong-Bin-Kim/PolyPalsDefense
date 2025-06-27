@@ -15,10 +15,12 @@ class POLYPALSDEFENSE_API ULobbyListWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
     virtual void NativeDestruct() override;
+    virtual void SetVisibility(ESlateVisibility InVisibility) override;
 
     void PopulateLobbyList(const TArray<FLobbyInfo>& LobbyInfos);
 
 protected:
+
     UPROPERTY(meta = (BindWidget))
     class UVerticalBox* LobbySlotContainer;
 
@@ -48,5 +50,8 @@ private:
     void ApplySearchFilter();
 
     FTimerHandle RefreshTimerHandle;
+
     void RefreshSessions();
+    void StartRefreshing();
+    void StopRefreshing();
 };
