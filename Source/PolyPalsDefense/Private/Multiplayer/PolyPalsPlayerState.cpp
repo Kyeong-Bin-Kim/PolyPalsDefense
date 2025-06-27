@@ -30,7 +30,7 @@ void APolyPalsPlayerState::SetSlotIndex(int32 Index)
     if (HasAuthority())
     {
         SlotIndex = Index;
-        OnRep_SlotIndex();
+        UE_LOG(LogTemp, Log, TEXT("SlotIndex assigned: %d"), Index);
     }
 }
 
@@ -60,17 +60,6 @@ void APolyPalsPlayerState::OnRep_IsReady()
         if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
         {
             PPC->UpdateReadyUI(this, bIsReady);
-        }
-    }
-}
-
-void APolyPalsPlayerState::OnRep_SlotIndex()
-{
-    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
-    {
-        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-        {
-            PPC->RefreshLobbyUI();
         }
     }
 }

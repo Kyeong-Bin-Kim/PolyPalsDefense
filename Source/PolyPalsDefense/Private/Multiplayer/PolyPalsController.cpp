@@ -13,6 +13,9 @@
 #include "InputConfig.h"
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "OnlineSessionSettings.h"  
+#include "Interfaces/OnlineSessionInterface.h"
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "OnlineSubsystemTypes.h" 
 #include "Net/UnrealNetwork.h"
@@ -34,15 +37,36 @@ void APolyPalsController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsLocalController())
-	{
-		bShowMouseCursor = true;
-		SetupInitialUIWidgets();
+	if (!IsLocalController())
+		return;
 
-		const FString CurrentMapName = UGameplayStatics::GetCurrentLevelName(this, true);
-		if (CurrentMapName.Contains(TEXT("EmptyLevel")))
+	bShowMouseCursor = true;
+	SetupInitialUIWidgets();
+
+	const FString MapName = UGameplayStatics::GetCurrentLevelName(this, true);
+
+	if (MapName.Equals(TEXT("EmptyLevel")))
+	{
+		// 1) 이미 세션에 참가된 상태인지 체크
+		bool bInSession = false;
+
+		if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
 		{
-			ShowMainUI();
+			IOnlineSessionPtr Sess = OSS->GetSessionInterface();
+
+			if (Sess.IsValid())
+			{
+				bInSession = (Sess->GetNamedSession(NAME_GameSession) != nullptr);
+			}
+		}
+
+		if (bInSession)
+		{
+			ShowLobbyUI();   // 네트워크 연결 직후
+		}
+		else
+		{
+			ShowMainUI();    // 최초 실행 시 메인 메뉴
 		}
 	}
 }

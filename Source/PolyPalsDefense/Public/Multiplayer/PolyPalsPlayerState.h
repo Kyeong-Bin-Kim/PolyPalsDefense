@@ -37,16 +37,13 @@ public:
     void OnRep_IsReady();
 
     UFUNCTION()
-    void OnRep_SlotIndex();
-
-    UFUNCTION()
     void OnRep_PlayerGold();
 protected:
     // Ready 상태 (Replicated)
     UPROPERTY(Replicated)
     bool bIsReady = false;
 
-    UPROPERTY(ReplicatedUsing = OnRep_SlotIndex)
+    UPROPERTY(Replicated)
     int32 SlotIndex = -1;
 
     // 개인 골드 (Replicated)

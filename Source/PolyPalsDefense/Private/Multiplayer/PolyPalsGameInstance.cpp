@@ -12,6 +12,7 @@ void UPolyPalsGameInstance::Init()
 
     // 1) World 컨텍스트 기반 OnlineSubsystem 가져오기
     IOnlineSubsystem* OSS = Online::GetSubsystem(GetWorld());
+
     if (OSS)
     {
         IdentityInterface = OSS->GetIdentityInterface();
@@ -59,62 +60,74 @@ void UPolyPalsGameInstance::CreateSteamSession()
         return;
     }
 
-    UE_LOG(LogTemp, Log, TEXT("CreateSteamSession called"));
-
-    // 1) 이전에 같은 이름으로 만들어진 세션이 있으면 지우기
     if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
     {
+        UE_LOG(LogTemp, Warning, TEXT("기존 세션이 있어 DestroySession 후 진행"));
+
+        OnDestroySessionForCreateHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(
+            FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnDestroySessionForCreateComplete)
+        );
+
         SessionInterface->DestroySession(NAME_GameSession);
+        return;
     }
 
-    if (OnCreateSessionCompleteHandle.IsValid())
+    CreateSteamSession_Internal();
+}
+
+void UPolyPalsGameInstance::OnDestroySessionForCreateComplete(FName SessionName, bool bWasSuccessful)
+{
+    UE_LOG(LogTemp, Log, TEXT("세션 파괴 완료: %s, 성공 여부: %d"), *SessionName.ToString(), bWasSuccessful);
+
+    if (SessionInterface.IsValid())
     {
-        SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteHandle);
+        SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionForCreateHandle);
     }
 
-    // 2) OnCreateSessionComplete 바인딩 (콜백에서 StartSession 등 후속 처리)
-    SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
-        FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
-    );
+    // 파괴 성공 시 내부 세션 생성 호출
+    if (bWasSuccessful)
+    {
+        CreateSteamSession_Internal();
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("세션 삭제 실패, 새 세션 생성 중단"));
+    }
+}
 
-    // 3) 세션 세팅
+void UPolyPalsGameInstance::CreateSteamSession_Internal()
+{
+    UE_LOG(LogTemp, Log, TEXT("CreateSteamSession_Internal called"));
+
     FOnlineSessionSettings Settings;
-    Settings.bIsLANMatch                    = false;
-    Settings.NumPublicConnections           = 4;
-    Settings.bShouldAdvertise               = true;
-    Settings.bUseLobbiesIfAvailable         = true;     // Steam 로비 API 사용
-    Settings.bAllowJoinViaPresence          = true;     // 프레젠스 조인 허용
-    Settings.bUsesPresence                  = true;     // 프레젠스 자체 사용 플래그
-    Settings.bAllowInvites                  = true;     // 친구 초대 허용
+    Settings.bIsLANMatch = false;
+    Settings.NumPublicConnections = MaxPlayerCount;
+    Settings.bShouldAdvertise = true;
+    Settings.bUseLobbiesIfAvailable = true;
+    Settings.bAllowJoinViaPresence = true;
+    Settings.bAllowJoinInProgress = true;
+    Settings.bUsesPresence = true;
+    Settings.bAllowInvites = true;
 
     Settings.Set(FName(TEXT("SEARCH_KEYWORDS")), FString(TEXT("PolyPalsDefense")),
         EOnlineDataAdvertisementType::ViaOnlineService);
 
-    // 4) 호스트 닉네임 가져오기
+    // 닉네임 기반 로비 이름 설정
     FString PlayerName = TEXT("Host");
-
     if (auto UserId = IdentityInterface->GetUniquePlayerId(0); UserId.IsValid())
     {
         PlayerName = IdentityInterface->GetPlayerNickname(*UserId);
     }
 
-    // 5) 커스텀 데이터 삽입
     FString LobbyName = FString::Printf(TEXT("%s's Room"), *PlayerName);
-    Settings.Set(
-        TEXT("LobbyName"),
-        LobbyName,
-        EOnlineDataAdvertisementType::ViaOnlineService  // 혹은 ViaOnlineServiceAndPing
-    );
-    Settings.Set(
-        TEXT("InProgress"),
-        0,
-        EOnlineDataAdvertisementType::ViaOnlineService
+    Settings.Set(TEXT("LobbyName"), LobbyName, EOnlineDataAdvertisementType::ViaOnlineService);
+    Settings.Set(TEXT("InProgress"), 0, EOnlineDataAdvertisementType::ViaOnlineService);
+
+    // 델리게이트 재설정
+    OnCreateSessionCompleteHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
+        FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
     );
 
-    UE_LOG(LogTemp, Log, TEXT("Flags @Create — LobbiesIfAvailable=%d, UsesPresence=%d"),
-        Settings.bUseLobbiesIfAvailable, Settings.bUsesPresence);
-
-    // 6) 세션 생성 호출
     SessionInterface->CreateSession(0, NAME_GameSession, Settings);
 }
 
@@ -246,54 +259,58 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
     OnSessionsFound.Broadcast(Results);
 }
 
-void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)  
-{  
+void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
+{
     if (SessionInterface.IsValid())
     {
         SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);
+    }
 
-        UE_LOG(LogTemp, Log, TEXT("OnJoinSessionComplete: %s Result=%d"), *SessionName.ToString(), (int32)Result);
+    UE_LOG(LogTemp, Log, TEXT("OnJoinSessionComplete: %s, Result=%d"), *SessionName.ToString(), (int)Result);
 
-        if (Result == EOnJoinSessionCompleteResult::Success)
+    if (Result == EOnJoinSessionCompleteResult::Success && SessionInterface.IsValid())
+    {
+        FString FullConnectString;
+
+        if (SessionInterface->GetResolvedConnectString(SessionName, FullConnectString))
         {
-            FString ConnectString;
-            if (SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
+            UE_LOG(LogTemp, Log, TEXT("FullConnectString = %s"), *FullConnectString);
+
+            // “맵경로/” 이후는 떼어내고 주소:포트만
+            FString AddressOnly;
+
+            if (!FullConnectString.Split(TEXT("/"), &AddressOnly, nullptr))
             {
-                if (APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0))
-                {
-                    UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *ConnectString);
-                    PC->ClientTravel(ConnectString, ETravelType::TRAVEL_Absolute);
-                }
+                AddressOnly = FullConnectString;
+            }
+
+            if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+            {
+                // 맵 리로드 없이 네트워크만 붙인다
+                PC->ClientTravel(*AddressOnly, ETravelType::TRAVEL_Absolute);
+                UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *AddressOnly);
+
+                // 아주 짧게 딜레이 주고 Lobby UI 띄우기
+                FTimerHandle TimerHandle;
+                GetWorld()->GetTimerManager().SetTimer(
+                    TimerHandle,
+                    FTimerDelegate::CreateLambda([PC]() {
+                        if (APolyPalsController* C = Cast<APolyPalsController>(PC))
+                        {
+                            C->ShowLobbyUI();
+                        }
+                        }),
+                    0.1f,
+                    false
+                );
             }
         }
-        else  
+        else
         {
-            FString ResultString;
-            switch (Result)
-            {
-            case EOnJoinSessionCompleteResult::SessionIsFull:
-                ResultString = TEXT("Session is full");
-                break;
-            case EOnJoinSessionCompleteResult::SessionDoesNotExist:  
-                ResultString = TEXT("Session does not exist");  
-                break;  
-            case EOnJoinSessionCompleteResult::CouldNotRetrieveAddress:  
-                ResultString = TEXT("Could not retrieve address");  
-                break;  
-            case EOnJoinSessionCompleteResult::AlreadyInSession:  
-                ResultString = TEXT("Already in session");  
-                break;  
-            case EOnJoinSessionCompleteResult::UnknownError:  
-                ResultString = TEXT("Unknown error");  
-                break;  
-            default:  
-                ResultString = TEXT("Invalid result");  
-                break;  
-        }  
-
-            UE_LOG(LogTemp, Warning, TEXT("Failed to join session: %s"), *ResultString);  
-        }  
-    }  
+            UE_LOG(LogTemp, Error, TEXT("Failed to resolve connect string for session %s"), *SessionName.ToString());
+            return;
+        }
+    }
 }
 
 void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)

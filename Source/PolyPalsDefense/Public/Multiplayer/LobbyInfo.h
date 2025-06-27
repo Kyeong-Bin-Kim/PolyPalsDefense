@@ -17,6 +17,9 @@ struct FLobbyInfo
     UPROPERTY(BlueprintReadOnly)
     int32 CurrentPlayers = 0;
 
+    UPROPERTY(BlueprintReadWrite)
+    int32 ExpectedPlayerCount;
+
     UPROPERTY(BlueprintReadOnly)
     int32 MaxPlayers = 4;
 

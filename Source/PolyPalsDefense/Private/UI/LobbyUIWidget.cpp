@@ -112,6 +112,8 @@ void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 void ULobbyUIWidget::RefreshPlayerSlots(const TArray<APlayerState*>& PlayerStates)
 {
     TArray<APolyPalsPlayerState*> SortedStates;
+    SortedStates.Reserve(PlayerStates.Num());
+
     for (APlayerState* PS : PlayerStates)
     {
         if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))

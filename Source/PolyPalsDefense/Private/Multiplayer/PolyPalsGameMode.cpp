@@ -2,6 +2,7 @@
 #include "PolyPalsState.h"
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsController.h"
+#include "PolyPalsGameInstance.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -12,6 +13,15 @@ APolyPalsGameMode::APolyPalsGameMode()
 	// 기본 스테이지-맵 매핑 설정
 	StageMapPaths.Add(TEXT("Dirt"), TEXT("DirtStage"));
 	StageMapPaths.Add(TEXT("Snow"), TEXT("SnowStage"));
+}
+
+void APolyPalsGameMode::BeginPlay()
+{
+	if (const UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+	{
+		SetMaxPlayerSlots(GI->GetMaxPlayerCount());
+		UE_LOG(LogTemp, Log, TEXT("GameMode: MaxPlayerSlots set from GameInstance = %d"), MaxPlayerSlots);
+	}
 }
 
 void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -33,58 +43,70 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (!NewPlayer->IsLocalController())
+	if (!NewPlayer->IsLocalController()) // 클라이언트만 처리
 	{
 		UE_LOG(LogTemp, Log, TEXT("Client entered"));
 
 		if (!PreparedColors.IsEmpty())
 		{
-			APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer);
-			ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
-			PreparedColors.RemoveAt(0);
-
-			FString HostName;
-			if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+			if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
 			{
-				if (GS->PlayerArray.Num() > 0 && GS->PlayerArray[0])
-				{
-					HostName = GS->PlayerArray[0]->GetPlayerName();
-				}
-			}
+				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
+				PreparedColors.RemoveAt(0);
 
-			ProjectController->Client_ShowLobbyUI(HostName);
+				FString HostName;
+				if (const APolyPalsState* GS = GetGameState<APolyPalsState>())
+				{
+					if (GS->PlayerArray.Num() > 0 && GS->PlayerArray[0])
+					{
+						HostName = GS->PlayerArray[0]->GetPlayerName();
+					}
+				}
+
+				// 클라이언트에 Lobby UI 표시 요청
+				ProjectController->Client_ShowLobbyUI(HostName);
+			}
 		}
 	}
 
-	// 접속자 수 카운트 (호스트 포함)
-	if (APolyPalsPlayerState* PS = NewPlayer->GetPlayerState<APolyPalsPlayerState>())
+	// 1. SlotIndex 부여
+	if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 	{
-		PS->SetSlotIndex(ConnectedPlayers);
+		PS->SetSlotIndex(ConnectedPlayers); // GameState에 등록되기 전 ConnectedPlayers 기준
+		UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
 	}
 
-	// 접속자 수 증가
+	// 2. 접속자 수 증가
 	ConnectedPlayers++;
 
 	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
-	// GameState 이벤트 바인딩 (처음 접속자일 때만 한 번)
+	// 3. GameState 바인딩 (첫 플레이어일 때만)
 	if (ConnectedPlayers == 1)
 	{
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 		{
-			// 모든 플레이어 준비 완료 이벤트 연결
 			GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
-
-			// 게임 오버 이벤트 연결
 			GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
 		}
 	}
 
-	// GameState에 접속자 수 업데이트
+	// 4. GameState에 접속자 수 반영
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		GS->UpdateConnectedPlayers(ConnectedPlayers);
 	}
+}
+
+void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	if (ConnectedPlayers >= MaxPlayerSlots)
+	{
+		ErrorMessage = TEXT("Lobby is full.");
+		return;
+	}
+
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
 }
 
 void APolyPalsGameMode::StartPlay()

@@ -89,13 +89,14 @@ void APolyPalsState::OnRep_ConnectedPlayers()
 {
     UE_LOG(LogTemp, Log, TEXT("[GameState] 접속자 수 갱신: %d"), ConnectedPlayers);
 
-    for (APlayerState* PS : PlayerArray)
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
-        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(It->Get()))
         {
-            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            if (PPC->IsLocalController())
             {
                 PPC->RefreshLobbyUI();
+                UE_LOG(LogTemp, Log, TEXT("RefreshLobbyUI called for %s"), *PPC->GetName());
             }
         }
     }

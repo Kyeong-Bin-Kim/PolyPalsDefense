@@ -20,14 +20,19 @@ class POLYPALSDEFENSE_API APolyPalsGameMode : public AGameModeBase
 public:
 	APolyPalsGameMode();
 
+	virtual void BeginPlay() override;
+
 public:
 	// GameState를 통해 게임 오버를 트리거
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void TriggerGameOver();
 
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+	virtual void PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage) override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void StartPlay() override;
+
+	void SetMaxPlayerSlots(int32 InMax) { MaxPlayerSlots = InMax; }
 
 	UFUNCTION()
 	void OnEnemyKilled(int32 InGold);
@@ -69,6 +74,9 @@ public:
 	FOnRoundChanged OnRoundChanged;
 
 protected:
+	UPROPERTY()
+	int32 MaxPlayerSlots = 4;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "StageData")
 	int32 Life = 100;
 
