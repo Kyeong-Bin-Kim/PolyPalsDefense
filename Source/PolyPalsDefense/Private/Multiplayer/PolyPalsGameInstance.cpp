@@ -123,6 +123,9 @@ void UPolyPalsGameInstance::CreateSteamSession_Internal()
     Settings.Set(TEXT("LobbyName"), LobbyName, EOnlineDataAdvertisementType::ViaOnlineService);
     Settings.Set(TEXT("InProgress"), 0, EOnlineDataAdvertisementType::ViaOnlineService);
 
+    FString StageNameString = PendingStageName.ToString();
+    Settings.Set(TEXT("StageName"), StageNameString, EOnlineDataAdvertisementType::ViaOnlineService);
+
     // 델리게이트 재설정
     OnCreateSessionCompleteHandle = SessionInterface->AddOnCreateSessionCompleteDelegate_Handle(
         FOnCreateSessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnCreateSessionComplete)
@@ -150,23 +153,34 @@ void UPolyPalsGameInstance::OnLoginComplete(int32 LocalUserNum, bool bWasSuccess
 
 void UPolyPalsGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
 {
+    // 1) 델리게이트 해제
     if (SessionInterface.IsValid())
     {
         SessionInterface->ClearOnCreateSessionCompleteDelegate_Handle(OnCreateSessionCompleteHandle);
     }
 
     UE_LOG(LogTemp, Log, TEXT("Session creation %s"), bWasSuccessful ? TEXT("succeeded") : TEXT("failed"));
-
-    if (bWasSuccessful && SessionInterface.IsValid())
+    if (!bWasSuccessful || !SessionInterface.IsValid())
     {
-        // StartSession을 호출
-        const bool bStartCalled = SessionInterface->StartSession(SessionName);
-        UE_LOG(LogTemp, Log, TEXT("StartSession called for %s, Result=%d"), *SessionName.ToString(), bStartCalled);
+        return;
+    }
 
-        if (FNamedOnlineSession* Session = SessionInterface->GetNamedSession(SessionName))
-        {
-            UE_LOG(LogTemp, Log, TEXT("Session state after StartSession: %d"), static_cast<int32>(Session->SessionState));
-        }
+    // 2) 세션 시작
+    const bool bStartCalled = SessionInterface->StartSession(SessionName);
+    UE_LOG(LogTemp, Log, TEXT("StartSession called for %s, Result=%d"), *SessionName.ToString(), bStartCalled);
+
+    // 3) (디버그) 실제 세션 상태 확인
+    if (FNamedOnlineSession* Session = SessionInterface->GetNamedSession(SessionName))
+    {
+        UE_LOG(LogTemp, Log, TEXT("Session state after StartSession: %d"), static_cast<int32>(Session->SessionState));
+    }
+
+    // 4) 호스트(서버) 레벨 이동 – listen 모드로 열어줍니다.
+    UWorld* World = GetWorld();
+    if (World && World->GetNetMode() == NM_Standalone)
+    {
+        // ?listen 옵션을 붙여야 다른 클라이언트들이 이 서버에 접속할 수 있습니다.
+        World->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
     }
 }
 
@@ -266,43 +280,37 @@ void UPolyPalsGameInstance::OnFindSessionsComplete(bool bWasSuccessful)
 
 void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+    // 1) 델리게이트 해제
     if (SessionInterface.IsValid())
     {
         SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(OnJoinSessionCompleteHandle);
     }
 
     UE_LOG(LogTemp, Log, TEXT("OnJoinSessionComplete: %s, Result=%d"), *SessionName.ToString(), (int)Result);
-
-    if (Result == EOnJoinSessionCompleteResult::Success && SessionInterface.IsValid())
+    if (Result != EOnJoinSessionCompleteResult::Success || !SessionInterface.IsValid())
     {
-        FString FullConnectString;
+        return;
+    }
 
-        const bool bGotConnect = SessionInterface->GetResolvedConnectString(SessionName, FullConnectString);
+    // 2) 세션 접속 문자열 얻기
+    FString ConnectString;
+    if (!SessionInterface->GetResolvedConnectString(SessionName, ConnectString))
+    {
+        UE_LOG(LogTemp, Error, TEXT("Failed to resolve connect string for session %s"), *SessionName.ToString());
+        return;
+    }
+    UE_LOG(LogTemp, Log, TEXT("ResolvedConnectString = %s"), *ConnectString);
 
-        if (bGotConnect)
-        {
-            UE_LOG(LogTemp, Log, TEXT("ResolvedConnectString = %s"), *FullConnectString);
+    // 3) 맵 경로만 URL에 추가
+    FString TravelURL = ConnectString;
+    TravelURL += ConnectString.Contains(TEXT("?")) ? TEXT("&") : TEXT("?");
+    TravelURL += TEXT("Game=/Game/EmptyLevel");
 
-            // “맵경로/” 이후는 떼어내고 주소:포트만
-            FString AddressOnly;
-
-            if (!FullConnectString.Split(TEXT("/"), &AddressOnly, nullptr))
-            {
-                AddressOnly = FullConnectString;
-            }
-
-            if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
-            {
-                // 맵 리로드 없이 네트워크만 붙인다
-                PC->ClientTravel(*AddressOnly, ETravelType::TRAVEL_Absolute);
-                UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *AddressOnly);
-            }
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("Failed to resolve connect string for session %s"), *SessionName.ToString());
-            return;
-        }
+    // 4) 클라이언트 트래블
+    if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *TravelURL);
+        PC->ClientTravel(*TravelURL, ETravelType::TRAVEL_Absolute);
     }
 }
 

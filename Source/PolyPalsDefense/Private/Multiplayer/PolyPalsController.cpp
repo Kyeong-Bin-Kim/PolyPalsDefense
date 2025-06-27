@@ -1,4 +1,5 @@
 #include "PolyPalsController.h"
+#include "PolyPalsGameMode.h"
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
 #include "PolyPalsGamePawn.h"
@@ -86,6 +87,14 @@ void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName
 	}
 }
 
+void APolyPalsController::Server_CreateLobby_Implementation(FName StageName, const FString& HostName)
+{
+	if (APolyPalsGameMode* GM = GetWorld()->GetAuthGameMode<APolyPalsGameMode>())
+	{
+		GM->ConfigureLobby(StageName, HostName);
+	}
+}
+
 void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostName)
 {
 	if (!IsLocalController())
@@ -94,36 +103,11 @@ void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostN
 	}
 
 	bWaitingForGameState = true;
-	TryShowLobbyUI();
-}
-
-void APolyPalsController::TryShowLobbyUI()
-{
-	if (!bWaitingForGameState)
-		return;
-
+	
 	APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>();
 	if (GS && GS->GetSelectedStage() != NAME_None && !GS->GetLobbyName().IsEmpty())
 	{
-		SetupInitialUIWidgets();
-
-		if (LobbyUIInstance)
-		{
-			LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
-			LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
-		}
-
-		ShowLobbyUI();
-		bWaitingForGameState = false;
-	}
-	else
-	{
-		GetWorld()->GetTimerManager().SetTimer(
-			LobbyUITimerHandle,
-			this,
-			&APolyPalsController::TryShowLobbyUI,
-			0.1f,
-			false);
+		ConfigureLobbyUI(GS->GetSelectedStage(), GS->GetLobbyName());
 	}
 }
 
@@ -301,6 +285,7 @@ void APolyPalsController::ShowLobbyUI()
 	{
 		LobbyUIInstance->SetVisibility(ESlateVisibility::Visible);
 		RefreshLobbyUI();
+		bWaitingForGameState = false;
 	}
 }
 

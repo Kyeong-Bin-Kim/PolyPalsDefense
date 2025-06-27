@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -32,6 +30,9 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetSelectedStage(FName StageName);
+
+	UFUNCTION(Server, Reliable)
+	void Server_CreateLobby(FName StageName, const FString& HostName);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ShowLobbyUI(const FString& HostName);

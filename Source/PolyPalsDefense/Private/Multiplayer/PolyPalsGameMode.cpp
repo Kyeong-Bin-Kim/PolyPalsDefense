@@ -156,6 +156,15 @@ void APolyPalsGameMode::TriggerGameOver()
 	}
 }
 
+void APolyPalsGameMode::ConfigureLobby(FName StageName, const FString& LobbyName)
+{
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		GS->SetSelectedStage(StageName);
+		GS->SetLobbyName(LobbyName);
+	}
+}
+
 void APolyPalsGameMode::HandleAllPlayersReady()
 {
 	UE_LOG(LogTemp, Log, TEXT("[GameMode] 모든 플레이어 준비 완료! %f초 뒤 게임 시작"), StartCountdownTime);

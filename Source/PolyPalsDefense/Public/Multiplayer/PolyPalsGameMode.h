@@ -34,6 +34,8 @@ public:
 
 	void SetMaxPlayerSlots(int32 InMax) { MaxPlayerSlots = InMax; }
 
+	void ConfigureLobby(FName StageName, const FString& LobbyName);
+
 	UFUNCTION()
 	void OnEnemyKilled(int32 InGold);
 

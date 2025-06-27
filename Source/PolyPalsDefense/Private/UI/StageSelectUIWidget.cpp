@@ -37,20 +37,15 @@ void UStageSelectUIWidget::OnExitGameClicked()
 
 void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
+    if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+    {
+        GI->SetPendingStage(StageName);
+    }
+
     LastSelectedStage = StageName;
 
     if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        PC->Server_SetSelectedStage(StageName);
-
-        if (PC->HasAuthority())
-        {
-            if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
-            {
-                GI->CreateSteamSession();
-            }
-        }
-
         FString PlayerName = TEXT("Unknown");
 
         if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
@@ -58,10 +53,7 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
             PlayerName = PS->GetPlayerName();
         }
 
-        if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
-        {
-            GS->SetLobbyName(PlayerName);
-        }
+        PC->Server_CreateLobby(StageName, PlayerName);
 
         PC->ConfigureLobbyUI(StageName, PlayerName);
     }

@@ -38,6 +38,7 @@ public:
 
     UFUNCTION()
     void OnRep_PlayerGold();
+
 protected:
     // Ready 상태 (Replicated)
     UPROPERTY(Replicated)

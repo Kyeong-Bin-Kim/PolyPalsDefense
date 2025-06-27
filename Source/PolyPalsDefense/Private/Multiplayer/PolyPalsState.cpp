@@ -105,7 +105,15 @@ void APolyPalsState::OnRep_ConnectedPlayers()
         {
             if (PPC->IsLocalController())
             {
-                PPC->RefreshLobbyUI();
+                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
+                {
+                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
+                }
+                else
+                {
+                    PPC->RefreshLobbyUI();
+                }
+
                 UE_LOG(LogTemp, Log, TEXT("RefreshLobbyUI called for %s"), *PPC->GetName());
             }
         }
@@ -123,7 +131,14 @@ void APolyPalsState::OnRep_ReadyPlayers()
         {
             if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
             {
-                PPC->RefreshLobbyUI();
+                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
+                {
+                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
+                }
+                else
+                {
+                    PPC->RefreshLobbyUI();
+                }
             }
         }
     }
@@ -140,7 +155,14 @@ void APolyPalsState::OnRep_SelectedStage()
         {
             if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
             {
-                PPC->RefreshLobbyUI();
+                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
+                {
+                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
+                }
+                else
+                {
+                    PPC->RefreshLobbyUI();
+                }
             }
         }
     }
@@ -156,7 +178,14 @@ void APolyPalsState::OnRep_LobbyName()
         {
             if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
             {
-                PPC->RefreshLobbyUI();
+                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
+                {
+                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
+                }
+                else
+                {
+                    PPC->RefreshLobbyUI();
+                }
             }
         }
     }

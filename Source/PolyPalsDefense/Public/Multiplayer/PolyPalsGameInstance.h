@@ -29,6 +29,7 @@ public:
 public:
     int32 GetMaxPlayerCount() const { return MaxPlayerCount; }
     void SetMaxPlayerCount(int32 InCount) { MaxPlayerCount = InCount; }
+    void SetPendingStage(FName InStage) { PendingStageName = InStage; }
 
 private:
     int32 MaxPlayerCount = 4;
@@ -58,4 +59,7 @@ private:
     FDelegateHandle OnDestroySessionCompleteHandle;
 
     FString PendingJoinSessionId;
+
+    UPROPERTY()
+    FName PendingStageName;
 };
