@@ -7,9 +7,10 @@
 #include "PolyPalsController/GamePawnComponent.h"
 #include "PolyPalsGamePawn/BuildTowerComponent.h"
 #include "MainUIWidget.h"
-#include "LobbyUIWidget.h"
 #include "StageSelectUIWidget.h"
+#include "PolyPalsGameInstance.h"
 #include "LobbyListWidget.h"
+#include "LobbyUIWidget.h"
 #include "UObject/ConstructorHelpers.h"
 #include "InputConfig.h"
 #include "Kismet/GameplayStatics.h"
@@ -275,6 +276,19 @@ void APolyPalsController::ShowLobbyListUI()
 	{
 		LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Visible);
 	}
+}
+
+void APolyPalsController::HostLobby(FName StageName, const FString& PlayerName)
+{
+	Server_CreateLobby(StageName, PlayerName);
+
+	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+	{
+		GI->SetPendingStage(StageName);
+		GI->CreateSteamSession();
+	}
+
+	ConfigureLobbyUI(StageName, PlayerName);
 }
 
 void APolyPalsController::ShowLobbyUI()

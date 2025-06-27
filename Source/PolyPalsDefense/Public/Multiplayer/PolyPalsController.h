@@ -40,6 +40,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_SetReady(bool bReady);
 
+	UFUNCTION(BlueprintCallable)
+	void HostLobby(FName StageName, const FString& PlayerName);
+
 	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
 	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }
 	EPlayerColor GetPlayerColor() const { return PlayerColor; }

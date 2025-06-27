@@ -1,6 +1,5 @@
 #include "StageSelectUIWidget.h"
 #include "PolyPalsController.h"
-#include "PolyPalsGameInstance.h"
 #include "PolyPalsState.h"
 #include "PolyPalsPlayerState.h"
 #include "Components/Button.h"
@@ -37,11 +36,6 @@ void UStageSelectUIWidget::OnExitGameClicked()
 
 void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
-    if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
-    {
-        GI->SetPendingStage(StageName);
-    }
-
     LastSelectedStage = StageName;
 
     if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
@@ -53,8 +47,6 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
             PlayerName = PS->GetPlayerName();
         }
 
-        PC->Server_CreateLobby(StageName, PlayerName);
-
-        PC->ConfigureLobbyUI(StageName, PlayerName);
+        PC->HostLobby(LastSelectedStage, PlayerName);
     }
 }
