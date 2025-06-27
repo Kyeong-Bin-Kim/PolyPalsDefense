@@ -160,8 +160,13 @@ void UPolyPalsGameInstance::OnCreateSessionComplete(FName SessionName, bool bWas
     if (bWasSuccessful && SessionInterface.IsValid())
     {
         // StartSession을 호출
-        SessionInterface->StartSession(SessionName);
-        UE_LOG(LogTemp, Log, TEXT("StartSession called for %s"), *SessionName.ToString());
+        const bool bStartCalled = SessionInterface->StartSession(SessionName);
+        UE_LOG(LogTemp, Log, TEXT("StartSession called for %s, Result=%d"), *SessionName.ToString(), bStartCalled);
+
+        if (FNamedOnlineSession* Session = SessionInterface->GetNamedSession(SessionName))
+        {
+            UE_LOG(LogTemp, Log, TEXT("Session state after StartSession: %d"), static_cast<int32>(Session->SessionState));
+        }
     }
 }
 
@@ -272,9 +277,11 @@ void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSess
     {
         FString FullConnectString;
 
-        if (SessionInterface->GetResolvedConnectString(SessionName, FullConnectString))
+        const bool bGotConnect = SessionInterface->GetResolvedConnectString(SessionName, FullConnectString);
+
+        if (bGotConnect)
         {
-            UE_LOG(LogTemp, Log, TEXT("FullConnectString = %s"), *FullConnectString);
+            UE_LOG(LogTemp, Log, TEXT("ResolvedConnectString = %s"), *FullConnectString);
 
             // “맵경로/” 이후는 떼어내고 주소:포트만
             FString AddressOnly;
@@ -289,20 +296,6 @@ void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSess
                 // 맵 리로드 없이 네트워크만 붙인다
                 PC->ClientTravel(*AddressOnly, ETravelType::TRAVEL_Absolute);
                 UE_LOG(LogTemp, Log, TEXT("ClientTravel to %s"), *AddressOnly);
-
-                // 아주 짧게 딜레이 주고 Lobby UI 띄우기
-                FTimerHandle TimerHandle;
-                GetWorld()->GetTimerManager().SetTimer(
-                    TimerHandle,
-                    FTimerDelegate::CreateLambda([PC]() {
-                        if (APolyPalsController* C = Cast<APolyPalsController>(PC))
-                        {
-                            C->ShowLobbyUI();
-                        }
-                        }),
-                    0.1f,
-                    false
-                );
             }
         }
         else

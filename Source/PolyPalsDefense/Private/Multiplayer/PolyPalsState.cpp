@@ -9,6 +9,7 @@ APolyPalsState::APolyPalsState()
     ConnectedPlayers = 0;
     ReadyPlayers = 0;
     SelectedStage = NAME_None;
+    LobbyName = TEXT("");
     bIsGameOver = false;
 }
 
@@ -46,6 +47,15 @@ void APolyPalsState::SetSelectedStage(FName Stage)
     {
         SelectedStage = Stage;
         OnRep_SelectedStage(); // 서버에서도 즉시 처리
+    }
+}
+
+void APolyPalsState::SetLobbyName(const FString& Name)
+{
+    if (HasAuthority())
+    {
+        LobbyName = Name;
+        OnRep_LobbyName();
     }
 }
 
@@ -136,6 +146,22 @@ void APolyPalsState::OnRep_SelectedStage()
     }
 }
 
+void APolyPalsState::OnRep_LobbyName()
+{
+    UE_LOG(LogTemp, Log, TEXT("[GameState] 로비 이름 갱신: %s"), *LobbyName);
+
+    for (APlayerState* PS : PlayerArray)
+    {
+        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
+        {
+            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+            {
+                PPC->RefreshLobbyUI();
+            }
+        }
+    }
+}
+
 // 게임 오버 상태 변경 시 클라에서 호출
 void APolyPalsState::OnRep_GameOver()
 {
@@ -150,6 +176,7 @@ void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(APolyPalsState, ConnectedPlayers);
     DOREPLIFETIME(APolyPalsState, ReadyPlayers);
     DOREPLIFETIME(APolyPalsState, SelectedStage);
+    DOREPLIFETIME(APolyPalsState, LobbyName);
     DOREPLIFETIME(APolyPalsState, CurrentRound);
     DOREPLIFETIME(APolyPalsState, bIsGameOver);
 }

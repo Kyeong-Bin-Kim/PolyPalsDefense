@@ -1,6 +1,7 @@
 #include "StageSelectUIWidget.h"
 #include "PolyPalsController.h"
 #include "PolyPalsGameInstance.h"
+#include "PolyPalsState.h"
 #include "GameFramework/PlayerState.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -47,6 +48,11 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
             if (UPolyPalsGameInstance* GI = GetWorld()->GetGameInstance<UPolyPalsGameInstance>())
             {
                 GI->CreateSteamSession();
+            }
+
+            if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+            {
+                GS->SetLobbyName(PlayerName);
             }
         }
 

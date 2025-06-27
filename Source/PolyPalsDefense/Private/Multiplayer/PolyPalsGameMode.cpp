@@ -55,11 +55,16 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 				PreparedColors.RemoveAt(0);
 
 				FString HostName;
-				if (const APolyPalsState* GS = GetGameState<APolyPalsState>())
+				if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 				{
-					if (GS->PlayerArray.Num() > 0 && GS->PlayerArray[0])
+					if (ConnectedPlayers == 0)
 					{
-						HostName = GS->PlayerArray[0]->GetPlayerName();
+						HostName = NewPlayer->PlayerState->GetPlayerName();
+						GS->SetLobbyName(HostName);
+					}
+					else
+					{
+						HostName = GS->GetLobbyName();
 					}
 				}
 
@@ -100,13 +105,21 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 
 void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
+	UE_LOG(LogTemp, Log, TEXT("PreLogin from %s"), *Address);
+
 	if (ConnectedPlayers >= MaxPlayerSlots)
 	{
 		ErrorMessage = TEXT("Lobby is full.");
+		UE_LOG(LogTemp, Warning, TEXT("PreLogin rejected: lobby full"));
 		return;
 	}
 
 	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+
+	if (!ErrorMessage.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PreLogin failed: %s"), *ErrorMessage);
+	}
 }
 
 void APolyPalsGameMode::StartPlay()

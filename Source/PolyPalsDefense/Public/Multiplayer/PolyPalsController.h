@@ -96,5 +96,10 @@ protected:
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
 
+	FTimerHandle LobbyUITimerHandle;
+	bool bWaitingForGameState = false;
+
+	void TryShowLobbyUI();
+
 	friend class APolyPalsGameMode;
 };

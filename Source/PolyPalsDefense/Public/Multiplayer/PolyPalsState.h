@@ -63,6 +63,12 @@ public:
     // 서버에서 선택된 스테이지 설정
     void SetSelectedStage(FName Stage);
 
+    // 서버에서 로비 이름 설정
+    void SetLobbyName(const FString& Name);
+
+    UFUNCTION(BlueprintPure, Category = "Lobby")
+    FString GetLobbyName() const { return LobbyName; }
+
 protected:
     // 복제할 프로퍼티 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -80,6 +86,9 @@ protected:
     void OnRep_SelectedStage();
 
     UFUNCTION()
+    void OnRep_LobbyName();
+
+    UFUNCTION()
     void OnRep_CurrentRound();
 
     // 게임 오버 상태 변경 시 클라이언트에서 호출
@@ -95,9 +104,13 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_ReadyPlayers)
     int32 ReadyPlayers;
 
-    // 선택된 스테이지 이름 (Replicated)
+    // 호스트가 선택한 스테이지 이름 (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_SelectedStage)
     FName SelectedStage;
+
+    // 호스트가 설정한 로비 이름 (Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_LobbyName)
+    FString LobbyName;
 
     // 게임 오버 여부 (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)

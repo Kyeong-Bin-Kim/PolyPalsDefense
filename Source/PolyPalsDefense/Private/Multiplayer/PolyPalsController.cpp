@@ -93,14 +93,38 @@ void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostN
 		return;
 	}
 
-	SetupInitialUIWidgets();
+	bWaitingForGameState = true;
+	TryShowLobbyUI();
+}
 
-	if (LobbyUIInstance)
+void APolyPalsController::TryShowLobbyUI()
+{
+	if (!bWaitingForGameState)
+		return;
+
+	APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>();
+	if (GS && GS->GetSelectedStage() != NAME_None && !GS->GetLobbyName().IsEmpty())
 	{
-		LobbyUIInstance->SetRoomTitle(HostName);
-	}
+		SetupInitialUIWidgets();
 
-	ShowLobbyUI();
+		if (LobbyUIInstance)
+		{
+			LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
+			LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
+		}
+
+		ShowLobbyUI();
+		bWaitingForGameState = false;
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().SetTimer(
+			LobbyUITimerHandle,
+			this,
+			&APolyPalsController::TryShowLobbyUI,
+			0.1f,
+			false);
+	}
 }
 
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
