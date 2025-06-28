@@ -19,7 +19,7 @@ public:
     virtual void Init() override;
 
     void LoginToSteam();
-    void CreateSteamSession();
+    void CreateSteamSession(FName InStageName);
 
     void FindSteamSessions();
     void JoinSteamSession(const FString& LobbyID);
@@ -29,15 +29,16 @@ public:
 public:
     int32 GetMaxPlayerCount() const { return MaxPlayerCount; }
     void SetMaxPlayerCount(int32 InCount) { MaxPlayerCount = InCount; }
-    void SetPendingStage(FName InStage) { PendingStageName = InStage; }
 
 private:
+    UPROPERTY() FName PendingStageName;
+
     int32 MaxPlayerCount = 4;
 
 private:
     void OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
     void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-    void CreateSteamSession_Internal();
+    void CreateSteamSession_Internal(FName InStageName);
     void OnDestroySessionForCreateComplete(FName SessionName, bool bWasSuccessful);
     void OnFindSessionsComplete(bool bWasSuccessful);
     void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
@@ -57,9 +58,6 @@ private:
     FDelegateHandle OnFindSessionsCompleteHandle;
     FDelegateHandle OnJoinSessionCompleteHandle;
     FDelegateHandle OnDestroySessionCompleteHandle;
-
+    
     FString PendingJoinSessionId;
-
-    UPROPERTY()
-    FName PendingStageName;
 };

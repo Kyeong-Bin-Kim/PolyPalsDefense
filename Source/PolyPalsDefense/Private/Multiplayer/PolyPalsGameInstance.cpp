@@ -52,8 +52,10 @@ void UPolyPalsGameInstance::LoginToSteam()
     }
 }
 
-void UPolyPalsGameInstance::CreateSteamSession()
+void UPolyPalsGameInstance::CreateSteamSession(FName InStageName)
 {
+    PendingStageName = InStageName;
+
     if (!SessionInterface.IsValid() || !IdentityInterface.IsValid())
     {
         UE_LOG(LogTemp, Warning, TEXT("세션 인터페이스나 아이덴티티 인터페이스가 유효하지 않습니다."));
@@ -72,7 +74,7 @@ void UPolyPalsGameInstance::CreateSteamSession()
         return;
     }
 
-    CreateSteamSession_Internal();
+    CreateSteamSession_Internal(InStageName);
 }
 
 void UPolyPalsGameInstance::OnDestroySessionForCreateComplete(FName SessionName, bool bWasSuccessful)
@@ -87,7 +89,7 @@ void UPolyPalsGameInstance::OnDestroySessionForCreateComplete(FName SessionName,
     // 파괴 성공 시 내부 세션 생성 호출
     if (bWasSuccessful)
     {
-        CreateSteamSession_Internal();
+        CreateSteamSession_Internal(PendingStageName);
     }
     else
     {
@@ -95,7 +97,7 @@ void UPolyPalsGameInstance::OnDestroySessionForCreateComplete(FName SessionName,
     }
 }
 
-void UPolyPalsGameInstance::CreateSteamSession_Internal()
+void UPolyPalsGameInstance::CreateSteamSession_Internal(FName InStageName)
 {
     UE_LOG(LogTemp, Log, TEXT("CreateSteamSession_Internal called"));
 
@@ -123,7 +125,7 @@ void UPolyPalsGameInstance::CreateSteamSession_Internal()
     Settings.Set(TEXT("LobbyName"), LobbyName, EOnlineDataAdvertisementType::ViaOnlineService);
     Settings.Set(TEXT("InProgress"), 0, EOnlineDataAdvertisementType::ViaOnlineService);
 
-    FString StageNameString = PendingStageName.ToString();
+    FString StageNameString = InStageName.ToString();
     Settings.Set(TEXT("StageName"), StageNameString, EOnlineDataAdvertisementType::ViaOnlineService);
 
     // 델리게이트 재설정

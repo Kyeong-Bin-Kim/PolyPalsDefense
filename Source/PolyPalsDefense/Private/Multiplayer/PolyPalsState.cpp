@@ -94,101 +94,45 @@ void APolyPalsState::UpdateReadyPlayers()
     }
 }
 
-// 접속자 수 변경 시 클라에서 호출
-void APolyPalsState::OnRep_ConnectedPlayers()
+void APolyPalsState::NotifyLobbyStateChanged()
 {
-    UE_LOG(LogTemp, Log, TEXT("[GameState] 접속자 수 갱신: %d"), ConnectedPlayers);
+    UWorld* World = GetWorld();
+    if (!World) return;
 
-    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
     {
-        if (APolyPalsController* PPC = Cast<APolyPalsController>(It->Get()))
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(*It))
         {
             if (PPC->IsLocalController())
             {
-                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
-                {
-                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
-                }
-                else
-                {
-                    PPC->RefreshLobbyUI();
-                }
-
-                UE_LOG(LogTemp, Log, TEXT("RefreshLobbyUI called for %s"), *PPC->GetName());
+                PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
+                PPC->RefreshLobbyUI();
             }
         }
     }
+}
+
+// 접속자 수 변경 시 클라에서 호출
+void APolyPalsState::OnRep_ConnectedPlayers()
+{
+    NotifyLobbyStateChanged();
 }
 
 // Ready 수 변경 시 클라에서 호출
 void APolyPalsState::OnRep_ReadyPlayers()
 {
-    UE_LOG(LogTemp, Log, TEXT("[GameState] 준비 완료 수 갱신: %d"), ReadyPlayers);
-
-    for (APlayerState* PS : PlayerArray)
-    {
-        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
-        {
-            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-            {
-                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
-                {
-                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
-                }
-                else
-                {
-                    PPC->RefreshLobbyUI();
-                }
-            }
-        }
-    }
+    NotifyLobbyStateChanged();
 }
 
 // 선택된 스테이지 변경 시 클라에서 호출
 void APolyPalsState::OnRep_SelectedStage()
 {
-    UE_LOG(LogTemp, Log, TEXT("[GameState] 선택된 스테이지 갱신: %s"), *SelectedStage.ToString());
-
-    for (APlayerState* PS : PlayerArray)
-    {
-        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
-        {
-            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-            {
-                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
-                {
-                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
-                }
-                else
-                {
-                    PPC->RefreshLobbyUI();
-                }
-            }
-        }
-    }
+    NotifyLobbyStateChanged();
 }
 
 void APolyPalsState::OnRep_LobbyName()
 {
-    UE_LOG(LogTemp, Log, TEXT("[GameState] 로비 이름 갱신: %s"), *LobbyName);
-
-    for (APlayerState* PS : PlayerArray)
-    {
-        if (APlayerController* PC = Cast<APlayerController>(PS->GetOwner()))
-        {
-            if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
-            {
-                if (SelectedStage != NAME_None && !LobbyName.IsEmpty())
-                {
-                    PPC->ConfigureLobbyUI(SelectedStage, LobbyName);
-                }
-                else
-                {
-                    PPC->RefreshLobbyUI();
-                }
-            }
-        }
-    }
+    NotifyLobbyStateChanged();
 }
 
 // 게임 오버 상태 변경 시 클라에서 호출

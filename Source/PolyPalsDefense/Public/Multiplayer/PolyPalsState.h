@@ -69,6 +69,9 @@ public:
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FString GetLobbyName() const { return LobbyName; }
 
+private:
+    void NotifyLobbyStateChanged();
+
 protected:
     // 복제할 프로퍼티 등록
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

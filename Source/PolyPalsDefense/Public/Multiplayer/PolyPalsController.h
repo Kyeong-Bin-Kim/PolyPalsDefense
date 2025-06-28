@@ -28,6 +28,8 @@ protected:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	void InitializeAndShowLobbyUI(FName InStageName, const FString& HostName);
+
 	UFUNCTION(Server, Reliable)
 	void Server_SetSelectedStage(FName StageName);
 
@@ -35,7 +37,7 @@ public:
 	void Server_CreateLobby(FName StageName, const FString& HostName);
 
 	UFUNCTION(Client, Reliable)
-	void Client_ShowLobbyUI(const FString& HostName);
+	void Client_ShowLobbyUI(const FString& InHostName, FName InStageName, const FString& InLobbyName);
 
 	UFUNCTION(Server, Reliable)
 	void Server_SetReady(bool bReady);
@@ -99,11 +101,6 @@ protected:
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
-
-	FTimerHandle LobbyUITimerHandle;
-	bool bWaitingForGameState = false;
-
-	void TryShowLobbyUI();
 
 	friend class APolyPalsGameMode;
 };

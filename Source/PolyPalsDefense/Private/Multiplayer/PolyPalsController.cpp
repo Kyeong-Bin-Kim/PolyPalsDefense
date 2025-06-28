@@ -80,6 +80,13 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 	DOREPLIFETIME(APolyPalsController, PlayerColor);
 }
 
+void APolyPalsController::InitializeAndShowLobbyUI(FName InStageName, const FString& HostName)
+{
+	ShowLobbyUI();								// UI 보이기 + RefreshLobbyUI
+	ConfigureLobbyUI(InStageName, HostName);	// 방 제목, 스테이지 세팅
+	RefreshLobbyUI();							// 숫자·슬롯 재갱신
+}
+
 void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName)
 {
 	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
@@ -96,20 +103,14 @@ void APolyPalsController::Server_CreateLobby_Implementation(FName StageName, con
 	}
 }
 
-void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& HostName)
+void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& InHostName, FName InStageName, const FString& InLobbyName)
 {
 	if (!IsLocalController())
 	{
 		return;
 	}
 
-	bWaitingForGameState = true;
-	
-	APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>();
-	if (GS && GS->GetSelectedStage() != NAME_None && !GS->GetLobbyName().IsEmpty())
-	{
-		ConfigureLobbyUI(GS->GetSelectedStage(), GS->GetLobbyName());
-	}
+	InitializeAndShowLobbyUI(InStageName, InHostName);
 }
 
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
@@ -170,9 +171,19 @@ void APolyPalsController::RefreshLobbyUI()
 	{
 		return;
 	}
+
 	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
 	{
+		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
+		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
+
+		// 방 제목, 스테이지도 갱신
+		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
+		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
+
+		// 기존 로직: 접속/준비 수, 슬롯 갱신
 		LobbyUIInstance->UpdateLobbyInfo(GS->GetConnectedPlayers(), GS->GetReadyPlayers(), GS->GetSelectedStage(), HasAuthority());
+
 		LobbyUIInstance->RefreshPlayerSlots(GS->PlayerArray);
 	}
 }
@@ -284,34 +295,30 @@ void APolyPalsController::HostLobby(FName StageName, const FString& PlayerName)
 
 	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
 	{
-		GI->SetPendingStage(StageName);
-		GI->CreateSteamSession();
+		InitializeAndShowLobbyUI(StageName, PlayerName);
+		GI->CreateSteamSession(StageName);
 	}
-
-	ConfigureLobbyUI(StageName, PlayerName);
 }
 
 void APolyPalsController::ShowLobbyUI()
 {
 	SetupInitialUIWidgets();
 	HideAllUI();
+
 	if (LobbyUIInstance)
 	{
 		LobbyUIInstance->SetVisibility(ESlateVisibility::Visible);
 		RefreshLobbyUI();
-		bWaitingForGameState = false;
 	}
 }
 
 void APolyPalsController::ConfigureLobbyUI(FName InStageName, const FString& HostName)
 {
-	SetupInitialUIWidgets();
-	if (LobbyUIInstance)
-	{
-		LobbyUIInstance->SetSelectedStage(InStageName);
-		LobbyUIInstance->SetRoomTitle(HostName);
-	}
-	ShowLobbyUI();
+	if (!LobbyUIInstance)
+		return;
+
+	LobbyUIInstance->SetSelectedStage(InStageName);
+	LobbyUIInstance->SetRoomTitle(HostName);
 }
 
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)

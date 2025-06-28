@@ -42,7 +42,7 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
     {
         FString PlayerName = TEXT("Unknown");
 
-        if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
+        if (APlayerState* PS = PC->PlayerState)
         {
             PlayerName = PS->GetPlayerName();
         }

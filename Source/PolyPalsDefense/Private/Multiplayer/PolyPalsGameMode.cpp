@@ -54,10 +54,18 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 				PreparedColors.RemoveAt(0);
 
+				// 1) 현재 GameState 가져오기
+				APolyPalsState* GS = GetGameState<APolyPalsState>();
+
+				// 2) PlayerState 포인터 캐시
+				APlayerState* PS = NewPlayer->PlayerState;
+
+				// 3) GameState와 PlayerState가 모두 유효할 때만 진행
 				FString HostName;
-				if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+
+				if (GS)
 				{
-					if (ConnectedPlayers == 0)
+					if (ConnectedPlayers == 0)  // 첫 번째 접속자면 호스트
 					{
 						HostName = NewPlayer->PlayerState->GetPlayerName();
 						GS->SetLobbyName(HostName);
@@ -66,10 +74,14 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 					{
 						HostName = GS->GetLobbyName();
 					}
-				}
 
-				// 클라이언트에 Lobby UI 표시 요청
-				ProjectController->Client_ShowLobbyUI(HostName);
+					// 4) 클라이언트에 RPC 호출 (StageName/LobbyName 포함)
+					ProjectController->Client_ShowLobbyUI(HostName, GS->GetSelectedStage(), GS->GetLobbyName());
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("PostLogin: GameState or PlayerState is null (GS=%p, PS=%p)"), GS, PS);
+				}
 			}
 		}
 	}
