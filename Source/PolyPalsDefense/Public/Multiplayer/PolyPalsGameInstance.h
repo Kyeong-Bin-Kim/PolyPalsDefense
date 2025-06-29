@@ -30,8 +30,13 @@ public:
     int32 GetMaxPlayerCount() const { return MaxPlayerCount; }
     void SetMaxPlayerCount(int32 InCount) { MaxPlayerCount = InCount; }
 
+    FName GetPendingStageName() const { return PendingStageName; }
+    const FString& GetPendingLobbyName() const { return PendingLobbyName; }
+    void SetPendingLobbyName(const FString& InName) { PendingLobbyName = InName; }
+
 private:
     UPROPERTY() FName PendingStageName;
+    UPROPERTY() FString PendingLobbyName;
 
     int32 MaxPlayerCount = 4;
 

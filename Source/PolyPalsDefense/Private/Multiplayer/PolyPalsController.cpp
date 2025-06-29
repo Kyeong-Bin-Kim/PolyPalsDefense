@@ -295,6 +295,7 @@ void APolyPalsController::HostLobby(FName StageName, const FString& PlayerName)
 
 	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
 	{
+		GI->SetPendingLobbyName(PlayerName);
 		InitializeAndShowLobbyUI(StageName, PlayerName);
 		GI->CreateSteamSession(StageName);
 	}

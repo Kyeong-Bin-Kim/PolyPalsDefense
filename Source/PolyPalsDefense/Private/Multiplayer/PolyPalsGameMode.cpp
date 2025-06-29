@@ -17,10 +17,25 @@ APolyPalsGameMode::APolyPalsGameMode()
 
 void APolyPalsGameMode::BeginPlay()
 {
-	if (const UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+	if (UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
 	{
 		SetMaxPlayerSlots(GI->GetMaxPlayerCount());
 		UE_LOG(LogTemp, Log, TEXT("GameMode: MaxPlayerSlots set from GameInstance = %d"), MaxPlayerSlots);
+
+		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+		{
+			if (GI->GetPendingStageName() != NAME_None)
+			{
+				GS->SetSelectedStage(GI->GetPendingStageName());
+			}
+
+			const FString& SavedName = GI->GetPendingLobbyName();
+
+			if (!SavedName.IsEmpty())
+			{
+				GS->SetLobbyName(SavedName);
+			}
+		}
 	}
 }
 
