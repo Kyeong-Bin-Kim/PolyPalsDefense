@@ -59,6 +59,18 @@ void APolyPalsState::SetLobbyName(const FString& Name)
     }
 }
 
+void APolyPalsState::AddPlayerState(APlayerState* PlayerState)
+{
+    Super::AddPlayerState(PlayerState);
+    NotifyLobbyStateChanged();
+}
+
+void APolyPalsState::RemovePlayerState(APlayerState* PlayerState)
+{
+    Super::RemovePlayerState(PlayerState);
+    NotifyLobbyStateChanged();
+}
+
 // 서버에서 접속자 수 업데이트
 void APolyPalsState::UpdateConnectedPlayers(int32 Count)
 {

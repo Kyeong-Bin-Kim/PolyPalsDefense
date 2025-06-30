@@ -69,6 +69,11 @@ public:
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FString GetLobbyName() const { return LobbyName; }
 
+    // 플레이어 상태 배열이 갱신될 때 로비 UI 갱신을 위해 호출
+    virtual void AddPlayerState(APlayerState* PlayerState) override;
+
+    virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
 private:
     void NotifyLobbyStateChanged();
 
