@@ -91,7 +91,10 @@ void ULobbyUIWidget::UpdatePlayerSlotReadyState(APolyPalsPlayerState* PlayerStat
 
 void ULobbyUIWidget::OnExitGameClicked()
 {
-    RemoveFromParent();
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
+    {
+        PC->LeaveLobby();
+    }
 }
 
 void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)

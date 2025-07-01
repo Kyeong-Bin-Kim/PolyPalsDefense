@@ -21,6 +21,7 @@ void APolyPalsPlayerState::SetReadyState(bool bReady)
     if (HasAuthority())
     {
         bIsReady = bReady;
+        ForceNetUpdate();
         OnRep_IsReady();
     }
 }
@@ -68,11 +69,17 @@ void APolyPalsPlayerState::OnRep_IsReady()
 {
     UE_LOG(LogTemp, Log, TEXT("[PlayerState] Ready 상태 변경됨: %s"), bIsReady ? TEXT("O") : TEXT("X"));
 
-    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    UWorld* World = GetWorld();
+    if (!World) return;
+
+    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
     {
-        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(*It))
         {
-            PPC->UpdateReadyUI(this, bIsReady);
+            if (PPC->IsLocalController())
+            {
+                PPC->UpdateReadyUI(this, bIsReady);
+            }
         }
     }
 }

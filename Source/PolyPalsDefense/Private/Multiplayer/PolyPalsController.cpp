@@ -71,6 +71,10 @@ void APolyPalsController::BeginPlay()
 			ShowMainUI();    // 최초 실행 시 메인 메뉴
 		}
 	}
+	else
+	{
+		HideAllUI();
+	}
 }
 
 void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -248,15 +252,22 @@ void APolyPalsController::ShowMainUI()
 	if (UMainUIWidget* TypedWidget = Cast<UMainUIWidget>(MainUIWidgetInstance))
 	{
 		FString PlayerName = TEXT("Player");
+
 		if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
 		{
 			IOnlineIdentityPtr Identity = OSS->GetIdentityInterface();
+
 			if (Identity.IsValid())
 			{
 				TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0);
+
 				if (UserId.IsValid())
 				{
 					PlayerName = Identity->GetPlayerNickname(*UserId);
+				}
+				else if (UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+				{
+					GI->LoginToSteam();
 				}
 			}
 		}
@@ -320,6 +331,16 @@ void APolyPalsController::ConfigureLobbyUI(FName InStageName, const FString& Hos
 
 	LobbyUIInstance->SetSelectedStage(InStageName);
 	LobbyUIInstance->SetRoomTitle(HostName);
+}
+
+void APolyPalsController::LeaveLobby()
+{
+	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+	{
+		GI->LeaveSteamSession();
+	}
+
+	ShowMainUI();
 }
 
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)

@@ -316,6 +316,29 @@ void UPolyPalsGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSess
     }
 }
 
+void UPolyPalsGameInstance::LeaveSteamSession()
+{
+    if (!SessionInterface.IsValid())
+        return;
+
+    if (SessionInterface->GetNamedSession(NAME_GameSession) != nullptr)
+    {
+        OnDestroySessionCompleteHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(
+            FOnDestroySessionCompleteDelegate::CreateUObject(this, &UPolyPalsGameInstance::OnLeaveSessionComplete));
+        SessionInterface->DestroySession(NAME_GameSession);
+    }
+}
+
+void UPolyPalsGameInstance::OnLeaveSessionComplete(FName SessionName, bool bWasSuccessful)
+{
+    if (SessionInterface.IsValid())
+    {
+        SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(OnDestroySessionCompleteHandle);
+    }
+
+    UE_LOG(LogTemp, Log, TEXT("Leave session complete: %s, Success=%d"), *SessionName.ToString(), bWasSuccessful);
+}
+
 void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)
 {
     if (!SessionInterface.IsValid() || !SessionSearch.IsValid())
@@ -355,7 +378,6 @@ void UPolyPalsGameInstance::PerformJoinSession(const FString& LobbyID)
         UE_LOG(LogTemp, Warning, TEXT("Requested session %s not found in search results"), *LobbyID);
     }
 }
-
 
 void UPolyPalsGameInstance::OnDestroySessionForJoinComplete(FName SessionName, bool bWasSuccessful)
 {

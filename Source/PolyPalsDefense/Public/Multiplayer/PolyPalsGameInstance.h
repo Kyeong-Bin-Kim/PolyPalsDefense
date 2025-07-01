@@ -24,6 +24,8 @@ public:
     void FindSteamSessions();
     void JoinSteamSession(const FString& LobbyID);
 
+    void LeaveSteamSession();
+
     FOnSessionsFound OnSessionsFound;
 
 public:
@@ -47,6 +49,7 @@ private:
     void OnDestroySessionForCreateComplete(FName SessionName, bool bWasSuccessful);
     void OnFindSessionsComplete(bool bWasSuccessful);
     void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
+    void OnLeaveSessionComplete(FName SessionName, bool bWasSuccessful);
     void PerformJoinSession(const FString& LobbyID);
     void OnDestroySessionForJoinComplete(FName SessionName, bool bWasSuccessful);
 

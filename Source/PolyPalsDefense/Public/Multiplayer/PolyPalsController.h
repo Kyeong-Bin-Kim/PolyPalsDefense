@@ -45,6 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void HostLobby(FName StageName, const FString& PlayerName);
 
+	UFUNCTION(BlueprintCallable)
+	void LeaveLobby();
+
 	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
 	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }
 	EPlayerColor GetPlayerColor() const { return PlayerColor; }
