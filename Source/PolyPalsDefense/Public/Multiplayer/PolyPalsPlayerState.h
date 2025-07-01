@@ -34,20 +34,23 @@ public:
     int32 GetPlayerGold() const { return PlayerGold; }
 
     UFUNCTION()
+    void OnRep_SlotIndex();
+
+    UFUNCTION()
     void OnRep_IsReady();
 
     UFUNCTION()
     void OnRep_PlayerGold();
 
 protected:
-    // Ready 상태 (Replicated)
-    UPROPERTY(Replicated)
+    // Ready 상태
+    UPROPERTY(ReplicatedUsing = OnRep_IsReady)
     bool bIsReady = false;
 
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_SlotIndex)
     int32 SlotIndex = -1;
 
-    // 개인 골드 (Replicated)
+    // 개인 골드
     UPROPERTY(ReplicatedUsing = OnRep_PlayerGold)
     int32 PlayerGold = 0;
 

@@ -225,7 +225,8 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 				MapName = StageKey.ToString();
 			}
 
-			UGameplayStatics::OpenLevel(this, FName(*MapName), true);
+			FString TravelURL = FString::Printf(TEXT("/Game/%s?listen"), *MapName);
+			GetWorld()->ServerTravel(TravelURL);
 		}
 
 	}, StartCountdownTime, false);
@@ -236,7 +237,7 @@ void APolyPalsGameMode::HandleStateGameOver()
 	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 게임 오버 처리 시작"));
 
 	// 빈 맵으로 복귀
-	UGameplayStatics::OpenLevel(this, FName("EmptyLevel"));
+	GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)

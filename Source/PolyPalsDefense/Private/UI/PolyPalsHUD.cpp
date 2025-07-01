@@ -69,11 +69,12 @@ void APolyPalsHUD::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (GetNetMode() != NM_Client)
+    if (GetNetMode() == NM_DedicatedServer)
     {
         // 서버에서는 UI 생성 X
         return;
     }
+
     // 게임 시작 시점에 WaveManager가 존재할 수 있으므로 주기적으로 확인
     GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
 

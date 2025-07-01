@@ -51,6 +51,19 @@ void APolyPalsPlayerState::SetInitialGold(int32 Amount)
     }
 }
 
+void APolyPalsPlayerState::OnRep_SlotIndex()
+{
+    UE_LOG(LogTemp, Log, TEXT("[PlayerState] SlotIndex 상태 변경됨: %d"), SlotIndex);
+
+    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    {
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        {
+            PPC->RefreshLobbyUI();
+        }
+    }
+}
+
 void APolyPalsPlayerState::OnRep_IsReady()
 {
     UE_LOG(LogTemp, Log, TEXT("[PlayerState] Ready 상태 변경됨: %s"), bIsReady ? TEXT("O") : TEXT("X"));
