@@ -2,6 +2,8 @@
 #include "Engine/StreamableManager.h"
 #include "Engine/PrimaryAssetLabel.h"
 #include "Engine/World.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/Parse.h"
 
 /*
 Usage Examples:
@@ -63,15 +65,54 @@ UPolyPalsDefenseAssetManager::Get().ClearCachedAsset(TowerId);
 // 프로젝트 시작 시 초기 로딩 과정을 담당하는 함수
 void UPolyPalsDefenseAssetManager::StartInitialLoading()
 {
-    // 부모 클래스의 초기 로딩 로직 호출
+    // 1. GConfig 에서 중복 PrimaryAssetTypesToScan 항목(예: TowerMaterials) 제거
+    {
+        const FString Section = TEXT("/Script/Engine.AssetManagerSettings");
+        TArray<FString> AllEntries;
+        GConfig->GetArray(*Section, TEXT("PrimaryAssetTypesToScan"), AllEntries, GEngineIni);
+
+        // TypeName 으로 중복 체크용 Map
+        TMap<FString, FString> UniqueEntriesMap;
+        for (const FString& Entry : AllEntries)
+        {
+            FString ParsedType;
+            if (FParse::Value(*Entry, TEXT("PrimaryAssetType=\""), ParsedType, /*bStrip*/false))
+            {
+                // 닫는 따옴표 전까지 잘라내기
+                if (int32 Pos; ParsedType.FindChar(TEXT('"'), Pos))
+                {
+                    ParsedType = ParsedType.Left(Pos);
+                }
+                UniqueEntriesMap.Add(ParsedType, Entry);
+            }
+            else
+            {
+                // TypeName 파싱에 실패하면 일단 그대로 남김
+                UniqueEntriesMap.Add(Entry, Entry);
+            }
+        }
+
+        // TMap 의 값(Value)만 뽑아서 TArray 로
+        TArray<FString> DedupedEntries;
+        DedupedEntries.Reserve(UniqueEntriesMap.Num());
+        for (auto& Pair : UniqueEntriesMap)
+        {
+            DedupedEntries.Add(Pair.Value);
+        }
+
+        // GConfig 에 덮어쓰기 (유니크한 것만)
+        GConfig->SetArray(
+            *Section,
+            TEXT("PrimaryAssetTypesToScan"),
+            DedupedEntries,
+            GEngineIni
+        );
+    }
+
+    // 2. 정제된 설정으로 부모 클래스 초기화 실행 (여기서 ScanPrimaryAssetTypesFromConfig 까지 자동 호출)
     Super::StartInitialLoading();
 
-    // 1. 초기화 로그 출력
-    UE_LOG(LogTemp, Log, TEXT("PolyPalsDefenseAssetManager Initialized"));
-
-    // 2. DefaultEngine.ini의 PrimaryAssetTypesToScan 설정을 기반으로 스캔 수행
-    ScanPrimaryAssetTypesFromConfig();
-    UE_LOG(LogTemp, Log, TEXT("PolyPalsDefenseAssetManager ScanPrimaryAssetTypesFromConfig"));
+    UE_LOG(LogTemp, Log, TEXT("PolyPalsDefenseAssetManager Initialized (with duplicates filtered)"));
 }
 
 // 동기 방식으로 PrimaryDataAsset을 로드하거나 캐시에서 반환
