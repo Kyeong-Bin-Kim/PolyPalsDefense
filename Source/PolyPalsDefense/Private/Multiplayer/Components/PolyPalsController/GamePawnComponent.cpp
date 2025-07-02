@@ -51,7 +51,8 @@ void UGamePawnComponent::ServerSpawnGamepawn()
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-	GamePawn = GetWorld()->SpawnActor<APolyPalsGamePawn>(GamePawnClassDefault, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	FVector SpawnLocation = GamePawnClassDefault->GetDefaultObject<APolyPalsGamePawn>()->GetSpectateLocation();
+	GamePawn = GetWorld()->SpawnActor<APolyPalsGamePawn>(GamePawnClassDefault, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
 
 	GetOwner<APolyPalsController>()->Possess(GamePawn);
 }

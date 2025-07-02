@@ -38,6 +38,7 @@ public:
 	inline bool IsPossessed() const { return bIsPossessed; }
 	UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
 	APolyPalsController* GetPossessedController() const { return PolyPalsController; }
+	FVector GetSpectateLocation() const { return SpectateLocation; }
 
 private:
 	void UnbindInputDelegate();

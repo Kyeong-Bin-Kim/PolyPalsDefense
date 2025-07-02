@@ -123,6 +123,9 @@ private:
 	TMap<FName, FString> StageMapPaths;
 
 protected:
+	// 모든 플레이어에게 시작 골드 지급
+	void DistributeStartingGold();
+
 	// GameState의 AllPlayersReady 이벤트 처리
 	UFUNCTION()
 	void HandleAllPlayersReady();
