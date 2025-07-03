@@ -22,9 +22,6 @@ void AWaveManager::BeginPlay()
 {
     Super::BeginPlay();
 
-    //if (!HasAuthority())
-    //    return;
-
     if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
     {
         PState->OnAllPlayersReady.AddDynamic(this, &AWaveManager::OnPlayersReady);
@@ -36,10 +33,16 @@ void AWaveManager::BeginPlay()
         WaveSpawner = Cast<AWaveSpawner>(
             UGameplayStatics::GetActorOfClass(GetWorld(), AWaveSpawner::StaticClass()));
     }
+
     if (!WaveSpawner)
     {
         UE_LOG(LogTemp, Error, TEXT("[WaveManager] No WaveSpawner found!"));
         return;
+    }
+
+    if (HasAuthority())
+    {
+        OnPlayersReady();
     }
 }
 
