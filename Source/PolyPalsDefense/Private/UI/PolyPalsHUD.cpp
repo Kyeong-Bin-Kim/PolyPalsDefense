@@ -29,6 +29,7 @@ void APolyPalsHUD::TryBindToWaveManager()
     if (!GamePlayingWidget && GamePlayingWidgetClass)
     {
         GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
+
         if (GamePlayingWidget)
         {
             GamePlayingWidget->AddToViewport();

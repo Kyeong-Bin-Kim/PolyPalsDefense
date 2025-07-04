@@ -152,6 +152,9 @@ void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address,
 void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
+
+	// 게임 시작 후 모든 플레이어에게 초기 골드 지급
+	DistributeStartingGold();
 }
 
 void APolyPalsGameMode::TriggerGameOver()
@@ -193,9 +196,6 @@ void APolyPalsGameMode::DistributeStartingGold()
 void APolyPalsGameMode::HandleAllPlayersReady()
 {
 	UE_LOG(LogTemp, Log, TEXT("[GameMode] 모든 플레이어 준비 완료! %f초 뒤 게임 시작"), StartCountdownTime);
-
-	// 게임 시작 전 모든 플레이어에게 초기 골드 지급
-	DistributeStartingGold();
 
 	// 카운트다운 후 게임 시작
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
