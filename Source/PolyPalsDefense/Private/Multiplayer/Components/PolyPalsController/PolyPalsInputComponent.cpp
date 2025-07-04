@@ -77,15 +77,18 @@ void UPolyPalsInputComponent::InputRightClick(const FInputActionValue& Value)
 
 void UPolyPalsInputComponent::InputTower1(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("InputTower1 triggered"));
 	OnInputTower1.ExecuteIfBound();
 }
 
 void UPolyPalsInputComponent::InputTower2(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("InputTower2 triggered"));
 	OnInputTower2.ExecuteIfBound();
 }
 
 void UPolyPalsInputComponent::InputTower3(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("InputTower3 triggered"));
 	OnInputTower3.ExecuteIfBound();
 }

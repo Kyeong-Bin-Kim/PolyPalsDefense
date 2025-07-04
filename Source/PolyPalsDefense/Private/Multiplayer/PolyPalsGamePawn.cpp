@@ -76,6 +76,8 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
 	TowerHandleComponent->PolyPalsController = PolyPalsController;
+
+	//OnRep_PolyPalsController();
 }
 
 void APolyPalsGamePawn::UnPossessed()
@@ -113,6 +115,8 @@ void APolyPalsGamePawn::UnbindInputDelegate()
 
 void APolyPalsGamePawn::OnRep_PolyPalsController()
 {
+	UE_LOG(LogTemp, Warning, TEXT("[GamePawn] OnRep_PolyPalsController called"));
+
 	if (PolyPalsController)
 	{
 		UPolyPalsInputComponent* polypalsInputcomp = PolyPalsController->GetPolyPalsInputComponent();

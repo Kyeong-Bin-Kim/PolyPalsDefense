@@ -140,6 +140,8 @@ void UBuildTowerComponent::ClientOnInputRightClick()
 
 void UBuildTowerComponent::ClientOnInputTower1()
 {
+	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower1"));
+
 	if (BuildState == EBuildState::None)
 	{
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(1);
@@ -165,6 +167,8 @@ void UBuildTowerComponent::ClientOnInputTower1()
 
 void UBuildTowerComponent::ClientOnInputTower2()
 {
+	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower2"));
+
 	if (BuildState == EBuildState::None)
 	{
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(2);
@@ -190,6 +194,8 @@ void UBuildTowerComponent::ClientOnInputTower2()
 
 void UBuildTowerComponent::ClientOnInputTower3()
 {
+	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower3"));
+
 	if (BuildState == EBuildState::None)
 	{
 		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(3);
@@ -215,6 +221,8 @@ void UBuildTowerComponent::ClientOnInputTower3()
 
 void UBuildTowerComponent::OnSelectTower(const uint8 InTowerId)
 {
+	UE_LOG(LogTemp, Log, TEXT("OnSelectTower %d"), InTowerId);
+
 	TowerOnSerchingQue = InTowerId;
 	PreviewBuilding->ShowPreviewBuilding(true, InTowerId);
 	SetBuildState(EBuildState::SerchingPlace);

@@ -2,8 +2,9 @@
 #include "Components/TextBlock.h"
 #include "Components/HorizontalBox.h"
 #include "Components/Button.h"
-#include "Multiplayer/PolyPalsController.h"
-#include "Multiplayer/Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "PolyPalsController.h"
+#include "Components/PolyPalsController/PolyPalsInputComponent.h"
+#include "Engine/Engine.h"
 
 void UGamePlayingUIWidget::NativeConstruct()
 {
@@ -12,22 +13,42 @@ void UGamePlayingUIWidget::NativeConstruct()
     // 버튼 바인딩
     if (ToggleTowerButton)
     {
+        UE_LOG(LogTemp, Log, TEXT("ToggleTowerButton bound"));
         ToggleTowerButton->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnToggleTowerButtonClicked);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("ToggleTowerButton is null"));
     }
 
     if (Tower1Button)
     {
+        UE_LOG(LogTemp, Log, TEXT("Tower1Button bound"));
         Tower1Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower1ButtonClicked);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Tower1Button is null"));
     }
 
     if (Tower2Button)
     {
+        UE_LOG(LogTemp, Log, TEXT("Tower2Button bound"));
         Tower2Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower2ButtonClicked);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Tower2Button is null"));
     }
 
     if (Tower3Button)
     {
+        UE_LOG(LogTemp, Log, TEXT("Tower3Button bound"));
         Tower3Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower3ButtonClicked);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Tower3Button is null"));
     }
 
     // 초기에는 타워 패널 숨김
@@ -91,6 +112,8 @@ void UGamePlayingUIWidget::OnToggleTowerButtonClicked()
 
 void UGamePlayingUIWidget::OnTower1ButtonClicked()
 {
+    UE_LOG(LogTemp, Log, TEXT("Tower1Button clicked"));
+
     if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
@@ -102,6 +125,8 @@ void UGamePlayingUIWidget::OnTower1ButtonClicked()
 
 void UGamePlayingUIWidget::OnTower2ButtonClicked()
 {
+    UE_LOG(LogTemp, Log, TEXT("Tower2Button clicked"));
+
     if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
@@ -113,6 +138,8 @@ void UGamePlayingUIWidget::OnTower2ButtonClicked()
 
 void UGamePlayingUIWidget::OnTower3ButtonClicked()
 {
+    UE_LOG(LogTemp, Log, TEXT("Tower3Button clicked"));
+
     if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
