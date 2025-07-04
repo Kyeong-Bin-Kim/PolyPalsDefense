@@ -76,8 +76,6 @@ void APolyPalsGamePawn::PossessedBy(AController* NewController)
 
 	PolyPalsController = Cast<APolyPalsController>(NewController);
 	TowerHandleComponent->PolyPalsController = PolyPalsController;
-
-	//OnRep_PolyPalsController();
 }
 
 void APolyPalsGamePawn::UnPossessed()
