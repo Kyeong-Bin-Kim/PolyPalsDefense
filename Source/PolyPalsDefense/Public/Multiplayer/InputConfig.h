@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,9 +8,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputConfig.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class POLYPALSDEFENSE_API UInputConfig : public UDataAsset
 {
@@ -23,19 +18,17 @@ public:
 	TObjectPtr<UInputMappingContext> DefaultMapping;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
-	TObjectPtr<UInputAction> InputTest;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
-	TObjectPtr<UInputAction> InputClick;
+	TObjectPtr<UInputAction> InputLeftClick;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InputRightClick;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InputTower1;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InputTower2;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
 	TObjectPtr<UInputAction> InputTower3;
-
 };

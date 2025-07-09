@@ -12,35 +12,35 @@ class POLYPALSDEFENSE_API UPolyPalsDefenseAssetManager : public UAssetManager
     GENERATED_BODY()
 
 public:
-    // 초기화 함수
+    // 珥덇린???⑥닔
     virtual void StartInitialLoading() override;
 
-    // 동기 로드
+    // ?숆린 濡쒕뱶
     UPrimaryDataAsset* LoadPrimaryDataAsset(const FPrimaryAssetId& AssetId);
 
-    // 비동기 로드
+    // 鍮꾨룞湲?濡쒕뱶
     void LoadPrimaryDataAssetAsync(const FPrimaryAssetId& AssetId, TFunction<void(UPrimaryDataAsset*)> OnLoadedCallback);
 
-    // 혼용 방식: 비동기 실패 시 동기 로드로 대체
+    // ?쇱슜 諛⑹떇: 鍮꾨룞湲??ㅽ뙣 ???숆린 濡쒕뱶濡??泥?
     UPrimaryDataAsset* LoadDataAssetWithFallback(const FPrimaryAssetId& AssetId, TFunction<void(UPrimaryDataAsset*)> OnLoadedCallback);
 
-    // 캐시된 자산 가져오기
+    // 罹먯떆???먯궛 媛?몄삤湲?
     UPrimaryDataAsset* GetCachedAsset(const FPrimaryAssetId& AssetId);
 
-    // 캐시에서 자산 제거
+    // 罹먯떆?먯꽌 ?먯궛 ?쒓굅
     void ClearCachedAsset(const FPrimaryAssetId& AssetId);
 
-    // 어디서든 접근할 수 있도록 static 함수로 선언
+    // ?대뵒?쒕뱺 ?묎렐?????덈룄濡?static ?⑥닔濡??좎뼵
     static UPolyPalsDefenseAssetManager& Get();
 
 private:
-    // 캐시된 자산 목록
+    // 罹먯떆???먯궛 紐⑸줉
     TMap<FPrimaryAssetId, UPrimaryDataAsset*> CachedAssets;
 
-    // PrimaryAssetId에 따른 경로 가져오기
+    // PrimaryAssetId???곕Ⅸ 寃쎈줈 媛?몄삤湲?
     FSoftObjectPath GetPrimaryDataAssetPath(const FPrimaryAssetId& AssetId) const;
 
-    // 스트리머 매니저 가져오기
+    // ?ㅽ듃由щ㉧ 留ㅻ땲? 媛?몄삤湲?
     FStreamableManager& GetStreamableManager();
 	
 };

@@ -12,69 +12,46 @@ class USpringArmComponent;
 class UCameraComponent;
 class UBuildTowerComponent;
 class UTowerHandleComponent;
+
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsGamePawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
 	APolyPalsGamePawn();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void UnPossessed() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	inline bool IsPossessed() const { return bIsPossessed; }
-	UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
-	APolyPalsController* GetPossessedController() const { return PolyPalsController; }
+public:
 	FVector GetSpectateLocation() const { return SpectateLocation; }
-
-private:
-	void UnbindInputDelegate();
-
-	UFUNCTION()
-	void OnRep_PolyPalsController();
+	UBuildTowerComponent* GetBuildTowerComponent() const { return BuildTowerComponent; }
+	UTowerHandleComponent* GetTowerHandleComponent() const { return TowerHandleComponent; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	FVector SpectateLocation;
 
 private:
-	UPROPERTY(Replicated)
-	bool bIsPossessed = false;
-
-private:
-	// Cach data
-	UPROPERTY(ReplicatedUsing = OnRep_PolyPalsController)
-	TObjectPtr<APolyPalsController> PolyPalsController;
-
-private:
 	// Components
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USceneComponent> RootSceneComponent;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<USpringArmComponent> SpringArm;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UCameraComponent> PolyPalsPlayCamera;
 	
 private:
 	// ActorComponents
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Config")
 	TObjectPtr<UBuildTowerComponent> BuildTowerComponent;
-	UPROPERTY()
+
+	UPROPERTY(EditDefaultsOnly, Category = "Config")
 	TObjectPtr<UTowerHandleComponent> TowerHandleComponent;
 
-	friend UBuildTowerComponent;
+	friend class UBuildTowerComponent;
 
 };

@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Core/Subsystems/TowerDataManager.h"
 #include "AssetManagement/PolyPalsDefenseAssetManager.h"
 #include "DataAsset/Tower/TowerMaterialData.h"
@@ -8,32 +5,23 @@
 
 bool UTowerDataManager::ShouldCreateSubsystem(UObject* Outer) const
 {
-	if (const UWorld* world = Cast<UWorld>(Outer))
+	if (const UWorld* World = Cast<UWorld>(Outer))
 	{
-		if (world->IsGameWorld())
+		if (!World->IsGameWorld())
 		{
-			FString mapName = world->GetMapName();
-
-			if (mapName.StartsWith(TEXT("UEDPIE_")))
-			{
-				int32 firstUnderscoreindex;
-				int32 secondUnderscoreindex;
-
-				if (mapName.FindChar('_', firstUnderscoreindex))
-				{
-					mapName = mapName.Mid(firstUnderscoreindex + 1);
-				}
-				if (mapName.FindChar('_', secondUnderscoreindex))
-				{
-					mapName = mapName.Mid(secondUnderscoreindex + 1);
-				}
-			}
-
-			TArray<FString> targetName = { 
-				TEXT("TowerTest") };
-
-			return targetName.Contains(mapName);
+			return false;
 		}
+
+		// EmptyLevel ?몄? 寃??
+		FString ShortMapName = FPackageName::GetShortName(World->GetMapName());
+
+		if (ShortMapName.Equals(TEXT("EmptyLevel"), ESearchCase::IgnoreCase))
+		{
+			// 鍮??덈꺼?대씪硫??앹꽦?섏? ?딆쓬
+			return false;
+		}
+
+		return true;
 	}
 
 	return false;
@@ -57,7 +45,7 @@ UTowerPropertyData* UTowerDataManager::GetTowerPropertyData(const uint8 InTowerI
 	else
 	{
 		UTowerPropertyData** ErrorData = TowerProperties.Find(0);
-		UE_LOG(LogTemp, Warning, TEXT("존재하지 않는 타워 데이터가 요청되어 빈 타워가 반환됨. 요청: %d"), InTowerId);
+		UE_LOG(LogTemp, Warning, TEXT("議댁옱?섏? ?딅뒗 ????곗씠?곌? ?붿껌?섏뼱 鍮???뚭? 諛섑솚?? ?붿껌: %d"), InTowerId);
 		return *ErrorData;
 	}
 }

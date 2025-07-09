@@ -23,7 +23,7 @@ void USettingUIWidget::NativeConstruct()
 
 void USettingUIWidget::OnMasterVolumeChanged(float Value)
 {
-    // 예시: Master SoundClass 볼륨 조절
+    // ?덉떆: Master SoundClass 蹂쇰ⅷ 議곗젅
     if (USoundClass* MasterClass = LoadObject<USoundClass>(nullptr, TEXT("/Game/Audio/Master.Master")))
     {
         MasterClass->Properties.Volume = Value;

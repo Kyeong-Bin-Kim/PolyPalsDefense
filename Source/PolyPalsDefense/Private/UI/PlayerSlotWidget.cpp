@@ -6,7 +6,7 @@ void UPlayerSlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Ready 버튼에 클릭 이벤트 바인딩
+    // Ready 踰꾪듉???대┃ ?대깽??諛붿씤??
     if (ReadyButton)
     {
         ReadyButton->OnClicked.AddDynamic(this, &UPlayerSlotWidget::OnReadyButtonClicked);
@@ -24,13 +24,13 @@ void UPlayerSlotWidget::OnReadyButtonClicked()
 
         if (bIsReady)
         {
-            // 눌림 상태: 모든 이미지 눌림으로 고정
+            // ?뚮┝ ?곹깭: 紐⑤뱺 ?대?吏 ?뚮┝?쇰줈 怨좎젙
             Style.Normal = Style.Pressed;
             Style.Hovered = Style.Pressed;
         }
         else
         {
-            // 초기 상태 복귀
+            // 珥덇린 ?곹깭 蹂듦?
             Style.Normal = DefaultStyle.Normal;
             Style.Hovered = DefaultStyle.Hovered;
         }

@@ -11,8 +11,8 @@ void APolyPalsPlayerState::BeginPlay()
 
     if (IsOwnedBy(UGameplayStatics::GetPlayerController(this, 0)))
     {
-        // 클라이언트 본인일 경우
-        OnRep_PlayerGold(); // 수동 호출로 HUD 갱신
+        // ?대씪?댁뼵??蹂몄씤??寃쎌슦
+        OnRep_PlayerGold(); // ?섎룞 ?몄텧濡?HUD 媛깆떊
     }
 }
 
@@ -54,7 +54,7 @@ void APolyPalsPlayerState::SetInitialGold(int32 Amount)
 
 void APolyPalsPlayerState::OnRep_SlotIndex()
 {
-    UE_LOG(LogTemp, Log, TEXT("[PlayerState] SlotIndex 상태 변경됨: %d"), SlotIndex);
+    UE_LOG(LogTemp, Log, TEXT("[PlayerState] SlotIndex ?곹깭 蹂寃쎈맖: %d"), SlotIndex);
 
     if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
     {
@@ -67,7 +67,7 @@ void APolyPalsPlayerState::OnRep_SlotIndex()
 
 void APolyPalsPlayerState::OnRep_IsReady()
 {
-    UE_LOG(LogTemp, Log, TEXT("[PlayerState] Ready 상태 변경됨: %s"), bIsReady ? TEXT("O") : TEXT("X"));
+    UE_LOG(LogTemp, Log, TEXT("[PlayerState] Ready ?곹깭 蹂寃쎈맖: %s"), bIsReady ? TEXT("O") : TEXT("X"));
 
     UWorld* World = GetWorld();
     if (!World) return;
@@ -101,8 +101,8 @@ void APolyPalsPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(APolyPalsPlayerState, bIsReady); // Ready 상태 복제
-    DOREPLIFETIME(APolyPalsPlayerState, PlayerGold); // 개인 골드 복제
+    DOREPLIFETIME(APolyPalsPlayerState, bIsReady); // Ready ?곹깭 蹂듭젣
+    DOREPLIFETIME(APolyPalsPlayerState, PlayerGold); // 媛쒖씤 怨⑤뱶 蹂듭젣
     DOREPLIFETIME(APolyPalsPlayerState, SlotIndex);
 }
 

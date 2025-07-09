@@ -17,16 +17,16 @@
 
 AEnemyPawn::AEnemyPawn()
 {
-    // 네트워크 복제 설정
+    // ?ㅽ듃?뚰겕 蹂듭젣 ?ㅼ젙
     bReplicates = true;
     SetReplicateMovement(true);
     PrimaryActorTick.bCanEverTick = false;
 
-    // 루트 컴포넌트
+    // 猷⑦듃 而댄룷?뚰듃
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     RootComponent = Root;
 
-    // 스켈레탈 메시
+    // ?ㅼ펷?덊깉 硫붿떆
     Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
     Mesh->SetupAttachment(RootComponent);
     Mesh->SetRelativeRotation(MeshRotation);
@@ -34,7 +34,7 @@ AEnemyPawn::AEnemyPawn()
     Mesh->SetCollisionResponseToAllChannels(ECR_Overlap);
     Mesh->SetGenerateOverlapEvents(true);
 
-    // 메시 하위에 구체 콜리전
+    // 硫붿떆 ?섏쐞??援ъ껜 肄쒕━??
     CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
     CollisionSphere->SetupAttachment(Mesh);
     CollisionSphere->SetSphereRadius(SphereRadius);
@@ -42,27 +42,27 @@ AEnemyPawn::AEnemyPawn()
     CollisionSphere->SetCollisionResponseToAllChannels(ECR_Overlap);
     CollisionSphere->SetGenerateOverlapEvents(true);
 
-    // 방향 표시
+    // 諛⑺뼢 ?쒖떆
     DirectionIndicator = CreateDefaultSubobject<UArrowComponent>(TEXT("Direction"));
     DirectionIndicator->SetupAttachment(RootComponent);
 
-    // 이동 및 상태 컴포넌트
+    // ?대룞 諛??곹깭 而댄룷?뚰듃
     SplineMovement = CreateDefaultSubobject<UEnemySplineMovementComponent>(TEXT("SplineMovement"));
     Status = CreateDefaultSubobject<UEnemyStatusComponent>(TEXT("Status"));
 
-    // 체력바 활성
+    // 泥대젰諛??쒖꽦
     HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
     HealthBarWidget->SetupAttachment(Mesh);
     HealthBarWidget->SetWidgetSpace(EWidgetSpace::World);
     HealthBarWidget->SetDrawAtDesiredSize(true);
-    HealthBarWidget->SetWidgetClass(EnemyHealthBarWidgetClass); // 클래스 설정 필요
+    HealthBarWidget->SetWidgetClass(EnemyHealthBarWidgetClass); // ?대옒???ㅼ젙 ?꾩슂
 
-    // 태그 및 초기 비활성 상태
+    // ?쒓렇 諛?珥덇린 鍮꾪솢???곹깭
     Tags.Add(FName(TEXT("Enemy")));
     bIsActive = false;
     SetActorHiddenInGame(true);
 
-    // 스트리밍 중에도 오버랩 유지
+    // ?ㅽ듃由щ컢 以묒뿉???ㅻ쾭???좎?
     bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
@@ -100,32 +100,32 @@ void AEnemyPawn::OnRep_EnemyData()
 {
     if (!EnemyData) return;
 
-    // 메시 먼저 설정
+    // 硫붿떆 癒쇱? ?ㅼ젙
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
-        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 硫붿떆 ?ㅼ젙?? %s"), *EnemyData->Visual.Mesh->GetName());
     }
 
-    // 애니메이션 블루프린트 설정
+    // ?좊땲硫붿씠??釉붾（?꾨┛???ㅼ젙
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
-        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 메시 설정됨: %s"), *EnemyData->Visual.Mesh->GetName());
+        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 硫붿떆 ?ㅼ젙?? %s"), *EnemyData->Visual.Mesh->GetName());
         Mesh->InitAnim(true);
 
-        // 애님 인스턴스에 속도 전달
+        // ?좊떂 ?몄뒪?댁뒪???띾룄 ?꾨떖
         if (UEnemyAnimInstance* EnemyAnim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
         {
-            EnemyAnim->SetSpeed(ReplicatedMoveSpeed); // 복제된 속도 전달
+            EnemyAnim->SetSpeed(ReplicatedMoveSpeed); // 蹂듭젣???띾룄 ?꾨떖
         }
     }
 
-    // 복제된 스케일도 적용
+    // 蹂듭젣???ㅼ??쇰룄 ?곸슜
     Mesh->SetRelativeScale3D(ReplicatedScale);
 	CollisionSphere->SetRelativeScale3D(ReplicatedScale);
 
-    //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData 실행됨 - 애니메이션: %s, 스케일: %s"),
+    //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData ?ㅽ뻾??- ?좊땲硫붿씠?? %s, ?ㅼ??? %s"),
     //    EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
     //    *ReplicatedScale.ToString());
 }
@@ -158,19 +158,19 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
 
     ReplicatedMoveSpeed = RuntimeStats.MoveSpeed;
 
-    // 메시 설정
+    // 硫붿떆 ?ㅼ젙
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
     }
 
-    // 애니메이션 블루프린트 설정
+    // ?좊땲硫붿씠??釉붾（?꾨┛???ㅼ젙
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
     }
 
-    // 스케일 적용
+    // ?ㅼ????곸슜
     Mesh->SetRelativeScale3D(ReplicatedScale);
 
     if (Mesh && CollisionSphere)
@@ -183,11 +183,11 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
             FVector LocalLocation = Mesh->GetComponentTransform().InverseTransformPosition(BoneLocation);
             CollisionSphere->SetRelativeLocation(LocalLocation);
 
-            //UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 중심 본 기준 위치 적용: %s"), *LocalLocation.ToString());
+            //UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 以묒떖 蹂?湲곗? ?꾩튂 ?곸슜: %s"), *LocalLocation.ToString());
         }
     }
 
-    // 상태 컴포넌트 초기화
+    // ?곹깭 而댄룷?뚰듃 珥덇린??
     if (Status)
     {
         Status->Initialize(RuntimeStats.MaxHealth, RuntimeStats.MoveSpeed);
@@ -201,21 +201,21 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
 
 void AEnemyPawn::RewardGoldToPlayer()
 {
-    if (!HasAuthority()) return; // 반드시 서버에서만 실행
+    if (!HasAuthority()) return; // 諛섎뱶???쒕쾭?먯꽌留??ㅽ뻾
 
     if (!EnemyData) return;
 
     int32 RewardGold = EnemyData->Reward.Gold;
 
-    // 서버에서 모든 PlayerController에게 골드 지급
+    // ?쒕쾭?먯꽌 紐⑤뱺 PlayerController?먭쾶 怨⑤뱶 吏湲?
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
         if (APlayerController* PC = It->Get())
         {
             if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
             {
-                PS->AddGold(RewardGold); // 골드 지급
-                UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] %s에게 %d 골드 지급됨"), *PS->GetPlayerName(), RewardGold);
+                PS->AddGold(RewardGold); // 怨⑤뱶 吏湲?
+                UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] %s?먭쾶 %d 怨⑤뱶 吏湲됰맖"), *PS->GetPlayerName(), RewardGold);
             }
         }
     }
@@ -242,7 +242,7 @@ void AEnemyPawn::ReceiveDamage(float DamageAmount)
         Status->TakeDamage(DamageAmount);
     }
 
-    // 체력바 업데이트 추가
+    // 泥대젰諛??낅뜲?댄듃 異붽?
     if (HealthBarWidget && HealthBarWidget->GetUserWidgetObject())
     {
         if (UEnemyHealthBarWidget* Widget = Cast<UEnemyHealthBarWidget>(HealthBarWidget->GetUserWidgetObject()))
@@ -267,8 +267,8 @@ void AEnemyPawn::ApplyStun(float Duration)
 
 void AEnemyPawn::HandleEnemyDeath()
 {
-    RewardGoldToPlayer();  // 골드 지급
-    Destroy();             // 풀링이면 ReleaseEnemy로 교체
+    RewardGoldToPlayer();  // 怨⑤뱶 吏湲?
+    Destroy();             // ?留곸씠硫?ReleaseEnemy濡?援먯껜
 }
 
 void AEnemyPawn::SetIsActive(bool bNewActive)

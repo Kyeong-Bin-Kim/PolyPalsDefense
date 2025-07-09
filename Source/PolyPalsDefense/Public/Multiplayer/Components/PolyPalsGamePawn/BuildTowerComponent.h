@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,12 +7,8 @@
 #include "BuildTowerComponent.generated.h"
 
 class UTowerDataManager;
-class UTowerHandleComponent;
 class APreviewBuilding;
 class APlacedTower;
-class APolyPalsGamePawn;
-class APolyPalsController;
-
 
 DECLARE_DELEGATE(FTryBuildButNotEnoughGold)
 
@@ -28,65 +22,72 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	virtual void InitializeComponent() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	// Call by gamepawn
+	// Preview 모드 진입
+	UFUNCTION(Client, Unreliable)
+	void ClientBeginSelectTower(uint8 InTowerId);
+
+	// Preview 위치를 읽어오는 Getter
+	UFUNCTION(BlueprintCallable, Category = "Build")
+	FVector GetPreviewLocation() const;
+
+	// 최종 설치 요청 RPC
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
+
+	// PreviewBuilding 스폰
 	void ClientSpawnPreviewBuilding();
 
-private:
-	void SetPlayerColorByController(EPlayerColor InColor);
-
-	void ClientOnInputClick();
-	void ClientOnInputRightClick();
-	void ClientOnInputTower1();
-	void ClientOnInputTower2();
-	void ClientOnInputTower3();
-
-	void OnSelectTower(const uint8 InTowerId);
-
+	void SetPlayerColor(EPlayerColor InColor) { PlayerColor = InColor; }
+	EBuildState GetBuildState() const { return BuildState; }
 	void SetBuildState(EBuildState InState);
-	void OnNormal();
-	void OnSerchingPlace();
-	void OnDecidePlacementLocation();
 
-	UFUNCTION(Server, Reliable)
-	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
+	UFUNCTION(Client, Unreliable)
+	void ClientOnInputLeftClick();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientOnInputRightClick();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientOnInputTower1();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientOnInputTower2();
+
+	UFUNCTION(Client, Unreliable)
+	void ClientOnInputTower3();
 
 public:
 	FTryBuildButNotEnoughGold TryBuildButNotEnoughGold;
 
 private:
+	void OnSelectTower(uint8 InTowerId);
+	void OnNormal();
+	void OnSerchingPlace();
+	void OnDecidePlacementLocation();
+
+private:
 	UPROPERTY()
 	TObjectPtr<UTowerDataManager> TowerDataManager;
+
 	UPROPERTY()
 	TObjectPtr<APreviewBuilding> PreviewBuilding;
-	UPROPERTY()
+
+	UPROPERTY(EditDefaultsOnly, Category = "Config")
 	TSubclassOf<APlacedTower> PlacedTowerBlueClass;
-	UPROPERTY()
-	TObjectPtr<APolyPalsGamePawn> GamePawn;
-	UPROPERTY()
-	TObjectPtr<UTowerHandleComponent> TowerHandleComponent;
 
 	UPROPERTY(Replicated)
 	EPlayerColor PlayerColor = EPlayerColor::None;
 
-	uint8 TowerOnSerchingQue = 0;
+	uint8 TowerOnSearchingQue = 0;
+
 	EBuildState BuildState = EBuildState::None;
 
-	//<<<<<<< HEAD
-		friend APolyPalsGamePawn;
-	friend APolyPalsController;
-	//=======
-		UPROPERTY(EditDefaultsOnly, Category = "UI")
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UTowerUpgradeWidget> TowerUpgradeWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UTowerUpgradeWidget> UpgradeWidgetInstance;
-	friend class APolyPalsGamePawn;
-	friend class APolyPalsController;
-
-	//>>>>>>> UI
 };

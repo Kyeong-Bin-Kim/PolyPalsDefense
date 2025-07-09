@@ -16,7 +16,7 @@ class POLYPALSDEFENSE_API UMainUIWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
 
-    // ¿ÜºÎ¿¡¼­ ´Ğ³×ÀÓ ¶Ç´Â Steam ID¸¦ ¼³Á¤
+    // ì™¸ë¶€ì—ì„œ ë‹‰ë„¤ì„ ë˜ëŠ” Steam IDë¥¼ ì„¤ì •
     UFUNCTION(BlueprintCallable)
     void SetPlayerNameText(const FString& Name);
 
@@ -34,7 +34,7 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* SearchRoom;
 
-    // ÃßÈÄ Ãß°¡ ¿¹Á¤
+    // ì¶”í›„ ì¶”ê°€ ì˜ˆì •
     //UPROPERTY(meta = (BindWidget))
     //class UButton* Settings;
 

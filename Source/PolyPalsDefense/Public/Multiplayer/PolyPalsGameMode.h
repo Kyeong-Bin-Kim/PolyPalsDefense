@@ -5,9 +5,9 @@
 #include "Tower/TowerEnums.h"
 #include "PolyPalsGameMode.generated.h"
 
-// 생명 변화 이벤트 델리게이트
+// ?앸챸 蹂???대깽???몃━寃뚯씠??
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, float /*InCurrentLifeRatio*/);
-// 라운드 변화 이벤트 델리게이트
+// ?쇱슫??蹂???대깽???몃━寃뚯씠??
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnRoundChanged, int32 /*AssignedColor*/);
 
 class APolyPalsState;
@@ -23,7 +23,7 @@ public:
 	virtual void BeginPlay() override;
 
 public:
-	// GameState를 통해 게임 오버를 트리거
+	// GameState瑜??듯빐 寃뚯엫 ?ㅻ쾭瑜??몃━嫄?
 	UFUNCTION(BlueprintCallable, Category = "Game")
 	void TriggerGameOver();
 
@@ -39,40 +39,40 @@ public:
 	UFUNCTION()
 	void OnEnemyKilled(int32 InGold);
 
-	// 생명 감소 함수
+	// ?앸챸 媛먯냼 ?⑥닔
 	inline void SubtractLife(int32 InValue)
 	{
 		SetLife(Life - InValue);
 		if (bIsGamePlay && Life < 0)
 		{
 			Life = 0;
-			// GameOver(); → 여기 대신 TriggerGameOver() 사용 가능
+			// GameOver(); ???ш린 ???TriggerGameOver() ?ъ슜 媛??
 		}
 	}
 
 private:
-	// 남은 적 수 감소
+	// ?⑥? ????媛먯냼
 	inline void DecreaseRemainingEnemyCount()
 	{
 		RemainingEnemyCount--;
 		if (bIsGamePlay && RemainingEnemyCount <= 0)
 		{
 			RemainingEnemyCount = 0;
-			// GameClear(); → 필요 시 확장
+			// GameClear(); ???꾩슂 ???뺤옣
 		}
 	}
 
-	// 현재 생명 설정 및 생명 변화 이벤트 브로드캐스트
+	// ?꾩옱 ?앸챸 ?ㅼ젙 諛??앸챸 蹂???대깽??釉뚮줈?쒖틦?ㅽ듃
 	inline void SetLife(int32 InNewLife)
 	{
 		Life = InNewLife;
-		OnHealthChanged.Broadcast(static_cast<float>(Life) / static_cast<float>(StartLife)); // HealthBar에 현재 체력 비율 전달
+		OnHealthChanged.Broadcast(static_cast<float>(Life) / static_cast<float>(StartLife)); // HealthBar???꾩옱 泥대젰 鍮꾩쑉 ?꾨떖
 	}
 
 public:
-	// 생명 변화 이벤트 (UI 연동용)
+	// ?앸챸 蹂???대깽??(UI ?곕룞??
 	FOnLifeChanged OnHealthChanged;
-	// 라운드 변화 이벤트 (UI 연동용)
+	// ?쇱슫??蹂???대깽??(UI ?곕룞??
 	FOnRoundChanged OnRoundChanged;
 
 protected:
@@ -82,7 +82,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "StageData")
 	int32 Life = 100;
 
-	// 이 스테이지에서 남아있는 적의 수
+	// ???ㅽ뀒?댁??먯꽌 ?⑥븘?덈뒗 ?곸쓽 ??
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "StageData")
 	int32 RemainingEnemyCount = 0;
 
@@ -90,53 +90,53 @@ private:
 	UPROPERTY()
 	TArray<EPlayerColor> PreparedColors;
 
-	// 현재 접속된 플레이어 수
+	// ?꾩옱 ?묒냽???뚮젅?댁뼱 ??
 	int32 ConnectedPlayers;
 
-	// 시작에 필요한 최소 플레이어 수 (에디터에서도 조정 가능)
+	// ?쒖옉???꾩슂??理쒖냼 ?뚮젅?댁뼱 ??(?먮뵒?곗뿉?쒕룄 議곗젙 媛??
 	UPROPERTY(EditDefaultsOnly, Category = "Game")
 	int32 ExpectedPlayerCount;
 
-	// 게임 시작 후 플레이 상태 플래그
+	// 寃뚯엫 ?쒖옉 ???뚮젅???곹깭 ?뚮옒洹?
 	bool bIsGamePlay = true;
 
-	// 스테이지 시작 체력
+	// ?ㅽ뀒?댁? ?쒖옉 泥대젰
 	int32 StartLife = 50;
 
-	// 준비 완료 후 대기 시간 (초)
+	// 以鍮??꾨즺 ???湲??쒓컙 (珥?
 	UPROPERTY(EditDefaultsOnly, Category = "Game")
 	float StartCountdownTime = 5.0f;
 
-	// 플레이어 시작 골드 계산용 최대/최소/감소 단위
+	// ?뚮젅?댁뼱 ?쒖옉 怨⑤뱶 怨꾩궛??理쒕?/理쒖냼/媛먯냼 ?⑥쐞
 	UPROPERTY(EditDefaultsOnly, Category = "Economy")
 	int32 StartingGoldMax = 2000;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Economy")
 	int32 StartingGoldMin = 500;
 
-	// 플레이어 한 명이 추가될 때마다 감소할 골드
+	// ?뚮젅?댁뼱 ??紐낆씠 異붽????뚮쭏??媛먯냼??怨⑤뱶
 	UPROPERTY(EditDefaultsOnly, Category = "Economy")
 	int32 StartingGoldStep = 500;
 
-	// 스테이지 이름과 로드할 맵 이름 매핑
+	// ?ㅽ뀒?댁? ?대쫫怨?濡쒕뱶??留??대쫫 留ㅽ븨
 	UPROPERTY(EditDefaultsOnly, Category = "Stage")
 	TMap<FName, FString> StageMapPaths;
 
 protected:
-	// 모든 플레이어에게 시작 골드 지급
+	// 紐⑤뱺 ?뚮젅?댁뼱?먭쾶 ?쒖옉 怨⑤뱶 吏湲?
 	void DistributeStartingGold();
 
-	// GameState의 AllPlayersReady 이벤트 처리
+	// GameState??AllPlayersReady ?대깽??泥섎━
 	UFUNCTION()
 	void HandleAllPlayersReady();
 
-	// 플레이어 수에 따른 시작 골드 계산
+	// ?뚮젅?댁뼱 ?섏뿉 ?곕Ⅸ ?쒖옉 怨⑤뱶 怨꾩궛
 	int32 CalculateStartingGold(int32 PlayerCount) const;
 
-	// GameState의 GameOver 이벤트 처리
+	// GameState??GameOver ?대깽??泥섎━
 	UFUNCTION()
 	void HandleStateGameOver();
 
-	// 준비 완료 후 카운트다운 후 게임 시작
+	// 以鍮??꾨즺 ??移댁슫?몃떎????寃뚯엫 ?쒖옉
 	void StartGameAfterCountdown();
 };

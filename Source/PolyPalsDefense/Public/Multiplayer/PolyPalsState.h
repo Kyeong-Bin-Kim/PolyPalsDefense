@@ -4,10 +4,10 @@
 #include "GameFramework/GameStateBase.h"
 #include "PolyPalsState.generated.h"
 
-// 게임 오버 이벤트 델리게이트 (클라용)
+// 寃뚯엫 ?ㅻ쾭 ?대깽???몃━寃뚯씠??(?대씪??
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameOver);
 
-// 모든 플레이어 준비 완료 이벤트 델리게이트 (클라용)
+// 紐⑤뱺 ?뚮젅?댁뼱 以鍮??꾨즺 ?대깽???몃━寃뚯씠??(?대씪??
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllPlayersReady);
 
 UCLASS()
@@ -18,23 +18,23 @@ class POLYPALSDEFENSE_API APolyPalsState : public AGameStateBase
 public:
     APolyPalsState();
 
-    // 게임 오버 이벤트 (UI, 클라이언트 연동용)
+    // 寃뚯엫 ?ㅻ쾭 ?대깽??(UI, ?대씪?댁뼵???곕룞??
     UPROPERTY(BlueprintAssignable, Category = "Game")
     FOnGameOver OnGameOver;
 
-    // 모든 플레이어 준비 완료 이벤트
+    // 紐⑤뱺 ?뚮젅?댁뼱 以鍮??꾨즺 ?대깽??
     UPROPERTY(BlueprintAssignable, Category = "Game")
     FOnAllPlayersReady OnAllPlayersReady;
 
-    // 현재 접속 중인 플레이어 수 조회
+    // ?꾩옱 ?묒냽 以묒씤 ?뚮젅?댁뼱 ??議고쉶
     UFUNCTION(BlueprintPure, Category = "Lobby")
     int32 GetConnectedPlayers() const { return ConnectedPlayers; }
 
-    // 준비 완료한 플레이어 수 조회
+    // 以鍮??꾨즺???뚮젅?댁뼱 ??議고쉶
     UFUNCTION(BlueprintPure, Category = "Lobby")
     int32 GetReadyPlayers() const { return ReadyPlayers; }
 
-    // 현재 선택된 스테이지 이름 조회
+    // ?꾩옱 ?좏깮???ㅽ뀒?댁? ?대쫫 議고쉶
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FName GetSelectedStage() const { return SelectedStage; }
 
@@ -46,30 +46,30 @@ public:
 
     void SetCurrentRound(int32 NewRound);
 
-    // 게임 오버 여부 조회
+    // 寃뚯엫 ?ㅻ쾭 ?щ? 議고쉶
     UFUNCTION(BlueprintPure, Category = "Game")
     bool IsGameOver() const { return bIsGameOver; }
 
-    // 서버에서 게임 오버 상태 설정
+    // ?쒕쾭?먯꽌 寃뚯엫 ?ㅻ쾭 ?곹깭 ?ㅼ젙
     UFUNCTION(BlueprintCallable, Category = "Game")
     void SetGameOver();
 
-    // 서버에서 접속 플레이어 수 업데이트
+    // ?쒕쾭?먯꽌 ?묒냽 ?뚮젅?댁뼱 ???낅뜲?댄듃
     void UpdateConnectedPlayers(int32 Count);
 
-    // 서버에서 준비 완료 플레이어 수 계산 및 갱신
+    // ?쒕쾭?먯꽌 以鍮??꾨즺 ?뚮젅?댁뼱 ??怨꾩궛 諛?媛깆떊
     void UpdateReadyPlayers();
 
-    // 서버에서 선택된 스테이지 설정
+    // ?쒕쾭?먯꽌 ?좏깮???ㅽ뀒?댁? ?ㅼ젙
     void SetSelectedStage(FName Stage);
 
-    // 서버에서 로비 이름 설정
+    // ?쒕쾭?먯꽌 濡쒕퉬 ?대쫫 ?ㅼ젙
     void SetLobbyName(const FString& Name);
 
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FString GetLobbyName() const { return LobbyName; }
 
-    // 플레이어 상태 배열이 갱신될 때 로비 UI 갱신을 위해 호출
+    // ?뚮젅?댁뼱 ?곹깭 諛곗뿴??媛깆떊????濡쒕퉬 UI 媛깆떊???꾪빐 ?몄텧
     virtual void AddPlayerState(APlayerState* PlayerState) override;
 
     virtual void RemovePlayerState(APlayerState* PlayerState) override;
@@ -78,18 +78,18 @@ private:
     void NotifyLobbyStateChanged();
 
 protected:
-    // 복제할 프로퍼티 등록
+    // 蹂듭젣???꾨줈?쇳떚 ?깅줉
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-    // 접속자 수 변경 시 클라이언트에서 호출
+    // ?묒냽????蹂寃????대씪?댁뼵?몄뿉???몄텧
     UFUNCTION()
     void OnRep_ConnectedPlayers();
 
-    // 준비 완료 수 변경 시 클라이언트에서 호출
+    // 以鍮??꾨즺 ??蹂寃????대씪?댁뼵?몄뿉???몄텧
     UFUNCTION()
     void OnRep_ReadyPlayers();
 
-    // 선택된 스테이지 변경 시 클라이언트에서 호출
+    // ?좏깮???ㅽ뀒?댁? 蹂寃????대씪?댁뼵?몄뿉???몄텧
     UFUNCTION()
     void OnRep_SelectedStage();
 
@@ -99,37 +99,37 @@ protected:
     UFUNCTION()
     void OnRep_CurrentRound();
 
-    // 게임 오버 상태 변경 시 클라이언트에서 호출
+    // 寃뚯엫 ?ㅻ쾭 ?곹깭 蹂寃????대씪?댁뼵?몄뿉???몄텧
     UFUNCTION()
     void OnRep_GameOver();
 
 private:
-    // 접속자 수 (Replicated)
+    // ?묒냽????(Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_ConnectedPlayers)
     int32 ConnectedPlayers;
 
-    // 준비 완료한 플레이어 수 (Replicated)
+    // 以鍮??꾨즺???뚮젅?댁뼱 ??(Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_ReadyPlayers)
     int32 ReadyPlayers;
 
-    // 호스트가 선택한 스테이지 이름 (Replicated)
+    // ?몄뒪?멸? ?좏깮???ㅽ뀒?댁? ?대쫫 (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_SelectedStage)
     FName SelectedStage;
 
-    // 호스트가 설정한 로비 이름 (Replicated)
+    // ?몄뒪?멸? ?ㅼ젙??濡쒕퉬 ?대쫫 (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_LobbyName)
     FString LobbyName;
 
-    // 게임 오버 여부 (Replicated)
+    // 寃뚯엫 ?ㅻ쾭 ?щ? (Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)
     bool bIsGameOver;
 
 protected:
-    // 현재 라운드 (Replicated)
+    // ?꾩옱 ?쇱슫??(Replicated)
     UPROPERTY(ReplicatedUsing = OnRep_CurrentRound)
     int32 CurrentRound = 1;
 
-    // 총 라운드 수
+    // 珥??쇱슫????
     UPROPERTY(EditDefaultsOnly, Category = "Game")
     int32 TotalRound = 10;
 };

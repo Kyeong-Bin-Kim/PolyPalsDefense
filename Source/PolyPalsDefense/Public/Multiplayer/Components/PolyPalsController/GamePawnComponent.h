@@ -14,16 +14,13 @@ class POLYPALSDEFENSE_API UGamePawnComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UGamePawnComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 public:	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
 	APolyPalsGamePawn* GetGamePawn() const { return GamePawn; }
@@ -31,8 +28,9 @@ public:
 	void ServerSpawnGamepawn();
 	
 private:
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<APolyPalsGamePawn> GamePawnClassDefault;
+
 	UPROPERTY(Replicated)
 	TObjectPtr<APolyPalsGamePawn> GamePawn;
 };

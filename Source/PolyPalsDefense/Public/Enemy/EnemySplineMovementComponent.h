@@ -16,13 +16,13 @@ public:
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // 이동 초기화 (스플라인, 속도)
+    // ?대룞 珥덇린??(?ㅽ뵆?쇱씤, ?띾룄)
     void Initialize(USplineComponent* InSpline, float InMoveSpeed);
 
-    // 이동속도 변경 (슬로우)
+    // ?대룞?띾룄 蹂寃?(?щ줈??
     void SetMoveSpeed(float NewSpeed);
 
-    // 이동 정지 여부 설정 (스턴)
+    // ?대룞 ?뺤? ?щ? ?ㅼ젙 (?ㅽ꽩)
     void SetPaused(bool bPause);
 
     USplineComponent* GetSpline() const { return Spline; }

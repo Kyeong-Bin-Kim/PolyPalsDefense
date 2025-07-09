@@ -15,44 +15,21 @@
 #include "GameFramework/PlayerController.h"
 
 
-// Sets default values for this component's properties
 UBuildTowerComponent::UBuildTowerComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-	bWantsInitializeComponent = true;
-
-	ConstructorHelpers::FClassFinder<APlacedTower> TowerClass(TEXT("/Game/Blueprints/Towers/BP_PlacedTower.BP_PlacedTower_C"));
-	if (TowerClass.Succeeded())
-		PlacedTowerBlueClass = TowerClass.Class;
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
-// Called when the game starts
 void UBuildTowerComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
 	TowerDataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
-	ClientSpawnPreviewBuilding();
-}
 
-
-void UBuildTowerComponent::InitializeComponent()
-{
-	Super::InitializeComponent();
-
-	GamePawn = GetOwner<APolyPalsGamePawn>();
-	TowerHandleComponent = GamePawn->TowerHandleComponent;
-}
-
-// Called every frame
-void UBuildTowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	if (!GetOwner()->HasAuthority())
+	{
+		ClientSpawnPreviewBuilding();
+	}
 }
 
 void UBuildTowerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -62,231 +39,213 @@ void UBuildTowerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(UBuildTowerComponent, PlayerColor);
 }
 
+void UBuildTowerComponent::ClientBeginSelectTower_Implementation(uint8 InTowerId)
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:Clinent ÏÑ†ÌÉùÎêú ÌÉÄÏõå ID = %d"), InTowerId);
+    OnSelectTower(InTowerId);
+}
+
+void UBuildTowerComponent::OnSelectTower(uint8 InTowerId)
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OnSelectTower ID = %d"), InTowerId);
+
+    // PreviewBuilding Ïù¥ ÏïÑÏßÅ ÏóÜÏúºÎ©¥ Ïä§Ìè∞ ÏãúÎèÑ
+    if (!PreviewBuilding)
+    {
+        ClientSpawnPreviewBuilding();
+
+        if (!PreviewBuilding)
+        {
+            UE_LOG(LogTemp, Error, TEXT("OnSelectTower: PreviewBuilding Ïä§Ìè∞Ïóê Ïã§Ìå®ÌñàÏäµÎãàÎã§."));
+            return;
+        }
+    }
+
+    // ÏÑ†ÌÉùÎêú ÌÉÄÏõå ID Ï†ÄÏû• Î∞è ÏÉÅÌÉú Ï†ÑÌôò
+    TowerOnSearchingQue = InTowerId;
+    SetBuildState(EBuildState::SearchingPlace);
+}
+
+void UBuildTowerComponent::OnNormal()
+{
+    if (PreviewBuilding)
+        PreviewBuilding->ShowPreviewBuilding(false);
+}
+
+void UBuildTowerComponent::OnSerchingPlace()
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OnSerchingPlace"));
+
+    if (PreviewBuilding)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OnSerchingPlace Start"));
+        PreviewBuilding->ShowPreviewBuilding(true, TowerOnSearchingQue);
+    }
+}
+
+void UBuildTowerComponent::OnDecidePlacementLocation()
+{
+    if (!PreviewBuilding) return;
+
+    bool bCanBuild = PreviewBuilding->IsBuildable();
+
+    UE_LOG(LogTemp, Warning, TEXT("OnDecidePlacementLocation ‚Üí bCanBuild=%d, Loc=%s"),  bCanBuild, *PreviewBuilding->GetActorLocation().ToString());
+
+    if (bCanBuild)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Decide‚ÜíServer RPC Ìò∏Ï∂ú"));
+        Server_RequestSpawnTower(PreviewBuilding->GetActorLocation(), TowerOnSearchingQue);
+        SetBuildState(EBuildState::None);
+    }
+    else
+    {
+        SetBuildState(EBuildState::SearchingPlace);
+    }
+}
+
+void UBuildTowerComponent::SetBuildState(EBuildState InState)
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:SetBuildState"));
+
+    BuildState = InState;
+
+    switch (InState)
+    {
+    case EBuildState::None:
+        OnNormal();
+        break;
+    case EBuildState::SearchingPlace: 
+        OnSerchingPlace(); 
+        break;
+    case EBuildState::DecidePlacementLocation: 
+        OnDecidePlacementLocation(); 
+        break;
+    }
+}
+
+void UBuildTowerComponent::ClientOnInputLeftClick_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("ClientOnInputLeftClick (BuildState=%s)"), *UEnum::GetValueAsString(BuildState));
+
+    if (BuildState == EBuildState::SearchingPlace)
+    {
+        SetBuildState(EBuildState::DecidePlacementLocation);
+    }
+}
+
+void UBuildTowerComponent::ClientOnInputRightClick_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:ClientOnInputRightClick"));
+
+    if (BuildState == EBuildState::SearchingPlace)
+    {
+        SetBuildState(EBuildState::None);
+    }
+}
+
+void UBuildTowerComponent::ClientOnInputTower1_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:ClientOnInputTower1"));
+
+    if (BuildState == EBuildState::None)
+        OnSelectTower(1);
+}
+
+void UBuildTowerComponent::ClientOnInputTower2_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:ClientOnInputTower2"));
+
+    if (BuildState == EBuildState::None)
+        OnSelectTower(2);
+}
+
+void UBuildTowerComponent::ClientOnInputTower3_Implementation()
+{
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:ClientOnInputTower3"));
+
+    if (BuildState == EBuildState::None)
+        OnSelectTower(3);
+}
+
 void UBuildTowerComponent::ClientSpawnPreviewBuilding()
 {
-	if (!GamePawn) return;
-	if (GamePawn->HasAuthority()) return;
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:ClientSpawnPreviewBuilding"));
+
+	if (PreviewBuilding) return;
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParams.Instigator = GetOwner()->GetInstigator();
 
-	PreviewBuilding = GetWorld()->SpawnActor<APreviewBuilding>(APreviewBuilding::StaticClass(),
-		FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	PreviewBuilding = GetWorld()->SpawnActor<APreviewBuilding>(
+		APreviewBuilding::StaticClass(),
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
 	PreviewBuilding->ShowPreviewBuilding(false);
 	PreviewBuilding->SetReplicates(false);
 }
 
-void UBuildTowerComponent::SetPlayerColorByController(EPlayerColor InColor) { PlayerColor = InColor; }
-
-
-void UBuildTowerComponent::ClientOnInputClick()
+FVector UBuildTowerComponent::GetPreviewLocation() const
 {
-	//UE_LOG(LogTemp, Log, TEXT("UBuildTowerComponent detected input click"));
-
-	if (BuildState == EBuildState::SerchingPlace)
-	{
-		SetBuildState(EBuildState::DecidePlacementLocation);
-		return;
-	}
-
-	// GetOwner¥¬ AActor*¿Ãπ«∑Œ π›µÂΩ√ APawn¿∏∑Œ ƒ≥Ω∫∆√ »ƒ GetController
-	APawn* PawnOwner = Cast<APawn>(GetOwner());
-	if (!PawnOwner) return;
-
-	APlayerController* PC = Cast<APlayerController>(PawnOwner->GetController());
-	if (!PC) return;
-
-	// ∏∂øÏΩ∫ æ∆∑° æ◊≈Õ √ﬂ¿˚
-	FHitResult HitResult;
-	PC->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Visibility), false, HitResult);
-
-	APlacedTower* ClickedTower = Cast<APlacedTower>(HitResult.GetActor());
-	if (ClickedTower)
-	{
-		AController* LocalController = PC;
-		if (ClickedTower->GetOwner() && ClickedTower->GetOwner() != LocalController)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("≈∏øˆ¿« ø¿≥ ∞° ∑Œƒ√ ƒ¡∆Æ∑—∑ØøÕ ¥Ÿ∏®¥œ¥Ÿ. UI ª˝∑´"));
-			return;
-		}
-		UE_LOG(LogTemp, Log, TEXT("PlacedTower Clicked: %s"), *ClickedTower->GetName());
-
-		// æ˜±◊∑π¿ÃµÂ ¿ß¡¨ ª˝º∫
-		if (TowerUpgradeWidgetClass)
-		{
-			if (UpgradeWidgetInstance)
-			{
-				UpgradeWidgetInstance->RemoveFromParent();
-				UpgradeWidgetInstance = nullptr;
-			}
-
-			UpgradeWidgetInstance = CreateWidget<UTowerUpgradeWidget>(PC, TowerUpgradeWidgetClass);
-			if (UpgradeWidgetInstance)
-			{
-				UpgradeWidgetInstance->SetTargetTower(ClickedTower);
-				UpgradeWidgetInstance->AddToViewport();
-			}
-		}
-	}
+	return PreviewBuilding ? PreviewBuilding->GetActorLocation() : FVector::ZeroVector;
 }
 
-
-void UBuildTowerComponent::ClientOnInputRightClick()
+bool UBuildTowerComponent::Server_RequestSpawnTower_Validate(const FVector_NetQuantize InLocation, uint8 InTargetTower)
 {
-	if (BuildState == EBuildState::SerchingPlace)
-		SetBuildState(EBuildState::None);
-}
-
-void UBuildTowerComponent::ClientOnInputTower1()
-{
-	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower1"));
-
-	if (BuildState == EBuildState::None)
-	{
-		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(1);
-		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
-		int32 Require = UpgradeData->Cost;
-
-		int32 CurrentGold = 0;
-
-		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
-		{
-			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
-			{
-				CurrentGold = PlayerState->GetPlayerGold();
-			}
-		}
-
-		if (CurrentGold >= Require)
-			OnSelectTower(1);
-		else
-			TryBuildButNotEnoughGold.ExecuteIfBound();
-	}
-}
-
-void UBuildTowerComponent::ClientOnInputTower2()
-{
-	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower2"));
-
-	if (BuildState == EBuildState::None)
-	{
-		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(2);
-		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
-		int32 Require = UpgradeData->Cost;
-
-		int32 CurrentGold = 0;
-
-		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
-		{
-			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
-			{
-				CurrentGold = PlayerState->GetPlayerGold();
-			}
-		}
-
-		if (CurrentGold >= Require)
-			OnSelectTower(2);
-		else
-			TryBuildButNotEnoughGold.ExecuteIfBound();
-	}
-}
-
-void UBuildTowerComponent::ClientOnInputTower3()
-{
-	UE_LOG(LogTemp, Log, TEXT("ClientOnInputTower3"));
-
-	if (BuildState == EBuildState::None)
-	{
-		UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(3);
-		FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
-		int32 Require = UpgradeData->Cost;
-		
-		int32 CurrentGold = 0;
-
-		if (const APlayerController* PC = GetWorld()->GetFirstPlayerController())
-		{
-			if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
-			{
-				CurrentGold = PlayerState->GetPlayerGold();
-			}
-		}
-
-		if (CurrentGold >= Require)
-			OnSelectTower(3);
-		else
-			TryBuildButNotEnoughGold.ExecuteIfBound();
-	}
-}
-
-void UBuildTowerComponent::OnSelectTower(const uint8 InTowerId)
-{
-	UE_LOG(LogTemp, Log, TEXT("OnSelectTower %d"), InTowerId);
-
-	TowerOnSerchingQue = InTowerId;
-	PreviewBuilding->ShowPreviewBuilding(true, InTowerId);
-	SetBuildState(EBuildState::SerchingPlace);
-}
-
-void UBuildTowerComponent::SetBuildState(EBuildState InState)
-{
-	BuildState = InState;
-	switch (InState)
-	{
-	case EBuildState::None:
-		OnNormal();
-		break;
-	case EBuildState::SerchingPlace:
-		OnSerchingPlace();
-		break;
-	case EBuildState::DecidePlacementLocation:
-		OnDecidePlacementLocation();
-		break;
-	}
-}
-
-void UBuildTowerComponent::OnNormal()
-{
-	TowerHandleComponent->SetBuildState(EBuildState::None);
-	TowerOnSerchingQue = 0;
-	PreviewBuilding->ShowPreviewBuilding(false);
-}
-
-void UBuildTowerComponent::OnSerchingPlace()
-{
-	TowerHandleComponent->SetBuildState(EBuildState::SerchingPlace);
-}
-
-void UBuildTowerComponent::OnDecidePlacementLocation()
-{
-	TowerHandleComponent->SetBuildState(EBuildState::DecidePlacementLocation);
-
-	if (PreviewBuilding->IsBuildable())
-	{
-		FVector_NetQuantize placeLocation = PreviewBuilding->GetActorLocation();
-		Server_RequestSpawnTower(placeLocation, TowerOnSerchingQue);
-		SetBuildState(EBuildState::None);
-	}
-	else
-		SetBuildState(EBuildState::SerchingPlace);
+    UE_LOG(LogTemp, Warning, TEXT("Server_RequestSpawnTower_Validate: Tower=%d"), InTargetTower);
+    return InTargetTower >= 1 && InTargetTower <= 3;
 }
 
 void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(const FVector_NetQuantize InLocation, uint8 InTargetTower)
 {
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    UE_LOG(LogTemp, Warning, TEXT("[Server_Impl] Tower=%d Loc=%s"), InTargetTower, *InLocation.ToString());
 
-	FVector SpawnLocation = InLocation;
-	SpawnLocation.Z += 80.f;
+    // Spawn ÌååÎùºÎØ∏ÌÑ∞ ÏÑ∏ÌåÖ
+    FActorSpawnParameters SpawnParams;
+    SpawnParams.SpawnCollisionHandlingOverride =
+        ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(PlacedTowerBlueClass, SpawnLocation, FRotator::ZeroRotator, SpawnParams);
-	APolyPalsController* OwnerController = GamePawn->GetPossessedController();
-	Tower->ExternalInitializeTower(InTargetTower, PlayerColor, OwnerController);
+    // Ïã§Ï†ú ÏúÑÏπò Ïò§ÌîÑÏÖã
+    FVector SpawnLocation = InLocation;
+    SpawnLocation.Z += 80.f;
 
-	UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);
-	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
-	int32 Require = UpgradeData->Cost;
+    // ÌÉÄÏõå Ïä§Ìè∞
+    APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(
+        PlacedTowerBlueClass,
+        SpawnLocation,
+        FRotator::ZeroRotator,
+        SpawnParams);
 
-	APolyPalsPlayerState* PolypalsPlayerState = GamePawn->GetController<APolyPalsController>()->GetPlayerState<APolyPalsPlayerState>();
-	PolypalsPlayerState->AddGold(-Require);
+    // ÎÇ¥ Pawn Í≥º Ïª®Ìä∏Î°§Îü¨ ÏñªÍ∏∞
+    APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(GetOwner());
+    if (!MyPawn)
+        return;
+
+    APolyPalsController* OwnerController =
+        Cast<APolyPalsController>(MyPawn->GetController());
+    if (!OwnerController)
+        return;
+
+    // Ï¥àÍ∏∞Ìôî (ÏÉâÏÉÅ¬∑ÏÜåÏú†Ïûê Ï†ÑÎã¨)
+    Tower->ExternalInitializeTower(InTargetTower, PlayerColor, OwnerController);
+
+    // Í≥®Îìú Ï∞®Í∞ê
+    if (APolyPalsPlayerState* PS =
+        Cast<APolyPalsPlayerState>(OwnerController->PlayerState))
+    {
+        UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);
+
+        if (!Data)
+        {
+            UE_LOG(LogTemp, Error, TEXT("UBuildTowerComponent: TowerDataManager is null!"));
+            return;
+        }
+
+        int32 Cost = Data->UpgradeData[ELevelValue::Level1].Cost;
+
+        PS->AddGold(-Cost);
+    }
 }

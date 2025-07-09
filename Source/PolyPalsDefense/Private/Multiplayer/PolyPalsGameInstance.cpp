@@ -1,4 +1,4 @@
-﻿#include "PolyPalsGameInstance.h"
+#include "PolyPalsGameInstance.h"
 #include "PolyPalsController.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"

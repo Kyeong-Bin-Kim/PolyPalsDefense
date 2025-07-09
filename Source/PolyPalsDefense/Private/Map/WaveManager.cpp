@@ -9,7 +9,7 @@
 AWaveManager::AWaveManager()
 {
     PrimaryActorTick.bCanEverTick = false;
-    bReplicates = true; // 리플리케이션 활성화
+    bReplicates = true; // 由ы뵆由ъ??댁뀡 ?쒖꽦??
 }
 
 void AWaveManager::NotifyWaveInfoChanged()
@@ -170,21 +170,21 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
         WaveSpawner->OnEnemyKilled();
     }
 
-    NotifyWaveInfoChanged(); // 서버용 Broadcast
+    NotifyWaveInfoChanged(); // ?쒕쾭??Broadcast
 
     Enemy->Destroy();
 }
 
-// 리플리케이션 속성 설정
+// 由ы뵆由ъ??댁뀡 ?띿꽦 ?ㅼ젙
 void AWaveManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(AWaveManager, PlayerLife); // 기존
-    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // 추가
+    DOREPLIFETIME(AWaveManager, PlayerLife); // 湲곗〈
+    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // 異붽?
 }
 
-// 클라이언트에서 값 복제 시 실행
+// ?대씪?댁뼵?몄뿉??媛?蹂듭젣 ???ㅽ뻾
 void AWaveManager::OnRep_PlayerLife()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_PlayerLife: %d"), PlayerLife);
@@ -202,5 +202,5 @@ void AWaveManager::OnRep_CurrentRound()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_CurrentRound: %d"), CurrentRoundIndex);
 
-    NotifyWaveInfoChanged(); // UI에 반영되도록 델리게이트 호출
+    NotifyWaveInfoChanged(); // UI??諛섏쁺?섎룄濡??몃━寃뚯씠???몄텧
 }

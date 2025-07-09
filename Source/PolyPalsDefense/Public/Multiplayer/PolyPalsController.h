@@ -5,7 +5,6 @@
 #include "Tower/TowerEnums.h"
 #include "PolyPalsController.generated.h"
 
-class UPolyPalsInputComponent;
 class UGamePawnComponent;
 class UMainUIWidget;
 class UStageSelectUIWidget;
@@ -22,7 +21,6 @@ public:
 	APolyPalsController();
 
 protected:
-	virtual void SetupInputComponent() override;
 	virtual void BeginPlay() override;
 
 public:
@@ -48,7 +46,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LeaveLobby();
 
-	UPolyPalsInputComponent* GetPolyPalsInputComponent() const { return PolyPalsInputComponent; }
+	UFUNCTION(BlueprintCallable, Category = "Build")
+	void BeginSelectTower(int32 TowerIndex);
+
+	// UI 에서 눌러서 타워를 지을 때 서버로 전달할 RPC
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BuildTower(int32 TowerIndex, FVector_NetQuantize InSpawnLocation);
+
 	UGamePawnComponent* GetGamePawnComponent() const { return GamePawnComponent; }
 	EPlayerColor GetPlayerColor() const { return PlayerColor; }
 
@@ -67,13 +71,17 @@ public:
 	void ConfigureLobbyUI(FName InStageName, const FString& HostName);
 
 protected:
-	UPROPERTY()
-	TObjectPtr<UPolyPalsInputComponent> PolyPalsInputComponent;
+	virtual void OnPossess(APawn* InPawn) override;
 
+private:
+	// 마우스 클릭 확정 시 이 ID로 빌드 RPC 호출
+	int32 PendingTowerIndex = 0;
+
+protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UGamePawnComponent> GamePawnComponent;
 
-	// UI ���� Ŭ����
+	// UI 위젯 클래스
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
 
@@ -89,7 +97,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<ULobbyListWidget> LobbyListWidgetInstance;
 
-	// UI �ν��Ͻ�
+	// UI 인스턴스
 	UPROPERTY()
 	TObjectPtr<UUserWidget> MainUIWidgetInstance;
 

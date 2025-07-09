@@ -5,7 +5,7 @@ void UTowerLevelWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UpdateLevelUI(1); // ±âº» Å×½ºÆ®¿ë
+	UpdateLevelUI(1); // ê¸°ë³¸ í…ŒìŠ¤íŠ¸ìš©
 }
 
 void UTowerLevelWidget::UpdateLevelUI(int32 CurrentLevel)

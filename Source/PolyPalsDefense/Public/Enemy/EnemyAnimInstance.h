@@ -10,11 +10,11 @@ class POLYPALSDEFENSE_API UEnemyAnimInstance : public UAnimInstance
     GENERATED_BODY()
 
 public:
-    // 외부에서 이동속도 값을 받아와 애니메이션에 반영
+    // ?몃??먯꽌 ?대룞?띾룄 媛믪쓣 諛쏆븘? ?좊땲硫붿씠?섏뿉 諛섏쁺
     UFUNCTION(BlueprintCallable, Category = "Animation")
     void SetSpeed(float InSpeed);
 
-    // 애니메이션 블루프린트에서 참조할 속도
+    // ?좊땲硫붿씠??釉붾（?꾨┛?몄뿉??李몄“???띾룄
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Animation")
     float Speed;
 

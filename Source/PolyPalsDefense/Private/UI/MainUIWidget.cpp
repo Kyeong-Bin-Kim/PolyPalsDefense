@@ -15,7 +15,7 @@ void UMainUIWidget::NativeConstruct()
     Super::NativeConstruct();
 
     if (ExitGame) ExitGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnExitGameClicked);
-    //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); ÃßÈÄ Ãß°¡ ¿¹Á¤
+    //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); ì¶”í›„ ì¶”ê°€ ì˜ˆì •
     if (StartGame) StartGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnStartGameClicked);
     if (CreateRoom) CreateRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnCreateRoomClicked);
     if (SearchRoom) SearchRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnSearchRoomClicked);
@@ -27,7 +27,7 @@ void UMainUIWidget::NativeConstruct()
 
     if (StartGame)
     {
-        // ¿ø·¡ ½ºÅ¸ÀÏ ¹é¾÷
+        // ì›ë˜ ìŠ¤íƒ€ì¼ ë°±ì—…
         CachedStartButtonStyle = StartGame->GetStyle();
     }
 }
@@ -64,7 +64,7 @@ void UMainUIWidget::OnStartGameClicked()
     {
         if (bIsMultiplayerMenuOpen)
         {
-            // ´­¸² »óÅÂÃ³·³ º¸ÀÌ°Ô: Pressed ½ºÅ¸ÀÏÀ» Normal/Hovered¿¡ º¹»ç
+            // ëˆŒë¦¼ ìƒíƒœì²˜ëŸ¼ ë³´ì´ê²Œ: Pressed ìŠ¤íƒ€ì¼ì„ Normal/Hoveredì— ë³µì‚¬
             FButtonStyle PressedStyle = CachedStartButtonStyle;
             PressedStyle.Normal = PressedStyle.Pressed;
             PressedStyle.Hovered = PressedStyle.Pressed;
@@ -72,7 +72,7 @@ void UMainUIWidget::OnStartGameClicked()
         }
         else
         {
-            StartGame->SetStyle(CachedStartButtonStyle); // ÀúÀåÇØµĞ ¿ø·¡ ½ºÅ¸ÀÏ·Î º¯°æ
+            StartGame->SetStyle(CachedStartButtonStyle); // ì €ì¥í•´ë‘” ì›ë˜ ìŠ¤íƒ€ì¼ë¡œ ë³€ê²½
         }
     }
 }
@@ -81,7 +81,7 @@ FReply UMainUIWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 {
     if (bIsMultiplayerMenuOpen)
     {
-        // MultiplayerButtons ¿ÜºÎ Å¬¸¯ ½Ã »óÅÂ ÃÊ±âÈ­
+        // MultiplayerButtons ì™¸ë¶€ í´ë¦­ ì‹œ ìƒíƒœ ì´ˆê¸°í™”
         if (!MultiplayerButtons->IsHovered())
         {
             bIsMultiplayerMenuOpen = false;
@@ -93,7 +93,7 @@ FReply UMainUIWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 
             if (StartGame)
             {
-                StartGame->SetStyle(CachedStartButtonStyle); // ÀúÀåÇØµĞ ¿ø·¡ ½ºÅ¸ÀÏ·Î º¯°æ
+                StartGame->SetStyle(CachedStartButtonStyle); // ì €ì¥í•´ë‘” ì›ë˜ ìŠ¤íƒ€ì¼ë¡œ ë³€ê²½
             }
         }
     }

@@ -120,7 +120,7 @@ void ULobbyListWidget::SetVisibility(ESlateVisibility InVisibility)
 {
     Super::SetVisibility(InVisibility);
 
-    // ¼û±è/Ç¥½Ã »óÅÂ¿¡ µû¶ó »õ·Î°íÄ§ ½ÃÀÛ/ÁßÁö
+    // ìˆ¨ê¹€/í‘œì‹œ ìƒíƒœì— ë”°ë¼ ìƒˆë¡œê³ ì¹¨ ì‹œì‘/ì¤‘ì§€
     if (InVisibility == ESlateVisibility::Visible)
     {
         StartRefreshing();

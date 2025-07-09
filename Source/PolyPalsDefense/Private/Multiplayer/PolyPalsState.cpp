@@ -28,7 +28,7 @@ void APolyPalsState::OnRep_CurrentRound()
     UE_LOG(LogTemp, Log, TEXT("[GameState] CurrentRound updated: %d"), CurrentRound);
 }
 
-// 게임 오버 상태 서버에서 설정
+// 寃뚯엫 ?ㅻ쾭 ?곹깭 ?쒕쾭?먯꽌 ?ㅼ젙
 void APolyPalsState::SetGameOver()
 {
     if (!HasAuthority() || bIsGameOver)
@@ -36,17 +36,17 @@ void APolyPalsState::SetGameOver()
 
     bIsGameOver = true;
 
-    // 서버에서 이벤트 브로드캐스트 (서버 + 클라 동기화)
+    // ?쒕쾭?먯꽌 ?대깽??釉뚮줈?쒖틦?ㅽ듃 (?쒕쾭 + ?대씪 ?숆린??
     OnGameOver.Broadcast();
 }
 
-// 선택된 스테이지 서버에서 설정
+// ?좏깮???ㅽ뀒?댁? ?쒕쾭?먯꽌 ?ㅼ젙
 void APolyPalsState::SetSelectedStage(FName Stage)
 {
     if (HasAuthority())
     {
         SelectedStage = Stage;
-        OnRep_SelectedStage(); // 서버에서도 즉시 처리
+        OnRep_SelectedStage(); // ?쒕쾭?먯꽌??利됱떆 泥섎━
     }
 }
 
@@ -71,7 +71,7 @@ void APolyPalsState::RemovePlayerState(APlayerState* PlayerState)
     NotifyLobbyStateChanged();
 }
 
-// 서버에서 접속자 수 업데이트
+// ?쒕쾭?먯꽌 ?묒냽?????낅뜲?댄듃
 void APolyPalsState::UpdateConnectedPlayers(int32 Count)
 {
     if (HasAuthority())
@@ -81,12 +81,12 @@ void APolyPalsState::UpdateConnectedPlayers(int32 Count)
     }
 }
 
-// 서버에서 Ready 완료 수 계산 및 갱신
+// ?쒕쾭?먯꽌 Ready ?꾨즺 ??怨꾩궛 諛?媛깆떊
 void APolyPalsState::UpdateReadyPlayers()
 {
     int32 ReadyCount = 0;
 
-    // PlayerArray 순회하여 Ready 상태 카운트
+    // PlayerArray ?쒗쉶?섏뿬 Ready ?곹깭 移댁슫??
     for (APlayerState* PlayerState : PlayerArray)
     {
         APolyPalsPlayerState* MyState = Cast<APolyPalsPlayerState>(PlayerState);
@@ -99,7 +99,7 @@ void APolyPalsState::UpdateReadyPlayers()
     ReadyPlayers = ReadyCount;
     OnRep_ReadyPlayers();
 
-    // 모든 플레이어가 준비 완료된 경우, 이벤트 발생
+    // 紐⑤뱺 ?뚮젅?댁뼱媛 以鍮??꾨즺??寃쎌슦, ?대깽??諛쒖깮
     if (ReadyPlayers == ConnectedPlayers && ConnectedPlayers > 0)
     {
         OnAllPlayersReady.Broadcast();
@@ -124,19 +124,19 @@ void APolyPalsState::NotifyLobbyStateChanged()
     }
 }
 
-// 접속자 수 변경 시 클라에서 호출
+// ?묒냽????蹂寃????대씪?먯꽌 ?몄텧
 void APolyPalsState::OnRep_ConnectedPlayers()
 {
     NotifyLobbyStateChanged();
 }
 
-// Ready 수 변경 시 클라에서 호출
+// Ready ??蹂寃????대씪?먯꽌 ?몄텧
 void APolyPalsState::OnRep_ReadyPlayers()
 {
     NotifyLobbyStateChanged();
 }
 
-// 선택된 스테이지 변경 시 클라에서 호출
+// ?좏깮???ㅽ뀒?댁? 蹂寃????대씪?먯꽌 ?몄텧
 void APolyPalsState::OnRep_SelectedStage()
 {
     NotifyLobbyStateChanged();
@@ -147,13 +147,13 @@ void APolyPalsState::OnRep_LobbyName()
     NotifyLobbyStateChanged();
 }
 
-// 게임 오버 상태 변경 시 클라에서 호출
+// 寃뚯엫 ?ㅻ쾭 ?곹깭 蹂寃????대씪?먯꽌 ?몄텧
 void APolyPalsState::OnRep_GameOver()
 {
-    OnGameOver.Broadcast(); // 클라에서 이벤트 브로드캐스트
+    OnGameOver.Broadcast(); // ?대씪?먯꽌 ?대깽??釉뚮줈?쒖틦?ㅽ듃
 }
 
-// Replication 변수 등록
+// Replication 蹂???깅줉
 void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);

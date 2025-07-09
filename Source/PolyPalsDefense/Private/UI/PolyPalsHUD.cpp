@@ -18,14 +18,14 @@ void APolyPalsHUD::TryBindToWaveManager()
     AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
     if (!WaveManager)
     {
-        // 아직 WaveManager가 없다면 조금 뒤에 다시 시도
+        // ?꾩쭅 WaveManager媛 ?녿떎硫?議곌툑 ?ㅼ뿉 ?ㅼ떆 ?쒕룄
         GetWorldTimerManager().SetTimer(TimerHandle_FindWaveManager, this, &APolyPalsHUD::TryBindToWaveManager, 1.0f, false);
         return;
     }
 
     bIsWaveManagerBound = true;
 
-    // 위젯 생성
+    // ?꾩젽 ?앹꽦
     if (!GamePlayingWidget && GamePlayingWidgetClass)
     {
         GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
@@ -34,13 +34,13 @@ void APolyPalsHUD::TryBindToWaveManager()
         {
             GamePlayingWidget->AddToViewport();
 
-            // 초기화: 라운드
+            // 珥덇린?? ?쇱슫??
             if (const APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>())
             {
                 GamePlayingWidget->SetRound(GameState->GetRound(), GameState->GetTotalRound());
             }
 
-            // 초기화: 골드
+            // 珥덇린?? 怨⑤뱶
             if (const APlayerController* PC = GetOwningPlayerController())
             {
                 if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
@@ -51,7 +51,7 @@ void APolyPalsHUD::TryBindToWaveManager()
         }
     }
 
-    // 웨이브 정보 주기적 갱신
+    // ?⑥씠釉??뺣낫 二쇨린??媛깆떊
     GetWorldTimerManager().SetTimer(
         TimerHandle_UpdateWaveInfo,
         this,
@@ -72,14 +72,14 @@ void APolyPalsHUD::BeginPlay()
 
     if (GetNetMode() == NM_DedicatedServer)
     {
-        // 서버에서는 UI 생성 X
+        // ?쒕쾭?먯꽌??UI ?앹꽦 X
         return;
     }
 
-    // 게임 시작 시점에 WaveManager가 존재할 수 있으므로 주기적으로 확인
+    // 寃뚯엫 ?쒖옉 ?쒖젏??WaveManager媛 議댁옱?????덉쑝誘濡?二쇨린?곸쑝濡??뺤씤
     GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
 
-    // 디버그용 로그
+    // ?붾쾭洹몄슜 濡쒓렇
     if (GEngine)
     {
         ENetMode NetMode = GetNetMode();

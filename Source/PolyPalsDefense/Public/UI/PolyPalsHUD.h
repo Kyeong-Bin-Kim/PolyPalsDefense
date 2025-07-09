@@ -7,9 +7,9 @@
 class UGamePlayingUIWidget;
 
 /**
- * 게임 플레이 중 표시되는 HUD 클래스
- * - 게임 시작 시 HUD 위젯을 화면에 표시
- * - 게임 내 수치 변경 시 위젯에 정보 전달
+ * 寃뚯엫 ?뚮젅??以??쒖떆?섎뒗 HUD ?대옒??
+ * - 寃뚯엫 ?쒖옉 ??HUD ?꾩젽???붾㈃???쒖떆
+ * - 寃뚯엫 ???섏튂 蹂寃????꾩젽???뺣낫 ?꾨떖
  */
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsHUD : public AHUD
@@ -17,11 +17,11 @@ class POLYPALSDEFENSE_API APolyPalsHUD : public AHUD
     GENERATED_BODY()
 
 public:
-    // 골드가 변경될 때 호출
+    // 怨⑤뱶媛 蹂寃쎈맆 ???몄텧
     UFUNCTION()
     void UpdateGoldOnUI(int32 NewGold);
 
-    // 웨이브 관련 정보 갱신
+    // ?⑥씠釉?愿???뺣낫 媛깆떊
     UFUNCTION()
     void UpdateWaveInfoOnUI();
 
@@ -29,32 +29,32 @@ protected:
     virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
-    // 위젯 클래스 (WBP_GamePlaying)
+    // ?꾩젽 ?대옒??(WBP_GamePlaying)
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
     TSubclassOf<UGamePlayingUIWidget> GamePlayingWidgetClass;
 
 private:
-    // 생성된 위젯 인스턴스
+    // ?앹꽦???꾩젽 ?몄뒪?댁뒪
     UPROPERTY()
     UGamePlayingUIWidget* GamePlayingWidget;
 
-    // 정기 갱신용 타이머
+    // ?뺢린 媛깆떊????대㉧
     UPROPERTY()
     FTimerHandle TimerHandle_UpdateWaveInfo;
 
-    /** WaveManager가 스폰될 때까지 주기적으로 탐색 */
+    /** WaveManager媛 ?ㅽ룿???뚭퉴吏 二쇨린?곸쑝濡??먯깋 */
     UPROPERTY()
     FTimerHandle TimerHandle_FindWaveManager;
 
-    /** WaveManager 바인딩 시도 함수 */
+    /** WaveManager 諛붿씤???쒕룄 ?⑥닔 */
     void TryBindToWaveManager();
 
     bool bIsWaveManagerBound = false;
 
-    /** 다음 웨이브 시작 타임스탬프 */
+    /** ?ㅼ쓬 ?⑥씠釉??쒖옉 ??꾩뒪?ы봽 */
     float NextWaveTargetTimestamp = -1.f;
 
 public:
-    // 외부에서 위젯 접근 시 사용
+    // ?몃??먯꽌 ?꾩젽 ?묎렐 ???ъ슜
     FORCEINLINE UGamePlayingUIWidget* GetGamePlayingWidget() const { return GamePlayingWidget; }
 };

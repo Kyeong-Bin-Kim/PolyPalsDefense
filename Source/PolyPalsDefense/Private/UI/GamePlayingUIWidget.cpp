@@ -1,16 +1,17 @@
 #include "UI/GamePlayingUIWidget.h"
+#include "PolyPalsGamePawn.h"
+#include "Components/PolyPalsGamePawn/BuildTowerComponent.h"
 #include "Components/TextBlock.h"
 #include "Components/HorizontalBox.h"
 #include "Components/Button.h"
 #include "PolyPalsController.h"
-#include "Components/PolyPalsController/PolyPalsInputComponent.h"
 #include "Engine/Engine.h"
 
 void UGamePlayingUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // ¹öÆ° ¹ÙÀÎµù
+    // ë²„íŠ¼ ë°”ì¸ë”©
     if (ToggleTowerButton)
     {
         UE_LOG(LogTemp, Log, TEXT("ToggleTowerButton bound"));
@@ -51,7 +52,7 @@ void UGamePlayingUIWidget::NativeConstruct()
         UE_LOG(LogTemp, Warning, TEXT("Tower3Button is null"));
     }
 
-    // ÃÊ±â¿¡´Â Å¸¿ö ÆÐ³Î ¼û±è
+    // ì´ˆê¸°ì—ëŠ” íƒ€ì›Œ íŒ¨ë„ ìˆ¨ê¹€
     if (TowerIconsBox)
     {
         TowerIconsBox->SetVisibility(ESlateVisibility::Collapsed);
@@ -114,12 +115,9 @@ void UGamePlayingUIWidget::OnTower1ButtonClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Tower1Button clicked"));
 
-    if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
+    if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
-        {
-            InputComp->OnInputTower1.ExecuteIfBound();
-        }
+        PC->BeginSelectTower(1);
     }
 }
 
@@ -127,12 +125,9 @@ void UGamePlayingUIWidget::OnTower2ButtonClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Tower2Button clicked"));
 
-    if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
+    if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
-        {
-            InputComp->OnInputTower2.ExecuteIfBound();
-        }
+        PC->BeginSelectTower(2);
     }
 }
 
@@ -140,11 +135,8 @@ void UGamePlayingUIWidget::OnTower3ButtonClicked()
 {
     UE_LOG(LogTemp, Log, TEXT("Tower3Button clicked"));
 
-    if (APolyPalsController* Controller = Cast<APolyPalsController>(GetOwningPlayer()))
+    if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
-        if (UPolyPalsInputComponent* InputComp = Controller->GetPolyPalsInputComponent())
-        {
-            InputComp->OnInputTower3.ExecuteIfBound();
-        }
+        PC->BeginSelectTower(3);
     }
 }

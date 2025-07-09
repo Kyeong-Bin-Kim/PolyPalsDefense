@@ -12,13 +12,13 @@ void ULobbyUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // 퇴장 버튼 바인딩
+    // ?댁옣 踰꾪듉 諛붿씤??
     if (ExitGame)
     {
         ExitGame->OnClicked.AddDynamic(this, &ULobbyUIWidget::OnExitGameClicked);
     }
 
-    // PlayerSlotBox 안의 PlayerSlot들을 모두 수집
+    // PlayerSlotBox ?덉쓽 PlayerSlot?ㅼ쓣 紐⑤몢 ?섏쭛
     if (PlayerSlotBox)
     {
         for (UWidget* Child : PlayerSlotBox->GetAllChildren())
@@ -46,7 +46,7 @@ void ULobbyUIWidget::SetRoomTitle(const FString& InRoomTitle)
 {
     if (RoomTitleText)
     {
-        FString RoomName = FString::Printf(TEXT("%s's ROOM"), *InRoomTitle);
+        FString RoomName = FString::Printf(TEXT("%s's Room"), *InRoomTitle);
         RoomTitleText->SetText(FText::FromString(RoomName));
     }
 }
@@ -80,7 +80,7 @@ void ULobbyUIWidget::UpdatePlayerSlotReadyState(APolyPalsPlayerState* PlayerStat
         }
     }
 
-    // 총 준비 수 텍스트 갱신
+    // 珥?以鍮????띿뒪??媛깆떊
     if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
     {
         int32 ReadyCount = GS->GetReadyPlayers();

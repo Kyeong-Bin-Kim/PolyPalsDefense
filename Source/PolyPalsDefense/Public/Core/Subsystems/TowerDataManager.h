@@ -8,9 +8,9 @@
 #include "DataAsset/Tower/TowerStructs.h"
 #include "TowerDataManager.generated.h"
 
-
 class UTowerMaterialData;
 class UTowerPropertyData;
+
 UCLASS()
 class POLYPALSDEFENSE_API UTowerDataManager : public UWorldSubsystem
 {

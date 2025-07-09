@@ -15,11 +15,11 @@ class POLYPALSDEFENSE_API UTowerUpgradeWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	// Å¸¿ö Á¤º¸ µî·Ï ÇÔ¼ö
+	// íƒ€ì›Œ ì •ë³´ ë“±ë¡ í•¨ìˆ˜
 	void SetTargetTower(APlacedTower* InTower);
 
 protected:
-	// ¹öÆ° Å¬¸¯ Ã³¸®
+	// ë²„íŠ¼ í´ë¦­ ì²˜ë¦¬
 	UFUNCTION()
 	void OnUpgradeClicked();
 
@@ -27,7 +27,7 @@ protected:
 	UButton* UpgradeButton;
 
 private:
-	// ÇöÀç ¾÷±×·¹ÀÌµå ´ë»ó Å¸¿ö
+	// í˜„ì¬ ì—…ê·¸ë ˆì´ë“œ ëŒ€ìƒ íƒ€ì›Œ
 	UPROPERTY()
 	APlacedTower* TargetTower;
 };

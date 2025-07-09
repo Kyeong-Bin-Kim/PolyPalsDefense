@@ -24,7 +24,7 @@ public:
     UFUNCTION()
     void NotifyWaveInfoChanged();
 
-    // 리플리케이션 설정
+    // 由ы뵆由ъ??댁뀡 ?ㅼ젙
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -36,7 +36,7 @@ protected:
     UFUNCTION()
     void HandleGameOver();
 
-    // 리플리케이션 동기화 콜백
+    // 由ы뵆由ъ??댁뀡 ?숆린??肄쒕갚
     UFUNCTION()
     void OnRep_PlayerLife();
 
@@ -45,7 +45,7 @@ protected:
 
 
 public:
-    // === UI용 Getter ===
+    // === UI??Getter ===
     UFUNCTION(BlueprintPure, Category = "Wave|UI")
     int32 GetRemainingLives() const { return PlayerLife; }
 
@@ -103,7 +103,7 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Wave")
     float RoundDuration = 60.f;
 
-    // 클라이언트 동기화를 위한 리플리케이션 설정
+    // ?대씪?댁뼵???숆린?붾? ?꾪븳 由ы뵆由ъ??댁뀡 ?ㅼ젙
     UPROPERTY(ReplicatedUsing = OnRep_PlayerLife, VisibleAnywhere, Category = "Game")
     int32 PlayerLife = 50;
 

@@ -17,7 +17,7 @@ void UEnemyPoolComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    // 서버 권한이 아니면 풀링 로직 스킵
+    // ?쒕쾭 沅뚰븳???꾨땲硫??留?濡쒖쭅 ?ㅽ궢
     if (!GetOwner() || !GetOwner()->HasAuthority())
         return;
 }
@@ -26,23 +26,23 @@ AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, US
 {
     AEnemyPawn* EnemyPawn = nullptr;
 
-    // 풀에 남은 인스턴스가 있으면 재활용
+    // ????⑥? ?몄뒪?댁뒪媛 ?덉쑝硫??ы솢??
     if (EnemyPool.Contains(AssetId) && EnemyPool[AssetId].Num() > 0)
     {
         EnemyPawn = EnemyPool[AssetId].Pop();
 
-        // 재활용 시에도 완전 초기화
+        // ?ы솢???쒖뿉???꾩쟾 珥덇린??
         EnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {
-        // 풀에 없으면 새로 생성
+        // ????놁쑝硫??덈줈 ?앹꽦
         EnemyPawn = CreateNewEnemy(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, bIsBoss, Scale);
     }
 
     if (EnemyPawn)
     {
-        // 상태 활성화 처리 (가시성/충돌/틱 포함)
+        // ?곹깭 ?쒖꽦??泥섎━ (媛?쒖꽦/異⑸룎/???ы븿)
         EnemyPawn->SetIsActive(true);
     }
 
@@ -54,10 +54,10 @@ void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
     if (!Enemy)
         return;
 
-    // 상태 비활성화 처리 (가시성/충돌/틱 포함)
+    // ?곹깭 鍮꾪솢?깊솕 泥섎━ (媛?쒖꽦/異⑸룎/???ы븿)
     Enemy->SetIsActive(false);
 
-    // 풀에 반환
+    // ???諛섑솚
     if (UEnemyDataAsset* Data = Enemy->GetEnemyData())
     {
         EnemyPool.FindOrAdd(Data->GetPrimaryAssetId()).Add(Enemy);

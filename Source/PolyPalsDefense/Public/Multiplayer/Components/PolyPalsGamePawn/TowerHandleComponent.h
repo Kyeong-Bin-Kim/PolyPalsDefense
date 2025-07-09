@@ -7,41 +7,37 @@
 #include "DataAsset/Tower/TowerEnums.h"
 #include "TowerHandleComponent.generated.h"
 
-class APolyPalsGamePawn;
-class APolyPalsController;
-class UBuildTowerComponent;
 class APlacedTower;
+class UTowerUpgradeWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYPALSDEFENSE_API UTowerHandleComponent : public UActorComponent
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-public:	
-	UTowerHandleComponent();
+public:
+    UTowerHandleComponent();
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-public:	
-	//virtual void InitializeComponent() override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+public:
+    /**
+     * 월드 클릭(RPC나 InputComponent 에서 호출) 시,
+     * 클릭된 타워의 업그레이드 위젯을 토글합니다.
+     */
+    void HandleLeftClick();
+
+protected:
+    // 업그레이드 UI를 표시할 위젯 클래스
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UTowerUpgradeWidget> TowerUpgradeWidgetClass;
 
 private:
-	UFUNCTION()
-	void ClientOnInputClick();
+    UPROPERTY()
+    UTowerUpgradeWidget* UpgradeWidgetInstance = nullptr;
 
-	void SetBuildState(EBuildState InState) { BuildState = InState; }
-
-private:
-	UPROPERTY(Replicated)
-	TObjectPtr<APolyPalsController> PolyPalsController;
-	UPROPERTY()
-	TObjectPtr<APlacedTower> FocusedTower;
-
-	EBuildState BuildState;
-	
-	friend APolyPalsGamePawn;
-	friend UBuildTowerComponent;
+    // 마지막으로 포커스된 타워 포인터
+    UPROPERTY()
+    APlacedTower* FocusedTower = nullptr;
 };

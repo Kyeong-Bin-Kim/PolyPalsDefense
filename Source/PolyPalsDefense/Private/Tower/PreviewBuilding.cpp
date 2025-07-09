@@ -69,6 +69,8 @@ void APreviewBuilding::ExteranlInitialize(APolyPalsController* const InControlle
 
 void APreviewBuilding::ShowPreviewBuilding(bool bShow, uint8 InTowerId)
 {
+	UE_LOG(LogTemp, Warning, TEXT("PreviewBuilding:ShowPreviewBuilding"));
+
 	SetActorHiddenInGame(!bShow);
 	SetActorTickEnabled(bShow);
 

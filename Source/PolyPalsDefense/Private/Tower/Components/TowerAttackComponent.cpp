@@ -413,7 +413,7 @@ void UTowerAttackComponent::ClientOnClickedUpgrade()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("업그레이드 실패: 골드가 부족함"));
+			UE_LOG(LogTemp, Log, TEXT("?낃렇?덉씠???ㅽ뙣: 怨⑤뱶媛 遺議깊븿"));
 			OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
 		}
 

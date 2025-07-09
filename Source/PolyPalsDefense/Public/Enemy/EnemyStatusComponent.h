@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "EnemyStatusComponent.generated.h"
 
-// 사망 이벤트
+// ?щ쭩 ?대깽??
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyDied);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -15,15 +15,15 @@ class POLYPALSDEFENSE_API UEnemyStatusComponent : public UActorComponent
 public:
     UEnemyStatusComponent();
 
-    // 초기화
+    // 珥덇린??
     void Initialize(float InMaxHealth, float InBaseMoveSpeed);
 
-    // 데미지 및 상태 이상
+    // ?곕?吏 諛??곹깭 ?댁긽
     void TakeDamage(float DamageAmount);
     void ApplyStun(float Duration);
     void ApplySlow(float Ratio, float Duration);
 
-    // === Getter (UI 연동용) ===
+    // === Getter (UI ?곕룞?? ===
     float GetCurrentHealth() const { return CurrentHealth; }
     float GetMaxHealth() const { return MaxHealth; }
     float GetHealthRatio() const { return MaxHealth > 0.f ? CurrentHealth / MaxHealth : 0.f; }
@@ -34,7 +34,7 @@ public:
 
     float GetEffectiveMoveSpeed() const;
 
-    // 사망 이벤트 바인딩용
+    // ?щ쭩 ?대깽??諛붿씤?⑹슜
     UPROPERTY(BlueprintAssignable)
     FOnEnemyDied OnEnemyDied;
 
@@ -52,7 +52,7 @@ private:
     void ClearStun();
     void ClearSlow();
 
-    // === 상태 데이터 ===
+    // === ?곹깭 ?곗씠??===
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere)
     float CurrentHealth;
 

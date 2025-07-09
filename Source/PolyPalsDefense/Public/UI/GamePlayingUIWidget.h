@@ -9,8 +9,8 @@ class UHorizontalBox;
 class UButton;
 
 /**
- * ½ÇÁ¦ °ÔÀÓÇÃ·¹ÀÌ Áß UI¸¦ ´ã´çÇÏ´Â À§Á¬ Å¬·¡½º
- * (»ı¸í, °ñµå, ¶ó¿îµå, Àû ¼ö, ¿şÀÌºê ½Ã°£, Å¸¿ö ¹öÆ° ÆĞ³Î µî)
+ * ì‹¤ì œ ê²Œì„í”Œë ˆì´ ì¤‘ UIë¥¼ ë‹´ë‹¹í•˜ëŠ” ìœ„ì ¯ í´ë˜ìŠ¤
+ * (ìƒëª…, ê³¨ë“œ, ë¼ìš´ë“œ, ì  ìˆ˜, ì›¨ì´ë¸Œ ì‹œê°„, íƒ€ì›Œ ë²„íŠ¼ íŒ¨ë„ ë“±)
  */
 UCLASS()
 class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
@@ -20,31 +20,31 @@ class POLYPALSDEFENSE_API UGamePlayingUIWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
 
-    /** ¶ó¿îµå UI Ç¥½Ã */
+    /** ë¼ìš´ë“œ UI í‘œì‹œ */
     UFUNCTION(BlueprintCallable)
     void SetRound(int32 Current, int32 Total);
 
-    /** °ñµå UI Ç¥½Ã */
+    /** ê³¨ë“œ UI í‘œì‹œ */
     UFUNCTION(BlueprintCallable)
     void SetGold(int32 Gold);
 
-    /** »ı¸í UI Ç¥½Ã */
+    /** ìƒëª… UI í‘œì‹œ */
     UFUNCTION(BlueprintCallable)
     void SetLife(int32 Life);
 
-    /** ³²Àº Àû ¼ö UI Ç¥½Ã */
+    /** ë‚¨ì€ ì  ìˆ˜ UI í‘œì‹œ */
     UFUNCTION(BlueprintCallable)
     void SetEnemiesRemaining(int32 Current, int32 Total);
 
-    /** ´ÙÀ½ ¿şÀÌºê ½Ã°£ UI Ç¥½Ã */
+    /** ë‹¤ìŒ ì›¨ì´ë¸Œ ì‹œê°„ UI í‘œì‹œ */
     UFUNCTION(BlueprintCallable)
     void SetNextWaveTime(float Seconds);
 
-    /** Å¸¿ö ÆĞ³Î ¿­±â/´İ±â ¹öÆ° */
+    /** íƒ€ì›Œ íŒ¨ë„ ì—´ê¸°/ë‹«ê¸° ë²„íŠ¼ */
     UFUNCTION()
     void OnToggleTowerButtonClicked();
 
-    /** Å¸¿ö ¹öÆ° Å¬¸¯ Ã³¸® */
+    /** íƒ€ì›Œ ë²„íŠ¼ í´ë¦­ ì²˜ë¦¬ */
     UFUNCTION()
     void OnTower1ButtonClicked();
 
@@ -55,7 +55,7 @@ public:
     void OnTower3ButtonClicked();
 
 protected:
-    /** À§Á¬ ¹ÙÀÎµù ¿ä¼Òµé */
+    /** ìœ„ì ¯ ë°”ì¸ë”© ìš”ì†Œë“¤ */
     UPROPERTY(meta = (BindWidget))
     UTextBlock* RoundText;
 

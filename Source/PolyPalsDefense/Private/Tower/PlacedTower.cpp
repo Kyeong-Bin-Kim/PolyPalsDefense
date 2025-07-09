@@ -66,11 +66,11 @@ APlacedTower::APlacedTower()
 
 	LevelWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LevelWidgetComponent"));
 	LevelWidgetComponent->SetupAttachment(RootComponent);
-	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // Å¸¿ö ¾Æ·¡ÂÊ
-	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // Å¸¿ö À§ÂÊÀ» ¹Ù¶óº¸µµ·Ï È¸Àü
-	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // ¶Ç´Â World
-	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // Å©±â Á¶Àı
-	LevelWidgetComponent->SetVisibility(true); // ÃÊ±â¿£ ¼û°ÜµÎ±â
+	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // íƒ€ì›Œ ì•„ë˜ìª½
+	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // íƒ€ì›Œ ìœ„ìª½ì„ ë°”ë¼ë³´ë„ë¡ íšŒì „
+	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // ë˜ëŠ” World
+	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // í¬ê¸° ì¡°ì ˆ
+	LevelWidgetComponent->SetVisibility(true); // ì´ˆê¸°ì—” ìˆ¨ê²¨ë‘ê¸°
 
 }
 
@@ -242,7 +242,7 @@ void APlacedTower::SetWidgetHidden(bool bIsDeactice)
 
 void APlacedTower::UpgradeTower()
 {
-	//if (!HasAuthority()) return; // ¼­¹ö¿¡¼­¸¸ Ã³¸®
+	//if (!HasAuthority()) return; // ì„œë²„ì—ì„œë§Œ ì²˜ë¦¬
 
 	if (Level >= MaxLevel)
 	{
@@ -250,22 +250,22 @@ void APlacedTower::UpgradeTower()
 		return;
 	}
 
-	APolyPalsController* PC = Cast<APolyPalsController>(GetOwner()); // ´õ ¾ÈÀüÇÑ ¹æ½Ä
+	APolyPalsController* PC = Cast<APolyPalsController>(GetOwner()); // ë” ì•ˆì „í•œ ë°©ì‹
 	APolyPalsPlayerState* PS = PC ? Cast<APolyPalsPlayerState>(PC->PlayerState) : nullptr;
 
 	if (PS && PS->GetPlayerGold() >= UpgradeCost)
 	{
-		// °ñµå Â÷°¨
+		// ê³¨ë“œ ì°¨ê°
 		PS->AddGold(-UpgradeCost);
 
-		// ·¹º§ Áõ°¡
+		// ë ˆë²¨ ì¦ê°€
 		Level++;
 
-		// ¿ÜÇü º¯°æ ¹× ·¹º§ ÅØ½ºÆ® °»½Å
+		// ì™¸í˜• ë³€ê²½ ë° ë ˆë²¨ í…ìŠ¤íŠ¸ ê°±ì‹ 
 		UpdateTowerAppearance();
 		UpdateLevelText();
 
-		// ·ÎÄÃ Å¬¶óÀÌ¾ğÆ®¶ó¸é HUDµµ °»½Å
+		// ë¡œì»¬ í´ë¼ì´ì–¸íŠ¸ë¼ë©´ HUDë„ ê°±ì‹ 
 		if (PC->IsLocalController())
 		{
 			if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
@@ -294,7 +294,7 @@ void APlacedTower::UpdateLevelText()
 	UTowerLevelWidget* LevelWidget = Cast<UTowerLevelWidget>(LevelWidgetComponent->GetUserWidgetObject());
 	if (LevelWidget)
 	{
-		LevelWidget->UpdateLevelUI(Level); // ÇöÀç Å¸¿ö ·¹º§ Àü´Ş
+		LevelWidget->UpdateLevelUI(Level); // í˜„ì¬ íƒ€ì›Œ ë ˆë²¨ ì „ë‹¬
 	}
 }
 

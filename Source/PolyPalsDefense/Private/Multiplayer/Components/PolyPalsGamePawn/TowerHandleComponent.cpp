@@ -1,63 +1,80 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Multiplayer/Components/PolyPalsGamePawn/TowerHandleComponent.h"
-#include "Multiplayer/PolyPalsGamePawn.h"
-#include "Multiplayer/PolyPalsController.h"
 #include "Tower/PlacedTower.h"
-
+#include "TowerUpgradeWidget.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Engine/OverlapResult.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
 
 UTowerHandleComponent::UTowerHandleComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	//bWantsInitializeComponent = true;
 }
 
 void UTowerHandleComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
 }
 
-void UTowerHandleComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UTowerHandleComponent::HandleLeftClick()
 {
-	//Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+    // 濡쒖뺄 ?뚮젅?댁뼱 而⑦듃濡ㅻ윭 媛?몄삤湲?
+    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
-}
+    if (!PC)
+        return;
 
-void UTowerHandleComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	
-	DOREPLIFETIME_CONDITION(UTowerHandleComponent, PolyPalsController, COND_OwnerOnly);
-}
+    // 而ㅼ꽌 ?꾨옒 ?덊듃 ?뚯뒪??
+    FHitResult Hit;
 
-void UTowerHandleComponent::ClientOnInputClick()
-{
-	//UE_LOG(LogTemp, Log, TEXT("UTowerHandleComponent detected click"));
+    PC->GetHitResultUnderCursor(
+        ECollisionChannel::ECC_GameTraceChannel3,
+        /* bTraceComplex = */ true,
+        Hit);
 
-	if (BuildState == EBuildState::None)
-	{
-		FHitResult HitResult;
-		PolyPalsController->GetHitResultUnderCursor(ECollisionChannel::ECC_GameTraceChannel3, true, HitResult);
-		AActor* ClickedActor = HitResult.GetActor();
-		APlacedTower* ClickedTower = Cast<APlacedTower>(ClickedActor);
-		if (ClickedTower && ClickedTower->GetOwner())
-		{
-			if (FocusedTower)
-				FocusedTower->SetWidgetHidden(true);
-			FocusedTower = ClickedTower;
-			FocusedTower->SetWidgetHidden(false);
-		}
-		else
-		{
-			if (FocusedTower)
-				FocusedTower->SetWidgetHidden(true);
-		}
-	}
+    // ???罹먯뒪??諛??뚯쑀沅?寃??
+    APlacedTower* ClickedTower = Cast<APlacedTower>(Hit.GetActor());
+
+    if (ClickedTower && ClickedTower->GetOwner() == PC)
+    {
+        // ?댁쟾 ?좉? ?④린湲?
+        if (FocusedTower)
+            FocusedTower->SetWidgetHidden(true);
+
+        FocusedTower = ClickedTower;
+        FocusedTower->SetWidgetHidden(false);
+
+        // ?낃렇?덉씠???꾩젽 ?앹꽦/?좉?
+        if (UpgradeWidgetInstance)
+        {
+            UpgradeWidgetInstance->RemoveFromParent();
+            UpgradeWidgetInstance = nullptr;
+        }
+        if (TowerUpgradeWidgetClass)
+        {
+            UpgradeWidgetInstance = CreateWidget<UTowerUpgradeWidget>(PC, TowerUpgradeWidgetClass);
+            if (UpgradeWidgetInstance)
+            {
+                UpgradeWidgetInstance->SetTargetTower(FocusedTower);
+                UpgradeWidgetInstance->AddToViewport();
+            }
+        }
+    }
+    else
+    {
+        // ???諛붽묑???대┃?섎㈃ 湲곗〈 ?좉? ?④린湲?
+        if (FocusedTower)
+        {
+            FocusedTower->SetWidgetHidden(true);
+            FocusedTower = nullptr;
+        }
+        if (UpgradeWidgetInstance)
+        {
+            UpgradeWidgetInstance->RemoveFromParent();
+            UpgradeWidgetInstance = nullptr;
+        }
+    }
 }
 

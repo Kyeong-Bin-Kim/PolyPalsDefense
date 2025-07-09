@@ -23,140 +23,140 @@ class POLYPALSDEFENSE_API AEnemyPawn : public APawn
 public:
     AEnemyPawn();
 
-    // 월드에 스폰될 때 초기화 작업
+    // ?붾뱶???ㅽ룿????珥덇린???묒뾽
     virtual void BeginPlay() override;
 
-    // 데이터 에셋으로 초기화
+    // ?곗씠???먯뀑?쇰줈 珥덇린??
     void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
     void RewardGoldToPlayer();
 
-    // AssetManager로부터 에셋 ID로 초기화
+    // AssetManager濡쒕????먯뀑 ID濡?珥덇린??
     void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
-    // 외부에서 데미지 적용 요청시 사용할 중개 함수
+    // ?몃??먯꽌 ?곕?吏 ?곸슜 ?붿껌???ъ슜??以묎컻 ?⑥닔
     UFUNCTION(BlueprintCallable, Category = "Enemy")
     void ReceiveDamage(float DamageAmount);
 
-    // 보스 여부
+    // 蹂댁뒪 ?щ?
     bool IsBoss() const;
 
-    // 슬로우 상태 적용
+    // ?щ줈???곹깭 ?곸슜
     void ApplySlow(float Ratio, float Duration);
 
-    // 스턴 상태 적용
+    // ?ㅽ꽩 ?곹깭 ?곸슜
     void ApplyStun(float Duration);
 
-    // 목표 지점 도달 시 호출
+    // 紐⑺몴 吏???꾨떖 ???몄텧
     void ReachGoal();
 
-    // 생명력이 0이 되었을 때 처리
+    // ?앸챸?μ씠 0???섏뿀????泥섎━
     UFUNCTION()
     void HandleEnemyDeath();
 
-    // 활성화 상태 설정 및 복제 트리거
+    // ?쒖꽦???곹깭 ?ㅼ젙 諛?蹂듭젣 ?몃━嫄?
     void SetIsActive(bool bNewActive);
 
-    // 현재 활성화 상태 조회
+    // ?꾩옱 ?쒖꽦???곹깭 議고쉶
     bool GetIsActive() const;
 
-    // 에너미 데이터 설정
+    // ?먮꼫誘??곗씠???ㅼ젙
     void SetEnemyData(UEnemyDataAsset* InData);
 
-    // 현재 에너미 데이터 조회
+    // ?꾩옱 ?먮꼫誘??곗씠??議고쉶
     UEnemyDataAsset* GetEnemyData() const;
 
 public:
-    // === UI용 Getter ===
-    // 최대 체력
+    // === UI??Getter ===
+    // 理쒕? 泥대젰
     float GetMaxHealth() const;
 
-    // 현재 체력
+    // ?꾩옱 泥대젰
     float GetHealth() const;
 
-    // 슬로우 상태 여부
+    // ?щ줈???곹깭 ?щ?
     bool IsStunned() const;
 
-	// 스턴 상태 여부
+	// ?ㅽ꽩 ?곹깭 ?щ?
     bool IsSlowed() const;
 
 protected:
-    // 복제된 활성화 상태 반응
+    // 蹂듭젣???쒖꽦???곹깭 諛섏쓳
     UFUNCTION()
     void OnRep_IsActive();
 
-    // 복제된 데이터 자산 반응
+    // 蹂듭젣???곗씠???먯궛 諛섏쓳
     UFUNCTION()
     void OnRep_EnemyData();
 
-	// 복제된 구체 콜리전 반응
+	// 蹂듭젣??援ъ껜 肄쒕━??諛섏쓳
     UFUNCTION()
     void OnRep_Scale();
 
-	// 복제된 이동 속도 반응
+	// 蹂듭젣???대룞 ?띾룄 諛섏쓳
     UFUNCTION()
     void OnRep_MoveSpeed();
 
-    // 복제 등록
+    // 蹂듭젣 ?깅줉
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-    // === 컴포넌트 ===
+    // === 而댄룷?뚰듃 ===
 
-    // 루트 컴포넌트
+    // 猷⑦듃 而댄룷?뚰듃
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USceneComponent* Root;
 
-    // 스켈레탈 메시 (시각, 애니메이션)
+    // ?ㅼ펷?덊깉 硫붿떆 (?쒓컖, ?좊땲硫붿씠??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USkeletalMeshComponent* Mesh;
 
-    // 구체 콜리전
+    // 援ъ껜 肄쒕━??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USphereComponent* CollisionSphere;
 
-    // 방향 표시용 화살표
+    // 諛⑺뼢 ?쒖떆???붿궡??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UArrowComponent* DirectionIndicator;
 
-    // 스플라인 이동 처리
+    // ?ㅽ뵆?쇱씤 ?대룞 泥섎━
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemySplineMovementComponent* SplineMovement;
 
-    // 체력, 슬로우, 스턴 상태 관리
+    // 泥대젰, ?щ줈?? ?ㅽ꽩 ?곹깭 愿由?
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyStatusComponent* Status;
 
-    // 체력바
+    // 泥대젰諛?
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<class UEnemyHealthBarWidget> EnemyHealthBarWidgetClass;
 
-    // 메시 회전 기본값
+    // 硫붿떆 ?뚯쟾 湲곕낯媛?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
 
-    // 구체 콜리전 반지름
+    // 援ъ껜 肄쒕━??諛섏?由?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	float SphereRadius = 120.f;
 
-    // === 복제 상태 ===
+    // === 蹂듭젣 ?곹깭 ===
 
-    // 풀링 활성화 여부
+    // ?留??쒖꽦???щ?
     UPROPERTY(ReplicatedUsing = OnRep_IsActive)
     bool bIsActive;
 
-    // 에셋 데이터 (메시, 애니메이션 포함)
+    // ?먯뀑 ?곗씠??(硫붿떆, ?좊땲硫붿씠???ы븿)
     UPROPERTY(ReplicatedUsing = OnRep_EnemyData)
     UEnemyDataAsset* EnemyData;
 
-    // 메시 크기
+    // 硫붿떆 ?ш린
     UPROPERTY(ReplicatedUsing = OnRep_Scale)
     FVector ReplicatedScale;
 
-    // 이동속도
+    // ?대룞?띾룄
     UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
     float ReplicatedMoveSpeed;
 
-    // 보스 여부
+    // 蹂댁뒪 ?щ?
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     bool bIsBoss = false;
 public:
@@ -165,6 +165,6 @@ public:
     UWidgetComponent* HealthBarWidget;
 
 private:
-    // 실시간 스탯 (체력, 속도 등)
+    // ?ㅼ떆媛??ㅽ꺈 (泥대젰, ?띾룄 ??
     FEnemyRuntimeStats RuntimeStats;
 };

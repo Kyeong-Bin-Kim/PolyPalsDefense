@@ -22,11 +22,9 @@ class POLYPALSDEFENSE_API APlacedTower : public AActor
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	APlacedTower();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:

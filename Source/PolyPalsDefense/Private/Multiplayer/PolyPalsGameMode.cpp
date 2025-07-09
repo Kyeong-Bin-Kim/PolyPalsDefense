@@ -10,7 +10,7 @@ APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
 
-	// 기본 스테이지-맵 매핑 설정
+	// 湲곕낯 ?ㅽ뀒?댁?-留?留ㅽ븨 ?ㅼ젙
 	StageMapPaths.Add(TEXT("Dirt"), TEXT("DirtStage"));
 	StageMapPaths.Add(TEXT("Snow"), TEXT("SnowStage"));
 }
@@ -58,7 +58,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (!NewPlayer->IsLocalController()) // 클라이언트만 처리
+	if (!NewPlayer->IsLocalController()) // ?대씪?댁뼵?몃쭔 泥섎━
 	{
 		UE_LOG(LogTemp, Log, TEXT("Client entered"));
 
@@ -69,18 +69,18 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 				PreparedColors.RemoveAt(0);
 
-				// 1) 현재 GameState 가져오기
+				// 1) ?꾩옱 GameState 媛?몄삤湲?
 				APolyPalsState* GS = GetGameState<APolyPalsState>();
 
-				// 2) PlayerState 포인터 캐시
+				// 2) PlayerState ?ъ씤??罹먯떆
 				APlayerState* PS = NewPlayer->PlayerState;
 
-				// 3) GameState와 PlayerState가 모두 유효할 때만 진행
+				// 3) GameState? PlayerState媛 紐⑤몢 ?좏슚???뚮쭔 吏꾪뻾
 				FString HostName;
 
 				if (GS)
 				{
-					if (ConnectedPlayers == 0)  // 첫 번째 접속자면 호스트
+					if (ConnectedPlayers == 0)  // 泥?踰덉㎏ ?묒냽?먮㈃ ?몄뒪??
 					{
 						HostName = NewPlayer->PlayerState->GetPlayerName();
 						GS->SetLobbyName(HostName);
@@ -90,7 +90,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 						HostName = GS->GetLobbyName();
 					}
 
-					// 4) 클라이언트에 RPC 호출 (StageName/LobbyName 포함)
+					// 4) ?대씪?댁뼵?몄뿉 RPC ?몄텧 (StageName/LobbyName ?ы븿)
 					ProjectController->Client_ShowLobbyUI(HostName, GS->GetSelectedStage(), GS->GetLobbyName());
 				}
 				else
@@ -101,19 +101,19 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
-	// 1. SlotIndex 부여
+	// 1. SlotIndex 遺??
 	if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 	{
-		PS->SetSlotIndex(ConnectedPlayers); // GameState에 등록되기 전 ConnectedPlayers 기준
+		PS->SetSlotIndex(ConnectedPlayers); // GameState???깅줉?섍린 ??ConnectedPlayers 湲곗?
 		UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
 	}
 
-	// 2. 접속자 수 증가
+	// 2. ?묒냽????利앷?
 	ConnectedPlayers++;
 
 	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
-	// 3. GameState 바인딩 (첫 플레이어일 때만)
+	// 3. GameState 諛붿씤??(泥??뚮젅?댁뼱???뚮쭔)
 	if (ConnectedPlayers == 1)
 	{
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
@@ -123,7 +123,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
-	// 4. GameState에 접속자 수 반영
+	// 4. GameState???묒냽????諛섏쁺
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		GS->UpdateConnectedPlayers(ConnectedPlayers);
@@ -153,13 +153,13 @@ void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	// 게임 시작 후 모든 플레이어에게 초기 골드 지급
+	// 寃뚯엫 ?쒖옉 ??紐⑤뱺 ?뚮젅?댁뼱?먭쾶 珥덇린 怨⑤뱶 吏湲?
 	DistributeStartingGold();
 }
 
 void APolyPalsGameMode::TriggerGameOver()
 {
-	// GameState를 PolyPalsState로 캐스트하여 SetGameOver 호출
+	// GameState瑜?PolyPalsState濡?罹먯뒪?명븯??SetGameOver ?몄텧
 	AGameStateBase* GS = GameState;
 	if (APolyPalsState* PState = Cast<APolyPalsState>(GS))
 	{
@@ -195,9 +195,9 @@ void APolyPalsGameMode::DistributeStartingGold()
 
 void APolyPalsGameMode::HandleAllPlayersReady()
 {
-	UE_LOG(LogTemp, Log, TEXT("[GameMode] 모든 플레이어 준비 완료! %f초 뒤 게임 시작"), StartCountdownTime);
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] 紐⑤뱺 ?뚮젅?댁뼱 以鍮??꾨즺! %f珥???寃뚯엫 ?쒖옉"), StartCountdownTime);
 
-	// 카운트다운 후 게임 시작
+	// 移댁슫?몃떎????寃뚯엫 ?쒖옉
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 	{
 		StartGameAfterCountdown();
@@ -210,7 +210,7 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 	{
-		//맵으로 이동하여 게임 시작
+		//留듭쑝濡??대룞?섏뿬 寃뚯엫 ?쒖옉
 		APolyPalsState* GS = GetGameState<APolyPalsState>();
 
 		if (GS)
@@ -235,15 +235,15 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 void APolyPalsGameMode::HandleStateGameOver()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 게임 오버 처리 시작"));
+	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 寃뚯엫 ?ㅻ쾭 泥섎━ ?쒖옉"));
 
-	// 빈 맵으로 복귀
+	// 鍮?留듭쑝濡?蹂듦?
 	GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)
 {
-	DecreaseRemainingEnemyCount(); // 남은 적 수 감소
+	DecreaseRemainingEnemyCount(); // ?⑥? ????媛먯냼
 }
 
 int32 APolyPalsGameMode::CalculateStartingGold(int32 PlayerCount) const

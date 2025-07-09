@@ -17,15 +17,15 @@ public:
         return FPrimaryAssetId("EnemyDataAsset", GetFName());
     }
 
-    // 전투 능력치
+    // ?꾪닾 ?λ젰移?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyStatData Stats;
 
-    // 보상 및 패널티
+    // 蹂댁긽 諛??⑤꼸??
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyRewardData Reward;
 
-    // 시각적 연출
+    // ?쒓컖???곗텧
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyVisualData Visual;
 };

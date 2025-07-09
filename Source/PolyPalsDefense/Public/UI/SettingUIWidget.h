@@ -14,7 +14,7 @@ public:
     virtual void NativeConstruct() override;
 
 protected:
-    // 예시로 볼륨 조절용 슬라이더와 종료 버튼
+    // ?덉떆濡?蹂쇰ⅷ 議곗젅???щ씪?대뜑? 醫낅즺 踰꾪듉
     UPROPERTY(meta = (BindWidget))
     class USlider* MasterVolumeSlider;
 

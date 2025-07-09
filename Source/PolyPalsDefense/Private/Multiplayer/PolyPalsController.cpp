@@ -3,16 +3,17 @@
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
 #include "PolyPalsGamePawn.h"
-#include "PolyPalsController/PolyPalsInputComponent.h"
+#include "PolyPalsGameInstance.h"
+#include "EnhancedInputComponent.h"
 #include "PolyPalsController/GamePawnComponent.h"
+#include "PolyPalsController/PolyPalsInputComponent.h"
 #include "PolyPalsGamePawn/BuildTowerComponent.h"
+#include "PolyPalsGamePawn/TowerHandleComponent.h"
 #include "MainUIWidget.h"
 #include "StageSelectUIWidget.h"
-#include "PolyPalsGameInstance.h"
 #include "LobbyListWidget.h"
 #include "LobbyUIWidget.h"
 #include "UObject/ConstructorHelpers.h"
-#include "InputConfig.h"
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
@@ -24,15 +25,8 @@
 
 APolyPalsController::APolyPalsController()
 {
-	PolyPalsInputComponent = CreateDefaultSubobject<UPolyPalsInputComponent>(TEXT("PolyPalsInputComponent"));
 	GamePawnComponent = CreateDefaultSubobject<UGamePawnComponent>(TEXT("GamePawnComponent"));
 	GamePawnComponent->SetIsReplicated(true);
-}
-
-void APolyPalsController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-	PolyPalsInputComponent->SetupEnhancedInput(this);
 }
 
 void APolyPalsController::BeginPlay()
@@ -49,7 +43,7 @@ void APolyPalsController::BeginPlay()
 
 	if (MapName.Equals(TEXT("EmptyLevel")))
 	{
-		// 1) ÀÌ¹Ì ¼¼¼Ç¿¡ Âü°¡µÈ »óÅÂÀÎÁö Ã¼Å©
+		// 1) ì´ë¯¸ ì„¸ì…˜ì— ì°¸ê°€ëœ ìƒíƒœì¸ì§€ ì²´í¬
 		bool bInSession = false;
 
 		if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
@@ -64,11 +58,11 @@ void APolyPalsController::BeginPlay()
 
 		if (bInSession)
 		{
-			ShowLobbyUI();   // ³×Æ®¿öÅ© ¿¬°á Á÷ÈÄ
+			ShowLobbyUI();   // ë„¤íŠ¸ì›Œí¬ ì—°ê²° ì§í›„
 		}
 		else
 		{
-			ShowMainUI();    // ÃÖÃÊ ½ÇÇà ½Ã ¸ŞÀÎ ¸Ş´º
+			ShowMainUI();    // ìµœì´ˆ ì‹¤í–‰ ì‹œ ë©”ì¸ ë©”ë‰´
 		}
 	}
 	else
@@ -86,9 +80,9 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void APolyPalsController::InitializeAndShowLobbyUI(FName InStageName, const FString& HostName)
 {
-	ShowLobbyUI();								// UI º¸ÀÌ±â + RefreshLobbyUI
-	ConfigureLobbyUI(InStageName, HostName);	// ¹æ Á¦¸ñ, ½ºÅ×ÀÌÁö ¼¼ÆÃ
-	RefreshLobbyUI();							// ¼ıÀÚ¡¤½½·Ô Àç°»½Å
+	ShowLobbyUI();								// UI ë³´ì´ê¸° + RefreshLobbyUI
+	ConfigureLobbyUI(InStageName, HostName);	// ë°© ì œëª©, ìŠ¤í…Œì´ì§€ ì„¸íŒ…
+	RefreshLobbyUI();							// ìˆ«ìÂ·ìŠ¬ë¡¯ ì¬ê°±ì‹ 
 }
 
 void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName)
@@ -132,7 +126,7 @@ void APolyPalsController::Server_SetReady_Implementation(bool bReady)
 	}
 }
 
-void APolyPalsController::SetPlayerColor(EPlayerColor InColor) { 
+void APolyPalsController::SetPlayerColor(EPlayerColor InColor) {
 	uint8 EnumToInt = static_cast<uint8>(InColor);
 	UE_LOG(LogTemp, Log, TEXT("APolyPalsController: Player color set to: %d"), EnumToInt);
 	PlayerColor = InColor; 
@@ -165,7 +159,7 @@ void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance°¡ ¾ø½À´Ï´Ù. Ready »óÅÂ¸¦ UI¿¡ ¹İ¿µÇÒ ¼ö ¾ø½À´Ï´Ù."));
+		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstanceê°€ ì—†ìŠµë‹ˆë‹¤. Ready ìƒíƒœë¥¼ UIì— ë°˜ì˜í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."));
 	}
 }
 
@@ -181,11 +175,11 @@ void APolyPalsController::RefreshLobbyUI()
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// ¹æ Á¦¸ñ, ½ºÅ×ÀÌÁöµµ °»½Å
+		// ë°© ì œëª©, ìŠ¤í…Œì´ì§€ë„ ê°±ì‹ 
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// ±âÁ¸ ·ÎÁ÷: Á¢¼Ó/ÁØºñ ¼ö, ½½·Ô °»½Å
+		// ê¸°ì¡´ ë¡œì§: ì ‘ì†/ì¤€ë¹„ ìˆ˜, ìŠ¬ë¡¯ ê°±ì‹ 
 		LobbyUIInstance->UpdateLobbyInfo(GS->GetConnectedPlayers(), GS->GetReadyPlayers(), GS->GetSelectedStage(), HasAuthority());
 
 		LobbyUIInstance->RefreshPlayerSlots(GS->PlayerArray);
@@ -343,6 +337,100 @@ void APolyPalsController::LeaveLobby()
 	ShowMainUI();
 }
 
+void APolyPalsController::BeginSelectTower(int32 TowerIndex)
+{
+	PendingTowerIndex = TowerIndex;
+
+	if (APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(GetPawn()))
+	{
+		if (UBuildTowerComponent* BuildComp = MyPawn->GetBuildTowerComponent())
+		{
+			UE_LOG(LogTemp, Log, TEXT("PolyPalsController BeginSelectTower TowerIndex = %d"), TowerIndex);
+
+			BuildComp->ClientBeginSelectTower(static_cast<uint8>(TowerIndex));
+		}
+	}
+}
+
+void APolyPalsController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (!IsLocalController()) return;
+
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
+
+	UE_LOG(LogTemp, Warning, TEXT(">>> OnPossess called, has UPolyPalsInputComponent=%s"), FindComponentByClass<UPolyPalsInputComponent>() ? TEXT("YES") : TEXT("NO"));
+
+	// EnhancedInput ì„¸íŒ…
+	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
+	{
+		// ë°”ì¸ë”© ì¤‘ë³µ ë°©ì§€
+		// ì‹±ê¸€ìºìŠ¤íŠ¸ ë¸ë¦¬ê²Œì´íŠ¸ëŠ” Unbind()
+		InputComp->OnInputTower1.Unbind();
+		InputComp->OnInputTower2.Unbind();
+		InputComp->OnInputTower3.Unbind();
+		InputComp->OnInputRightClick.Unbind();
+
+		// ë©€í‹°ìºìŠ¤íŠ¸ ë¸ë¦¬ê²Œì´íŠ¸ëŠ” Clear()
+		InputComp->OnInputLeftClick.Clear();
+
+		// í–¥ìƒëœ ì…ë ¥ ì…‹íŒ…
+		InputComp->SetupEnhancedInput(this);
+
+		// Pawn, BuildComp, HandleComp ìºìŠ¤íŠ¸
+		if (APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(InPawn))
+		{
+			UBuildTowerComponent* BuildComp = MyPawn->GetBuildTowerComponent();
+			UTowerHandleComponent* HandleComp = MyPawn->GetTowerHandleComponent();
+
+			// 1,2,3 í‚¤ â†’ í”„ë¦¬ë·° ëª¨ë“œ
+			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower1);
+			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower2);
+			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower3);
+			
+			// ìš°í´ë¦­ â†’ í”„ë¦¬ë·° ì·¨ì†Œ
+			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputRightClick);
+			
+			// ì¢Œí´ë¦­
+			//   - ë¹Œë“œ ëª¨ë“œì¼ ë• ì„¤ì¹˜ í™•ì •
+			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::ClientOnInputLeftClick);
+			//   - ë¹Œë“œ ëª¨ë“œ ì•„ë‹ ë• ê¸°ì¡´ íƒ€ì›Œ í´ë¦­ ì²˜ë¦¬
+			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
+		}
+	}
+
+	// ì»¤ì„œ ë³´ì´ê²Œ
+	bShowMouseCursor = true;
+
+	// UIì™€ ê²Œì„ ëª¨ë‘ í´ë¦­ì„ ë°›ë„ë¡ ëª¨ë“œ ì„¤ì •
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(InputMode);
+}
+
+bool APolyPalsController::Server_BuildTower_Validate(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
+{
+	// TowerIndex  ì²´í¬
+	return TowerIndex >= 1 && TowerIndex <= 3;
+}
+
+void APolyPalsController::Server_BuildTower_Implementation(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
+{
+	// ë‚´ Pawn ê³¼ BuildComp ì–»ê¸°
+	APolyPalsGamePawn * MyPawn = Cast<APolyPalsGamePawn>(GetPawn());
+
+	if (!MyPawn) return;
+	
+	UBuildTowerComponent * BuildComp = MyPawn->GetBuildTowerComponent();
+
+	if (BuildComp)
+	{
+		BuildComp->Server_RequestSpawnTower(SpawnLocation, TowerIndex);
+	}
+}
+
 void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColor)
 {
 	PlayerColor = InColor;
@@ -350,6 +438,6 @@ void APolyPalsController::InitializeControllerDataByGameMode(EPlayerColor InColo
 	if (GamePawnComponent->GetGamePawn())
 	{
 		UBuildTowerComponent* BuildTowerComp = GamePawnComponent->GetGamePawn()->GetBuildTowerComponent();
-		BuildTowerComp->SetPlayerColorByController(PlayerColor);
+		BuildTowerComp->SetPlayerColor(PlayerColor);
 	}
 }

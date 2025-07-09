@@ -22,13 +22,13 @@ void AWaveSpawner::BeginPlay()
     if (!HasAuthority())
         return;
 
-    // GameOver 이벤트 구독
+    // GameOver ?대깽??援щ룆
     if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
     {
         PState->OnGameOver.AddDynamic(this, &AWaveSpawner::HandleGameOver);
     }
 
-    // StageActor 찾기/바인딩
+    // StageActor 李얘린/諛붿씤??
     if (!StageRef)
     {
         StageRef = Cast<AStageActor>(
@@ -41,7 +41,7 @@ void AWaveSpawner::BeginPlay()
     }
     UE_LOG(LogTemp, Log, TEXT("[WaveSpawner] Found StageActor: %s"), *StageRef->GetName());
 
-    // 스플라인 및 DataTable 초기화
+    // ?ㅽ뵆?쇱씤 諛?DataTable 珥덇린??
     SplinePath = StageRef->GetSpline();
     WavePlanTable = StageRef->GetWavePlanTable();
 
@@ -66,7 +66,7 @@ void AWaveSpawner::BeginPlay()
 
 void AWaveSpawner::HandleGameOver()
 {
-    // 게임 오버 시 스폰 타이머 정리 및 액터 비활성화
+    // 寃뚯엫 ?ㅻ쾭 ???ㅽ룿 ??대㉧ ?뺣━ 諛??≫꽣 鍮꾪솢?깊솕
     GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
     SetActorTickEnabled(false);
     SetActorEnableCollision(false);
@@ -88,7 +88,7 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // 이번 라운드 계획 로드
+    // ?대쾲 ?쇱슫??怨꾪쉷 濡쒕뱶
     FString Context;
     FName RowName = FName(*FString::Printf(TEXT("Round_%d"), RoundIndex));
     const FWavePlanRow* Plan = WavePlanTable->FindRow<FWavePlanRow>(RowName, Context);
@@ -98,7 +98,7 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // 전체 스폰 대상 목록 작성
+    // ?꾩껜 ?ㅽ룿 ???紐⑸줉 ?묒꽦
     CurrentSpawnList.Empty();
     for (const FEnemySpawnEntry& Entry : Plan->SpawnList)
         for (int32 i = 0; i < Entry.Count; ++i)
@@ -111,25 +111,25 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // SpawnWindow 기반 인터벌 계산
+    // SpawnWindow 湲곕컲 ?명꽣踰?怨꾩궛
     float SpawnInterval = Plan->SpawnWindow / float(TotalToSpawn);
     UE_LOG(LogTemp, Log,
-        TEXT("[WaveSpawner] Wave %d: will spawn %d enemies over %.2f sec → interval=%.3f sec"),
+        TEXT("[WaveSpawner] Wave %d: will spawn %d enemies over %.2f sec ??interval=%.3f sec"),
         RoundIndex, TotalToSpawn, Plan->SpawnWindow, SpawnInterval);
 
-    // 인덱스 초기화
+    // ?몃뜳??珥덇린??
     SpawnIndex = 0;
 
-    // 즉시 첫 적 스폰
+    // 利됱떆 泥????ㅽ룿
     SpawnNextEnemy();
 
-    // 이후 인터벌마다 스폰
+    // ?댄썑 ?명꽣踰뚮쭏???ㅽ룿
     GetWorld()->GetTimerManager().SetTimer(
         SpawnTimerHandle,
         this, &AWaveSpawner::SpawnNextEnemy,
         SpawnInterval,
         true,            // bLoop
-        SpawnInterval    // InitialDelay: 다음 호출까지 기다릴 시간
+        SpawnInterval    // InitialDelay: ?ㅼ쓬 ?몄텧源뚯? 湲곕떎由??쒓컙
     );
 
 
@@ -175,5 +175,5 @@ void AWaveSpawner::SpawnNextEnemy()
         : FVector::ZeroVector;
 
     Enemy->SetActorLocation(SpawnLocation);
-    Enemy->ForceNetUpdate(); // 복제 동기화
+    Enemy->ForceNetUpdate(); // 蹂듭젣 ?숆린??
 }
