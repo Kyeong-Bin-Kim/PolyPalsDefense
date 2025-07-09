@@ -27,6 +27,8 @@ APolyPalsController::APolyPalsController()
 {
 	GamePawnComponent = CreateDefaultSubobject<UGamePawnComponent>(TEXT("GamePawnComponent"));
 	GamePawnComponent->SetIsReplicated(true);
+	PolyPalsInputComponent = CreateDefaultSubobject<UPolyPalsInputComponent>(TEXT("PolyPalsInputComponent"));
+	PolyPalsInputComponent->SetIsReplicated(false);
 }
 
 void APolyPalsController::BeginPlay()

@@ -6,6 +6,7 @@
 #include "PolyPalsController.generated.h"
 
 class UGamePawnComponent;
+class UPolyPalsInputComponent;
 class UMainUIWidget;
 class UStageSelectUIWidget;
 class ULobbyListWidget;
@@ -80,6 +81,9 @@ private:
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UGamePawnComponent> GamePawnComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
+	UPolyPalsInputComponent* PolyPalsInputComponent;
 
 	// UI 위젯 클래스
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
