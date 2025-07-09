@@ -33,8 +33,10 @@ public:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	void ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor, APolyPalsController* const InController);
+
 	UFUNCTION()
 	void OnRep_PlayerColor();
+
 	UFUNCTION()
 	void OnRep_TowerId();
 
@@ -49,34 +51,43 @@ public:
 	UFUNCTION()
 	void UpgradeTower();
 
-	void UpdateTowerAppearance();
-	void UpdateLevelText();
-
+	void UpdateLevel();
 
 private:
-	void SetTowerCollision();
-
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void SetTowerCollision();
+	void SetupVisuals();
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UBoxComponent> RootBoxComponent;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UStaticMeshComponent> TowerMeshComponent;
+
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UWidgetComponent> TowerUpWidgetComponent;
+
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UNiagaraComponent> MuzzleEffectComponent;
+
 	UPROPERTY()
 	TObjectPtr<USphereComponent> TowerRangeSphere;
+
 	UPROPERTY()
 	TObjectPtr<UTowerAttackComponent> TowerAttackComponent;
+
 	UPROPERTY()
 	TSubclassOf<UTowerUpgradeWidget> TowerUpWidgetClass;
+
 	
 	UPROPERTY(Replicated)
 	TObjectPtr<APolyPalsController> OwnerController;
