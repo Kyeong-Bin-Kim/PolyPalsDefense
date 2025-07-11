@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Components/TowerAttackComponent.h"
 #include "PlacedTower.h"
 #include "PolyPalsController.h"
@@ -25,20 +22,47 @@
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
 	bWantsInitializeComponent = true;
+
+	SetIsReplicatedByDefault(true);
 }
 
 void UTowerAttackComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (!GetOwner()->HasAuthority())
+	// 서버에서는 틱 꺼두기
+	if (GetOwner()->HasAuthority())
+	{
+		PrimaryComponentTick.SetTickFunctionEnable(false);
 		GunMeshComponent->SetRelativeScale3D(FVector(2.f, 1.5f, 1.5f));
+	}
 
 	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
 }
 
+// 클라이언트일 때만 동작
+void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (!GetOwner()->HasAuthority() && CurrentTarget)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Tick] 클라이언트에서 회전 로직 진입, 타겟: %s"), *CurrentTarget->GetName());
+
+		// 현재 회전 → 목표 회전으로 부드럽게 보간
+		FVector TargetLoc = CurrentTarget->GetActorLocation();
+		FVector GunLoc = GunMeshComponent->GetComponentLocation();
+		FRotator WantRot = UKismetMathLibrary::FindLookAtRotation(GunLoc, TargetLoc);
+		FRotator CurrentRot = GunMeshComponent->GetComponentRotation();
+		FRotator DesiredRot = FRotator(0.f, WantRot.Yaw, 0.f);
+		FRotator NewRot = FMath::RInterpTo(CurrentRot, DesiredRot, DeltaTime, 10.f);
+
+		GunMeshComponent->SetRelativeRotation(NewRot);
+	}
+}
 
 void UTowerAttackComponent::InitializeComponent()
 {
@@ -124,19 +148,6 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 
 }
 
-void UTowerAttackComponent::SetGunMeshTimer()
-{
-	if (!GetWorld()) return;
-	
-	ClearTowerTimer(GunMeshHandle);
-	GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
-}
-
-void UTowerAttackComponent::ClearTowerTimer(FTimerHandle& InHandle)
-{
-	if (!GetWorld()) return;
-	GetWorld()->GetTimerManager().ClearTimer(InHandle);
-}
 void UTowerAttackComponent::SetTowerState(ETowerState InState)
 {
 	TowerState_Server = InState;
@@ -201,8 +212,6 @@ void UTowerAttackComponent::OnAttack()
 			FCollisionResponseParams ResParams;
 			ResParams.CollisionResponse = ECR_Overlap;
 
-			//DrawDebugSphere(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), 250.f, 8, FColor::Yellow, false, 1.5f);
-			
 			GetWorld()->OverlapMultiByChannel(OverlapResults,
 				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_Pawn,
 				Sphere, Params, ResParams);
@@ -242,7 +251,7 @@ void UTowerAttackComponent::OnAttack()
 				}
 				break;
 			}
-			Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
+				Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
 		}
 
 		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
@@ -269,7 +278,7 @@ void UTowerAttackComponent::OnDelay()
 			SetTowerState(ETowerState::Attack);
 
 		}), AttackDelay, false);
-		
+
 }
 
 void UTowerAttackComponent::OnLostTarget()
@@ -286,7 +295,6 @@ void UTowerAttackComponent::OnLostTarget()
 
 void UTowerAttackComponent::OnRep_MuzzleEffect()
 {
-	//MuzzleEffectComponent->ActivateSystem();
 	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect, GunMeshComponent, FName("MuzzleSocket"),
 		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, true,
 		ENCPoolMethod::AutoRelease);
@@ -304,14 +312,6 @@ void UTowerAttackComponent::OnRep_TowerId()
 	}
 }
 
-void UTowerAttackComponent::OnRep_CurrentTarget()
-{
-	if (IsValid(CurrentTarget))
-		SetGunMeshTimer();
-	else
-		ClearTowerTimer(GunMeshHandle);
-}
-
 void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 {
 	if (!GetOwner()->HasAuthority()) return;
@@ -321,7 +321,7 @@ void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 	CurrentLevel++;
 	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
 	UTowerPropertyData* Data = DataManager->GetTowerPropertyData(TowerId);
-	
+
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 
 	switch (CurrentLevel)
@@ -357,9 +357,8 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 
 	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
 	UTowerPropertyData* PropertyData = DataManager->GetTowerPropertyData(TowerId);
-	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel-1));
+	FTowerUpgradeValue* TowerUpgradeValue = PropertyData->UpgradeData.Find(static_cast<ELevelValue>(CurrentLevel - 1));
 	AttackDelay = TowerUpgradeValue->AttackDelay;
-	//SetAttackTimer();
 
 	switch (CurrentLevel)
 	{
@@ -376,6 +375,7 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 void UTowerAttackComponent::OnRep_bAoeEffect()
 {
 	UE_LOG(LogTemp, Log, TEXT("bAoeEffect Callback"))
+
 	if (bAoeEffect)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, AoeLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
@@ -383,23 +383,45 @@ void UTowerAttackComponent::OnRep_bAoeEffect()
 	}
 }
 
+void UTowerAttackComponent::Multicast_PlayMuzzleEffect_Implementation()
+{
+	UE_LOG(LogTemp, Warning, TEXT("[Muzzle RPC] 진입! MuzzleEffect: %s"), *GetNameSafe(MuzzleEffect));
+
+	if (!MuzzleEffect)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect가 null입니다!"));
+		return;
+	}
+
+	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect, GunMeshComponent, FName("MuzzleSocket"),
+		FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, true, true,
+		ENCPoolMethod::AutoRelease);
+}
+
 void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQuantize InLocation)
 {
-	UE_LOG(LogTemp, Log, TEXT("Multicast"));
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, InLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
-		ENCPoolMethod::AutoRelease);
+	UE_LOG(LogTemp, Warning, TEXT("[AOE RPC] 진입! 위치: %s, AoeEffect: %s"),
+		*InLocation.ToString(), *GetNameSafe(AoeEffect));
+
+	if (!AoeEffect)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect가 null입니다!"));
+		return;
+	}
+
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, InLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::AutoRelease);
 }
 
 void UTowerAttackComponent::ClientOnClickedUpgrade()
 {
 	uint8 MaxLevel = static_cast<uint8>(ELevelValue::MaxLevel);
 	if (CurrentLevel >= MaxLevel) return;
-	
+
 	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);	// Already +1 by enum
 	int32 Cost = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerCost(TowerId, NextLevel);
 
 	APolyPalsController* ProjectController = GetOwner()->GetOwner<APolyPalsController>();
-	
+
 	if (ProjectController)
 	{
 		APolyPalsPlayerState* ProjectPlayerState = ProjectController->GetPlayerState<APolyPalsPlayerState>();

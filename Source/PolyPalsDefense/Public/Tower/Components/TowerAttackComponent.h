@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -33,7 +31,7 @@ protected:
 public:	
 	virtual void InitializeComponent() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	//virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
@@ -41,8 +39,6 @@ private:
 	void ServerOnEnemyEndOverlap(AActor* InEnemy);
 	void ClientUpdateGunMeshRotation();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
-	void SetGunMeshTimer();
-	void ClearTowerTimer(FTimerHandle& InHandle);
 
 	void SetTowerState(ETowerState InState);
 	void OnIdle();
@@ -57,16 +53,18 @@ private:
 	UFUNCTION()
 	void OnRep_TowerId();
 
-	UFUNCTION()
-	void OnRep_CurrentTarget();
-
 	UFUNCTION(Server, Reliable)
 	void Server_OnTowerLevelUp();
 
 	UFUNCTION()
 	void OnRep_CurrentLevel();
+
 	UFUNCTION()
 	void OnRep_bAoeEffect();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayMuzzleEffect();
+
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_PlayAoeEffect(FVector_NetQuantize InLocation);
 
@@ -80,7 +78,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
 	int16 TowerId = -1;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
+	UPROPERTY(Replicated)
 	TObjectPtr<class AEnemyPawn> CurrentTarget;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
@@ -105,19 +103,22 @@ private:
 	float AbilityIntensity = 0.f;
 
 	FTimerHandle AttackHandle;
-	FTimerHandle GunMeshHandle;
 	FTimerHandle DelayHandle;
 
 private:
 	UPROPERTY()
 	TObjectPtr<class APlacedTower> OwnerTower;
+
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> GunMeshComponent;
+
 	UPROPERTY()
 	TObjectPtr<class UNiagaraComponent> MuzzleEffectComponent;
-	UPROPERTY()
+
+	UPROPERTY(Replicated)
 	TObjectPtr<class UNiagaraSystem> MuzzleEffect;
-	UPROPERTY()
+	
+	UPROPERTY(Replicated)
 	TObjectPtr<class UNiagaraSystem> AoeEffect;
 	
 	friend APlacedTower;

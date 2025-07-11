@@ -86,19 +86,6 @@ void APlacedTower::BeginPlay()
 	{
 		TowerUpWidgetComponent->Deactivate();
 	}
-	else
-	{
-		// 클라이언트 초기 외형 세팅: 이미 받은 TowerId 기반
-		if (TowerId > 0)
-		{
-			SetupVisuals();
-		}
-
-		// 클라이언트 업그레이드 UI 세팅
-		ClientSetupTowerWidgetComponent();
-	}
-
-	UpdateLevel();
 }
 
 void APlacedTower::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -127,18 +114,14 @@ void APlacedTower::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor, APolyPalsController* const InController)
 {
+	if (!HasAuthority()) return;
+
 	TowerId = InTowerId;
 	PlayerColor = InColor;
-
-	UE_LOG(LogTemp, Warning, TEXT("[APlacedTower] ExternalInitializeTower: TowerId=%d, PlayerColor=%d"), TowerId, static_cast<int32>(PlayerColor));
 
 	if (TowerAttackComponent)
 	{
 		TowerAttackComponent->ServerSetTowerIdByTower(TowerId);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("TowerAttackComponent is null in ExternalInitializeTower!"));
 	}
 
 	if (IsValid(InController))
@@ -146,6 +129,28 @@ void APlacedTower::ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor
 		SetOwner(InController);
 		OwnerController = InController;
 	}
+
+	Multicast_InitializeVisuals(InTowerId, InColor);
+}
+
+void APlacedTower::Multicast_InitializeVisuals_Implementation(uint8 InTowerId, EPlayerColor InColor)
+{
+	TowerId = InTowerId;
+	PlayerColor = InColor;
+
+	SetupVisuals();
+	ClientSetupTowerWidgetComponent();
+}
+
+void APlacedTower::Multicast_UpdateLevelVisuals_Implementation(uint8 InTowerId, EPlayerColor InColor, int32 InNewLevel)
+{
+	// 모든 클라이언트에서 실행
+	TowerId = InTowerId;
+	PlayerColor = InColor;
+	Level = InNewLevel;
+
+	SetupVisuals();   // 메시,머티어얼 업데이트
+	UpdateLevel();    // 레벨, 이펙트 등 업데이트
 }
 
 void APlacedTower::OnRep_PlayerColor()
@@ -231,13 +236,22 @@ void APlacedTower::SetWidgetHidden(bool bIsDeactice)
 
 void APlacedTower::UpgradeTower()
 {
+    if (!HasAuthority())
+    {
+        Server_RequestUpgradeTower();
+        return;
+    }
+}
+
+void APlacedTower::Server_RequestUpgradeTower_Implementation()
+{
 	if (Level >= MaxLevel)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Upgrade failed: Already max level."));
 		return;
 	}
 
-	APolyPalsController* PC = Cast<APolyPalsController>(GetOwner()); // 더 안전한 방식
+	APolyPalsController* PC = Cast<APolyPalsController>(GetOwner());
 	APolyPalsPlayerState* PS = PC ? Cast<APolyPalsPlayerState>(PC->PlayerState) : nullptr;
 
 	if (PS && PS->GetPlayerGold() >= UpgradeCost)
@@ -248,9 +262,8 @@ void APlacedTower::UpgradeTower()
 		// 레벨 증가
 		Level++;
 
-		// 외형 변경 및 레벨 텍스트 갱신
-		SetupVisuals();
-		UpdateLevel();
+		// 외형 변경 및 레벨 갱신
+		Multicast_UpdateLevelVisuals(TowerId, PlayerColor, Level);
 
 		// 로컬 클라이언트라면 HUD도 갱신
 		if (PC->IsLocalController())

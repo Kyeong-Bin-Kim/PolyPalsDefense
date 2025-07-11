@@ -8,7 +8,7 @@ void UTowerUpgradeWidget::NativeConstruct()
 
 	if (UpgradeButton)
 	{
-		UpgradeButton->OnClicked.AddDynamic(this, &UTowerUpgradeWidget::OnUpgradeClicked);
+		UpgradeButton->OnClicked.AddUniqueDynamic(this, &UTowerUpgradeWidget::OnUpgradeClicked);
 	}
 }
 
