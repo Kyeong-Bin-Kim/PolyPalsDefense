@@ -10,7 +10,6 @@ APolyPalsGameMode::APolyPalsGameMode()
 {
 	ConnectedPlayers = 0;
 
-	// 湲곕낯 ?ㅽ뀒?댁?-留?留ㅽ븨 ?ㅼ젙
 	StageMapPaths.Add(TEXT("Dirt"), TEXT("DirtStage"));
 	StageMapPaths.Add(TEXT("Snow"), TEXT("SnowStage"));
 }
@@ -58,7 +57,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (!NewPlayer->IsLocalController()) // ?대씪?댁뼵?몃쭔 泥섎━
+	if (!NewPlayer->IsLocalController())
 	{
 		UE_LOG(LogTemp, Log, TEXT("Client entered"));
 
@@ -69,18 +68,14 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 				PreparedColors.RemoveAt(0);
 
-				// 1) ?꾩옱 GameState 媛?몄삤湲?
 				APolyPalsState* GS = GetGameState<APolyPalsState>();
-
-				// 2) PlayerState ?ъ씤??罹먯떆
 				APlayerState* PS = NewPlayer->PlayerState;
 
-				// 3) GameState? PlayerState媛 紐⑤몢 ?좏슚???뚮쭔 吏꾪뻾
 				FString HostName;
 
 				if (GS)
 				{
-					if (ConnectedPlayers == 0)  // 泥?踰덉㎏ ?묒냽?먮㈃ ?몄뒪??
+					if (ConnectedPlayers == 0)
 					{
 						HostName = NewPlayer->PlayerState->GetPlayerName();
 						GS->SetLobbyName(HostName);
@@ -90,7 +85,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 						HostName = GS->GetLobbyName();
 					}
 
-					// 4) ?대씪?댁뼵?몄뿉 RPC ?몄텧 (StageName/LobbyName ?ы븿)
 					ProjectController->Client_ShowLobbyUI(HostName, GS->GetSelectedStage(), GS->GetLobbyName());
 				}
 				else
@@ -101,19 +95,16 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
-	// 1. SlotIndex 遺??
 	if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 	{
-		PS->SetSlotIndex(ConnectedPlayers); // GameState???깅줉?섍린 ??ConnectedPlayers 湲곗?
+		PS->SetSlotIndex(ConnectedPlayers);
 		UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
 	}
 
-	// 2. ?묒냽????利앷?
 	ConnectedPlayers++;
 
 	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
-	// 3. GameState 諛붿씤??(泥??뚮젅?댁뼱???뚮쭔)
 	if (ConnectedPlayers == 1)
 	{
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
@@ -123,7 +114,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		}
 	}
 
-	// 4. GameState???묒냽????諛섏쁺
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		GS->UpdateConnectedPlayers(ConnectedPlayers);
@@ -153,14 +143,13 @@ void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	// 寃뚯엫 ?쒖옉 ??紐⑤뱺 ?뚮젅?댁뼱?먭쾶 珥덇린 怨⑤뱶 吏湲?
 	DistributeStartingGold();
 }
 
 void APolyPalsGameMode::TriggerGameOver()
 {
-	// GameState瑜?PolyPalsState濡?罹먯뒪?명븯??SetGameOver ?몄텧
 	AGameStateBase* GS = GameState;
+
 	if (APolyPalsState* PState = Cast<APolyPalsState>(GS))
 	{
 		PState->SetGameOver();
@@ -197,7 +186,6 @@ void APolyPalsGameMode::HandleAllPlayersReady()
 {
 	UE_LOG(LogTemp, Log, TEXT("[GameMode] 紐⑤뱺 ?뚮젅?댁뼱 以鍮??꾨즺! %f珥???寃뚯엫 ?쒖옉"), StartCountdownTime);
 
-	// 移댁슫?몃떎????寃뚯엫 ?쒖옉
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 	{
 		StartGameAfterCountdown();
@@ -210,7 +198,6 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
 	{
-		//留듭쑝濡??대룞?섏뿬 寃뚯엫 ?쒖옉
 		APolyPalsState* GS = GetGameState<APolyPalsState>();
 
 		if (GS)
@@ -226,7 +213,8 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 				MapName = StageKey.ToString();
 			}
 
-			FString TravelURL = FString::Printf(TEXT("/Game/%s?listen"), *MapName);
+			//FString TravelURL = FString::Printf(TEXT("/Game/%s?listen"), *MapName);
+			FString TravelURL = FString::Printf(TEXT("/Game/%s"), *MapName);
 			GetWorld()->ServerTravel(TravelURL);
 		}
 
@@ -237,13 +225,13 @@ void APolyPalsGameMode::HandleStateGameOver()
 {
 	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 寃뚯엫 ?ㅻ쾭 泥섎━ ?쒖옉"));
 
-	// 鍮?留듭쑝濡?蹂듦?
-	GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
+	//GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
+	GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)
 {
-	DecreaseRemainingEnemyCount(); // ?⑥? ????媛먯냼
+	DecreaseRemainingEnemyCount();
 }
 
 int32 APolyPalsGameMode::CalculateStartingGold(int32 PlayerCount) const

@@ -48,9 +48,6 @@ private:
 	void OnLostTarget();
 
 	UFUNCTION()
-	void OnRep_MuzzleEffect();
-
-	UFUNCTION()
 	void OnRep_TowerId();
 
 	UFUNCTION(Server, Reliable)
@@ -58,6 +55,12 @@ private:
 
 	UFUNCTION()
 	void OnRep_CurrentLevel();
+
+	UFUNCTION()
+	void OnRep_MuzzleEffect();
+
+	UFUNCTION()
+	void OnRep_GunRotation();
 
 	UFUNCTION()
 	void OnRep_bAoeEffect();
@@ -80,6 +83,9 @@ private:
 
 	UPROPERTY(Replicated)
 	TObjectPtr<class AEnemyPawn> CurrentTarget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_GunRotation)
+	FRotator ReplicatedGunRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
 	bool bMuzzleEffect = false;

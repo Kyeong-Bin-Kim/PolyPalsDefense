@@ -179,10 +179,17 @@ void UPolyPalsGameInstance::OnCreateSessionComplete(FName SessionName, bool bWas
 
     // 4) 호스트(서버) 레벨 이동 – listen 모드로 열어줍니다.
     UWorld* World = GetWorld();
-    if (World && World->GetNetMode() == NM_Standalone)
+
+    //if (World && World->GetNetMode() == NM_Standalone)
+    //{
+    //    // ?listen 옵션을 붙여야 다른 클라이언트들이 이 서버에 접속할 수 있습니다.
+    //    World->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
+    //}
+
+	// 4) Dedicated Server 모드일 때 레벨 이동
+    if (World && World->GetNetMode() == NM_DedicatedServer)
     {
-        // ?listen 옵션을 붙여야 다른 클라이언트들이 이 서버에 접속할 수 있습니다.
-        World->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
+        World->ServerTravel(TEXT("/Game/EmptyLevel"));
     }
 }
 
