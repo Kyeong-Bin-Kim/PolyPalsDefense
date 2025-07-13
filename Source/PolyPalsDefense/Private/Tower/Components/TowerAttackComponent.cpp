@@ -22,11 +22,9 @@
 
 UTowerAttackComponent::UTowerAttackComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-	PrimaryComponentTick.bStartWithTickEnabled = true;
-	bWantsInitializeComponent = true;
-
 	SetIsReplicatedByDefault(true);
+	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 }
 
 void UTowerAttackComponent::BeginPlay()
@@ -49,28 +47,6 @@ void UTowerAttackComponent::BeginPlay()
 	OwnerTower->TowerRangeSphere->SetHiddenInGame(false);
 }
 
-// 클라이언트일 때만 동작
-void UTowerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	if (GetWorld()->GetNetMode() == NM_DedicatedServer) return;
-
-	if (!CurrentTarget) return;
-
-		UE_LOG(LogTemp, Warning, TEXT("[Tick] 클라이언트에서 회전 로직 진입, 타겟: %s"), *CurrentTarget->GetName());
-
-		FVector GunLoc = GunMeshComponent->GetComponentLocation();
-		float   TargetYaw = UKismetMathLibrary::FindLookAtRotation(GunLoc, CurrentTarget->GetActorLocation()).Yaw;
-		float   CurrYaw = GunMeshComponent->GetComponentRotation().Yaw;
-
-		float RawDelta = TargetYaw - CurrYaw;
-		float MaxThisSec = 360.f * DeltaTime;
-		float YawDelta = FMath::Clamp(RawDelta, -MaxThisSec, MaxThisSec);
-
-		GunMeshComponent->SetWorldRotation(FRotator(0, CurrYaw + YawDelta, 0));
-}
-
 void UTowerAttackComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
@@ -91,7 +67,6 @@ void UTowerAttackComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
 	DOREPLIFETIME(UTowerAttackComponent, AoeLocation);
 	DOREPLIFETIME(UTowerAttackComponent, MuzzleEffect);
 	DOREPLIFETIME(UTowerAttackComponent, AoeEffect);
-	DOREPLIFETIME(UTowerAttackComponent, ReplicatedGunRotation);
 }
 
 void UTowerAttackComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -121,17 +96,27 @@ void UTowerAttackComponent::ServerOnEnemyEndOverlap(AActor* InEnemy)
 
 void UTowerAttackComponent::ClientUpdateGunMeshRotation()
 {
-	if (CurrentTarget)
+	if (!GunMeshComponent)
 	{
-		FVector TargetLocation = CurrentTarget->GetActorLocation();
-		FVector GunLocation = GunMeshComponent->GetComponentLocation();
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GunLocation, TargetLocation);
-
-		FRotator NewRotation = FRotator(0.f, LookAtRotation.Yaw, 0.f);
-		FRotator GunRotation = GunMeshComponent->GetComponentRotation();
-		FRotator InterpedRotation = FMath::RInterpTo(GunRotation, NewRotation, GetWorld()->GetDeltaSeconds(), 1000.f);
-		GunMeshComponent->SetRelativeRotation(InterpedRotation);
+		UE_LOG(LogTemp, Error, TEXT("GunMeshComponent is NULL!"));
+		return;
 	}
+
+	if (!IsValid(CurrentTarget))
+	{
+		UE_LOG(LogTemp, Error, TEXT("CurrentTarget is invalid in rotation update."));
+		return;
+	}
+
+	FVector GunLoc = GunMeshComponent->GetComponentLocation();
+	FVector TargetLoc = CurrentTarget->GetActorLocation();
+	FRotator WantRot = UKismetMathLibrary::FindLookAtRotation(GunLoc, TargetLoc);
+	FRotator Desired = FRotator(0.f, WantRot.Yaw, 0.f);
+
+	FRotator Current = GunMeshComponent->GetRelativeRotation();
+	FRotator NewRot = FMath::RInterpTo(Current, Desired, GetWorld()->GetDeltaSeconds(), 10.f);
+
+	GunMeshComponent->SetRelativeRotation(NewRot);
 }
 
 void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
@@ -157,15 +142,31 @@ void UTowerAttackComponent::ServerSetTowerIdByTower(uint8 InTowerId)
 			AbilityDuration = DataManager->GetAbilityDuration(TowerId, 1);
 			break;
 	}
+
 	MuzzleEffectComponent->SetAsset(Data->MuzzleEffect);
 	MuzzleEffect = Data->MuzzleEffect;
 	AoeEffect = Data->AoeEffect;
 	OwnerTower->TowerRangeSphere->SetSphereRadius(UpgradeData->Range);
 }
 
+void UTowerAttackComponent::SetGunMeshTimer()
+{
+	if (!GetWorld()) return;
+
+	ClearTowerTimer(GunMeshHandle);
+	GetWorld()->GetTimerManager().SetTimer(GunMeshHandle, this, &UTowerAttackComponent::ClientUpdateGunMeshRotation, 0.05f, true);
+}
+
+void UTowerAttackComponent::ClearTowerTimer(FTimerHandle& InHandle)
+{
+	if (!GetWorld()) return;
+	GetWorld()->GetTimerManager().ClearTimer(InHandle);
+}
+
 void UTowerAttackComponent::SetTowerState(ETowerState InState)
 {
 	TowerState_Server = InState;
+
 	switch (TowerState_Server)
 	{
 	case ETowerState::Idle:
@@ -201,6 +202,13 @@ void UTowerAttackComponent::OnSpotTarget()
 		SetTowerState(ETowerState::LostTarget);
 	else
 		SetTowerState(ETowerState::Attack);
+}
+
+void UTowerAttackComponent::ServerSetCurrentTarget_Implementation(AEnemyPawn* NewTarget)
+{
+	CurrentTarget = NewTarget;
+	GetOwner()->ForceNetUpdate();
+	HandleNewTarget();
 }
 
 void UTowerAttackComponent::OnAttack()
@@ -266,16 +274,16 @@ void UTowerAttackComponent::OnAttack()
 				}
 				break;
 			}
-			Multicast_PlayMuzzleEffect();
 			Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
 		}
+		Multicast_PlayMuzzleEffect();
 
 		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
-		//DrawDebugBox(GetWorld(), SpottedEnemy_Server[0]->GetActorLocation(), BoxExtent, FColor::Red, false, 0.4f);
-		CurrentTarget = SpottedEnemy_Server[0];
+
+		ServerSetCurrentTarget(SpottedEnemy_Server[0]);
 		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
-		UE_LOG(LogTemp, Log, TEXT("ApplyDamage: %f"), Damage);
 		bMuzzleEffect = !bMuzzleEffect;
+
 		SetTowerState(ETowerState::Delay);
 	}
 	else
@@ -319,6 +327,19 @@ void UTowerAttackComponent::OnRep_TowerId()
 		MuzzleEffect = TowerData->MuzzleEffect;
 		AoeEffect = TowerData->AoeEffect;
 	}
+}
+
+void UTowerAttackComponent::HandleNewTarget()
+{
+	if (IsValid(CurrentTarget))
+		SetGunMeshTimer();
+	else
+		ClearTowerTimer(GunMeshHandle);
+}
+
+void UTowerAttackComponent::OnRep_CurrentTarget()
+{
+	HandleNewTarget();
 }
 
 void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
@@ -381,14 +402,6 @@ void UTowerAttackComponent::OnRep_CurrentLevel()
 	}
 }
 
-void UTowerAttackComponent::OnRep_GunRotation()
-{
-	if (GunMeshComponent)
-	{
-		GunMeshComponent->SetRelativeRotation(ReplicatedGunRotation);
-	}
-}
-
 void UTowerAttackComponent::OnRep_MuzzleEffect()
 {
 	UNiagaraFunctionLibrary::SpawnSystemAttached(MuzzleEffect, GunMeshComponent, FName("MuzzleSocket"),
@@ -398,8 +411,6 @@ void UTowerAttackComponent::OnRep_MuzzleEffect()
 
 void UTowerAttackComponent::OnRep_bAoeEffect()
 {
-	UE_LOG(LogTemp, Log, TEXT("bAoeEffect Callback"))
-
 	if (bAoeEffect)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AoeEffect, AoeLocation, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true,
@@ -409,8 +420,6 @@ void UTowerAttackComponent::OnRep_bAoeEffect()
 
 void UTowerAttackComponent::Multicast_PlayMuzzleEffect_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[Muzzle RPC] 진입! MuzzleEffect: %s"), *GetNameSafe(MuzzleEffect));
-
 	if (!MuzzleEffect)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect가 null입니다!"));
@@ -424,9 +433,6 @@ void UTowerAttackComponent::Multicast_PlayMuzzleEffect_Implementation()
 
 void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQuantize InLocation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("[AOE RPC] 진입! 위치: %s, AoeEffect: %s"),
-		*InLocation.ToString(), *GetNameSafe(AoeEffect));
-
 	if (!AoeEffect)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect가 null입니다!"));
@@ -459,7 +465,6 @@ void UTowerAttackComponent::ClientOnClickedUpgrade()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Log, TEXT("?낃렇?덉씠???ㅽ뙣: 怨⑤뱶媛 遺議깊븿"));
 			OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
 		}
 

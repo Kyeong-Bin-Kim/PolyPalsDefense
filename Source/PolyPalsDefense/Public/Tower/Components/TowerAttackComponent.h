@@ -6,6 +6,7 @@
 #include "DataAsset/Tower/TowerStructs.h"
 #include "TowerAttackComponent.generated.h"
 
+class AEnemyPawn;
 
 UENUM()
 enum class ETowerState : uint8
@@ -31,7 +32,6 @@ protected:
 public:	
 	virtual void InitializeComponent() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
@@ -39,7 +39,10 @@ private:
 	void ServerOnEnemyEndOverlap(AActor* InEnemy);
 	void ClientUpdateGunMeshRotation();
 	void ServerSetTowerIdByTower(uint8 InTowerId);
+	void SetGunMeshTimer();
+	void ClearTowerTimer(FTimerHandle& InHandle);
 
+	void HandleNewTarget();
 	void SetTowerState(ETowerState InState);
 	void OnIdle();
 	void OnSpotTarget();
@@ -51,6 +54,12 @@ private:
 	void OnRep_TowerId();
 
 	UFUNCTION(Server, Reliable)
+	void ServerSetCurrentTarget(AEnemyPawn* NewTarget);
+
+	UFUNCTION()
+	void OnRep_CurrentTarget();
+
+	UFUNCTION(Server, Reliable)
 	void Server_OnTowerLevelUp();
 
 	UFUNCTION()
@@ -58,9 +67,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_MuzzleEffect();
-
-	UFUNCTION()
-	void OnRep_GunRotation();
 
 	UFUNCTION()
 	void OnRep_bAoeEffect();
@@ -81,11 +87,8 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_TowerId);
 	int16 TowerId = -1;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentTarget)
 	TObjectPtr<class AEnemyPawn> CurrentTarget;
-
-	UPROPERTY(ReplicatedUsing = OnRep_GunRotation)
-	FRotator ReplicatedGunRotation = FRotator::ZeroRotator;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MuzzleEffect)
 	bool bMuzzleEffect = false;
@@ -109,6 +112,7 @@ private:
 	float AbilityIntensity = 0.f;
 
 	FTimerHandle AttackHandle;
+	FTimerHandle GunMeshHandle;
 	FTimerHandle DelayHandle;
 
 private:
