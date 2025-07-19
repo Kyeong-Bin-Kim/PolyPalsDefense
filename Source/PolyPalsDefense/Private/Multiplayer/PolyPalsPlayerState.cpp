@@ -52,11 +52,18 @@ void APolyPalsPlayerState::SetInitialGold(int32 Amount)
 
 void APolyPalsPlayerState::OnRep_SlotIndex()
 {
-    if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
+    UWorld* World = GetWorld();
+    
+    if (!World) return;
+
+    for (FConstPlayerControllerIterator It = World->GetPlayerControllerIterator(); It; ++It)
     {
-        if (APolyPalsController* PPC = Cast<APolyPalsController>(PC))
+        if (APolyPalsController* PPC = Cast<APolyPalsController>(*It))
         {
-            PPC->RefreshLobbyUI();
+            if (PPC->IsLocalController())
+            {
+                PPC->RefreshLobbyUI();
+            }
         }
     }
 }
