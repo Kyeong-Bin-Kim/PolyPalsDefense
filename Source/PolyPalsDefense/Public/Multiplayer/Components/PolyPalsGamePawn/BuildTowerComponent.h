@@ -35,29 +35,24 @@ public:
 
 	// 최종 설치 요청 RPC
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_RequestSpawnTower(const FVector_NetQuantize InLocation, uint8 InTargetTower);
-
-	// PreviewBuilding 스폰
-	void ClientSpawnPreviewBuilding();
+	void Server_RequestSpawnTower(FVector_NetQuantize InLocation, uint8 InTargetTower);
 
 	void SetPlayerColor(EPlayerColor InColor) { PlayerColor = InColor; }
 	EBuildState GetBuildState() const { return BuildState; }
 	void SetBuildState(EBuildState InState);
 
-	UFUNCTION(Client, Unreliable)
-	void ClientOnInputLeftClick();
+	void OnInputLeftClick();
 
-	UFUNCTION(Client, Unreliable)
-	void ClientOnInputRightClick();
+	void OnInputRightClick();
 
-	UFUNCTION(Client, Unreliable)
-	void ClientOnInputTower1();
+	void OnInputTower1();
 
-	UFUNCTION(Client, Unreliable)
-	void ClientOnInputTower2();
+	void OnInputTower2();
 
-	UFUNCTION(Client, Unreliable)
-	void ClientOnInputTower3();
+	void OnInputTower3();
+
+	// PreviewBuilding 스폰
+	void SpawnPreviewBuilding();
 
 public:
 	FTryBuildButNotEnoughGold TryBuildButNotEnoughGold;

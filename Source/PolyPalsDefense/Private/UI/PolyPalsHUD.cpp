@@ -11,47 +11,29 @@
 void APolyPalsHUD::TryBindToWaveManager()
 {
     if (bIsWaveManagerBound)
-    {
         return;
-    }
 
-    AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
+    AWaveManager* WaveManager = Cast<AWaveManager>(
+        UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass())
+    );
     if (!WaveManager)
     {
-        // ?ê¾©ì­… WaveManageråª›Â€ ?ë…¿ë–ï§?è­°ê³Œíˆ‘ ?ã…¼ë¿‰ ?ã…¼ë–† ?ì’•ë£„
-        GetWorldTimerManager().SetTimer(TimerHandle_FindWaveManager, this, &APolyPalsHUD::TryBindToWaveManager, 1.0f, false);
+        // ¾ÆÁ÷ WaveManager°¡ ¾øÀ¸¸é 0.5ÃÊ ÈÄ ´Ù½Ã ½Ãµµ
+        GetWorldTimerManager().SetTimer(
+            TimerHandle_FindWaveManager,
+            this,
+            &APolyPalsHUD::TryBindToWaveManager,
+            0.5f,
+            false
+        );
         return;
     }
 
     bIsWaveManagerBound = true;
 
-    // ?ê¾©ì ½ ?ì•¹ê½¦
-    if (!GamePlayingWidget && GamePlayingWidgetClass)
-    {
-        GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
+    // ¿şÀÌºê Á¤º¸ ÀÚµ¿ ¾÷µ¥ÀÌÆ®
+    WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
 
-        if (GamePlayingWidget)
-        {
-            GamePlayingWidget->AddToViewport();
-
-            // ç¥ë‡ë¦°?? ?ì‡±ìŠ«??
-            if (const APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>())
-            {
-                GamePlayingWidget->SetRound(GameState->GetRound(), GameState->GetTotalRound());
-            }
-
-            // ç¥ë‡ë¦°?? æ€¨â‘¤ë±¶
-            if (const APlayerController* PC = GetOwningPlayerController())
-            {
-                if (const APolyPalsPlayerState* PlayerState = PC->GetPlayerState<APolyPalsPlayerState>())
-                {
-                    GamePlayingWidget->SetGold(PlayerState->GetPlayerGold());
-                }
-            }
-        }
-    }
-
-    // ?â‘¥ì” é‡‰??ëº£ë‚« äºŒì‡¨ë¦°??åª›ê¹†ë–Š
     GetWorldTimerManager().SetTimer(
         TimerHandle_UpdateWaveInfo,
         this,
@@ -60,9 +42,9 @@ void APolyPalsHUD::TryBindToWaveManager()
         true
     );
 
-    WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
-
-    float TargetTime = WaveManager->GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
+    // Ã¹ Å¸ÀÌ¸Ó ÃÊ±âÈ­
+    float TargetTime = WaveManager->GetWorld()->GetTimeSeconds()
+        + WaveManager->GetPreparationTime();
     NextWaveTargetTimestamp = TargetTime;
 }
 
@@ -71,20 +53,34 @@ void APolyPalsHUD::BeginPlay()
     Super::BeginPlay();
 
     if (GetNetMode() == NM_DedicatedServer)
-    {
-        // ?ì’•ì¾­?ë¨¯ê½Œ??UI ?ì•¹ê½¦ X
         return;
+
+    // UI À§Á¬ »ı¼º, ÃÊ±â °ª ¼¼ÆÃ
+    if (!GamePlayingWidget && GamePlayingWidgetClass)
+    {
+        GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
+        GamePlayingWidget->AddToViewport();
+
+        // ÃÊ±â °ñµå
+        if (APlayerController* PC = GetOwningPlayerController())
+        {
+            if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
+            {
+                GamePlayingWidget->SetGold(PS->GetPlayerGold());
+            }
+        }
+
+        // ÃÊ±â ¶ó¿îµå
+        if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+        {
+            GamePlayingWidget->SetRound(GS->GetRound(), GS->GetTotalRound());
+        }
     }
 
-    // å¯ƒëš¯ì—« ?ì’–ì˜‰ ?ì’–ì ??WaveManageråª›Â€ è­°ëŒì˜±?????ë‰ì‘èª˜Â€æ¿¡?äºŒì‡¨ë¦°?ê³¸ì‘æ¿¡??ëº¤ì”¤
+    // WaveManager°¡ ½ºÆùµÇ¸é ¹ÙÀÎµù ½Ãµµ
     GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
 
-    // ?ë¶¾ì¾­æ´¹ëª„ìŠœ æ¿¡ì’“ë ‡
-    if (GEngine)
-    {
-        ENetMode NetMode = GetNetMode();
-        UE_LOG(LogTemp, Warning, TEXT("[HUD] BeginPlay - NetMode: %d"), static_cast<int32>(NetMode));
-    }
+    UE_LOG(LogTemp, Warning, TEXT("[HUD] BeginPlay - NetMode: %d"), static_cast<int32>(GetNetMode()));
 }
 
 void APolyPalsHUD::Tick(float DeltaSeconds)

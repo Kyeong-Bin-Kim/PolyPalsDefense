@@ -317,16 +317,16 @@ void APolyPalsController::OnPossess(APawn* InPawn)
 			UTowerHandleComponent* HandleComp = MyPawn->GetTowerHandleComponent();
 
 			// 1,2,3 키 → 프리뷰 모드
-			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower1);
-			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower2);
-			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputTower3);
+			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower1);
+			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower2);
+			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower3);
 			
 			// 우클릭 → 프리뷰 취소
-			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::ClientOnInputRightClick);
+			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::OnInputRightClick);
 			
 			// 좌클릭
 			//   - 빌드 모드일 땐 설치 확정
-			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::ClientOnInputLeftClick);
+			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::OnInputLeftClick);
 			//   - 빌드 모드 아닐 땐 기존 타워 클릭 처리
 			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
 		}
@@ -358,7 +358,7 @@ void APolyPalsController::Server_BuildTower_Implementation(int32 TowerIndex, FVe
 
 	if (BuildComp)
 	{
-		BuildComp->Server_RequestSpawnTower(SpawnLocation, TowerIndex);
+		BuildComp->Server_RequestSpawnTower(InSpawnLocation, TowerIndex);
 	}
 }
 

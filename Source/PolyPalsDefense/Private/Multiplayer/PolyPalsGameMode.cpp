@@ -168,17 +168,18 @@ void APolyPalsGameMode::ConfigureLobby(FName StageName, const FString& LobbyName
 	}
 }
 
-
 void APolyPalsGameMode::DistributeStartingGold()
 {
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		int32 PlayerCount = GS->PlayerArray.Num();
 		int32 StartingGold = CalculateStartingGold(PlayerCount);
+
 		for (APlayerState* PS : GS->PlayerArray)
 		{
 			if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
 			{
+				UE_LOG(LogTemp, Warning, TEXT("[Gold] Distribute to %s : %d"), *PPS->GetPlayerName(), StartingGold);
 				PPS->SetInitialGold(StartingGold);
 			}
 		}
