@@ -4,11 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "MainUIWidget.generated.h"
 
-class UStageSelectUIWidget;
-class ULobbyUIWidget;
-class ULobbyListWidget;
+class UIPInputWidget;
 
-UCLASS()
+UCLASS(Blueprintable)
 class POLYPALSDEFENSE_API UMainUIWidget : public UUserWidget
 {
     GENERATED_BODY()
@@ -65,6 +63,9 @@ protected:
 
     // Bindable Menu State
     bool bIsMultiplayerMenuOpen = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI|IP")
+    TSubclassOf<UIPInputWidget> IPInputWidgetClass;
 
 private:
     FButtonStyle CachedStartButtonStyle;

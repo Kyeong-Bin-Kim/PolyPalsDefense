@@ -28,7 +28,7 @@ protected:
     UFUNCTION()
     void OnSnowClicked();
 
-    UFUNCTION()
+    UFUNCTION() 
     void OnExitGameClicked();
 
     void HandleStageSelected(FName StageName);

@@ -10,7 +10,7 @@ UEnemyStatusComponent::UEnemyStatusComponent()
     PrimaryComponentTick.bCanEverTick = false;
     MaxHealth = 100.f;
     CurrentHealth = MaxHealth;
-    SlowRatio = 0.5f;
+    SlowRatio = 1.f;
     bIsStunned = false;
 }
 
@@ -48,6 +48,10 @@ void UEnemyStatusComponent::Initialize(float InMaxHealth, float InBaseMoveSpeed)
     MaxHealth = InMaxHealth;
     CurrentHealth = MaxHealth;
     BaseMoveSpeed = InBaseMoveSpeed;
+
+    SlowRatio = 1.f;
+    bIsStunned = false;
+    bIsSlowed = false;
 }
 
 float UEnemyStatusComponent::GetEffectiveMoveSpeed() const
@@ -78,6 +82,7 @@ void UEnemyStatusComponent::ApplyStun(float Duration)
 void UEnemyStatusComponent::ApplySlow(float Ratio, float Duration)
 {
     SlowRatio = FMath::Clamp(Ratio, 0.f, 1.f);
+    bIsSlowed = true;
     GetWorld()->GetTimerManager().ClearTimer(SlowTimerHandle);
     GetWorld()->GetTimerManager().SetTimer(SlowTimerHandle, this, &UEnemyStatusComponent::ClearSlow, Duration, false);
 }
@@ -90,6 +95,7 @@ void UEnemyStatusComponent::ClearStun()
 void UEnemyStatusComponent::ClearSlow()
 {
     SlowRatio = 1.f;
+    bIsSlowed = false;
 }
 
 void UEnemyStatusComponent::Die()

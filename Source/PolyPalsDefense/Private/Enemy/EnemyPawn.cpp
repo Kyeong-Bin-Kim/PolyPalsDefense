@@ -17,10 +17,11 @@
 
 AEnemyPawn::AEnemyPawn()
 {
+    PrimaryActorTick.bCanEverTick = true;
+
     // ?ㅽ듃?뚰겕 蹂듭젣 ?ㅼ젙
     bReplicates = true;
     SetReplicateMovement(true);
-    PrimaryActorTick.bCanEverTick = false;
 
     // 猷⑦듃 而댄룷?뚰듃
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -66,7 +67,15 @@ AEnemyPawn::AEnemyPawn()
     bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
+void AEnemyPawn::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
 
+    if (HasAuthority() && SplineMovement)
+    {
+        DistanceAlongPath = SplineMovement->GetCurrentDistance();
+    }
+}
 
 void AEnemyPawn::BeginPlay()
 {

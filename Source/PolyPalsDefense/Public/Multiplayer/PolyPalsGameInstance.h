@@ -2,11 +2,8 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineIdentityInterface.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "LobbyInfo.h"
 #include "PolyPalsGameInstance.generated.h"
-
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSessionsFound, const TArray<FLobbyInfo>&);
 
 class IOnlineSubsystem;
 
@@ -19,53 +16,30 @@ public:
     virtual void Init() override;
 
     void LoginToSteam();
-    void CreateSteamSession(FName InStageName);
-
-    void FindSteamSessions();
-    void JoinSteamSession(const FString& LobbyID);
-
-    void LeaveSteamSession();
-
-    FOnSessionsFound OnSessionsFound;
 
 public:
     int32 GetMaxPlayerCount() const { return MaxPlayerCount; }
     void SetMaxPlayerCount(int32 InCount) { MaxPlayerCount = InCount; }
 
-    FName GetPendingStageName() const { return PendingStageName; }
-    const FString& GetPendingLobbyName() const { return PendingLobbyName; }
-    void SetPendingLobbyName(const FString& InName) { PendingLobbyName = InName; }
+    FString GetPendingLobbyName() const { return PendingLobbyName; }
+    void SetPendingLobbyName(const FString& InLobbyName) { PendingLobbyName = InLobbyName; }
+
+	FName GetPendingStageName() const { return PendingStageName; }
+    void SetPendingStageName(FName InStageName) { PendingStageName = InStageName; }
 
 private:
-    UPROPERTY() FName PendingStageName;
-    UPROPERTY() FString PendingLobbyName;
-
     int32 MaxPlayerCount = 4;
+
+    FName PendingStageName;
+    FString PendingLobbyName;
+
+private:
+    FDelegateHandle OnLoginCompleteHandle;
 
 private:
     void OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
-    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-    void CreateSteamSession_Internal(FName InStageName);
-    void OnDestroySessionForCreateComplete(FName SessionName, bool bWasSuccessful);
-    void OnFindSessionsComplete(bool bWasSuccessful);
-    void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-    void OnLeaveSessionComplete(FName SessionName, bool bWasSuccessful);
-    void PerformJoinSession(const FString& LobbyID);
-    void OnDestroySessionForJoinComplete(FName SessionName, bool bWasSuccessful);
-
-    FDelegateHandle OnDestroySessionForCreateHandle;
 
 private:
     IOnlineSubsystem* OnlineSubsystem = nullptr;
     IOnlineIdentityPtr IdentityInterface;
-    IOnlineSessionPtr SessionInterface;
-    TSharedPtr<class FOnlineSessionSearch> SessionSearch;
-
-    FDelegateHandle OnLoginCompleteHandle;
-    FDelegateHandle OnCreateSessionCompleteHandle;
-    FDelegateHandle OnFindSessionsCompleteHandle;
-    FDelegateHandle OnJoinSessionCompleteHandle;
-    FDelegateHandle OnDestroySessionCompleteHandle;
-    
-    FString PendingJoinSessionId;
 };

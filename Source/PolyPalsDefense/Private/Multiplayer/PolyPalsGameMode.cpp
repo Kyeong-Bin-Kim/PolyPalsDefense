@@ -5,6 +5,7 @@
 #include "PolyPalsGameInstance.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 APolyPalsGameMode::APolyPalsGameMode()
 {
@@ -43,6 +44,7 @@ void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options,
 	Super::InitGame(MapName, Options, ErrorMessage);
 
 	uint8 Max = static_cast<uint8>(EPlayerColor::MAXCOLOR);
+
 	for (uint8 Iter = 0; Iter < Max; Iter++)
 	{
 		EPlayerColor TargetColor = static_cast<EPlayerColor>(Iter);
@@ -53,48 +55,68 @@ void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options,
 	PreparedColors.Remove(EPlayerColor::MAXCOLOR);
 }
 
+void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	UE_LOG(LogTemp, Log, TEXT("PreLogin from %s"), *Address);
+
+	if (ConnectedPlayers >= MaxPlayerSlots)
+	{
+		ErrorMessage = TEXT("Lobby is full.");
+		UE_LOG(LogTemp, Warning, TEXT("PreLogin rejected: lobby full"));
+		return;
+	}
+
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+
+	if (!ErrorMessage.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PreLogin failed: %s"), *ErrorMessage);
+	}
+
+	// ParseOption 으로 자동 디코딩 + & 분리
+	FString RawStage = UGameplayStatics::ParseOption(Options, TEXT("SelectedStage"));
+	FString RawLobby = UGameplayStatics::ParseOption(Options, TEXT("LobbyName"));
+
+	FString Stage = FGenericPlatformHttp::UrlDecode(RawStage);
+	FString Lobby = FGenericPlatformHttp::UrlDecode(RawLobby);
+
+	UE_LOG(LogTemp, Log, TEXT("[PreLogin] Options -> Stage=%s, Lobby=%s"), *Stage, *Lobby);
+
+	// GameState에 저장 (Replicated property)
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		if (!Stage.IsEmpty())
+			GS->SetSelectedStage(*Stage);
+
+		if (!Lobby.IsEmpty())
+			GS->SetLobbyName(Lobby);
+	}
+}
+
 void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
 	if (!NewPlayer->IsLocalController())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Client entered"));
+		FString ConnectedName = NewPlayer->PlayerState
+			? NewPlayer->PlayerState->GetPlayerName()
+			: TEXT("Unknown");
 
+		UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
+
+		// 1) 색상 할당
 		if (!PreparedColors.IsEmpty())
 		{
 			if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
 			{
 				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
 				PreparedColors.RemoveAt(0);
-
-				APolyPalsState* GS = GetGameState<APolyPalsState>();
-				APlayerState* PS = NewPlayer->PlayerState;
-
-				FString HostName;
-
-				if (GS)
-				{
-					if (ConnectedPlayers == 0)
-					{
-						HostName = NewPlayer->PlayerState->GetPlayerName();
-						GS->SetLobbyName(HostName);
-					}
-					else
-					{
-						HostName = GS->GetLobbyName();
-					}
-
-					ProjectController->Client_ShowLobbyUI(HostName, GS->GetSelectedStage(), GS->GetLobbyName());
-				}
-				else
-				{
-					UE_LOG(LogTemp, Warning, TEXT("PostLogin: GameState or PlayerState is null (GS=%p, PS=%p)"), GS, PS);
-				}
 			}
 		}
 	}
 
+	// 슬롯 인덱스 할당
 	if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 	{
 		PS->SetSlotIndex(ConnectedPlayers);
@@ -117,25 +139,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		GS->UpdateConnectedPlayers(ConnectedPlayers);
-	}
-}
-
-void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
-{
-	UE_LOG(LogTemp, Log, TEXT("PreLogin from %s"), *Address);
-
-	if (ConnectedPlayers >= MaxPlayerSlots)
-	{
-		ErrorMessage = TEXT("Lobby is full.");
-		UE_LOG(LogTemp, Warning, TEXT("PreLogin rejected: lobby full"));
-		return;
-	}
-
-	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
-
-	if (!ErrorMessage.IsEmpty())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PreLogin failed: %s"), *ErrorMessage);
 	}
 }
 
@@ -184,8 +187,6 @@ void APolyPalsGameMode::DistributeStartingGold()
 
 void APolyPalsGameMode::HandleAllPlayersReady()
 {
-	UE_LOG(LogTemp, Log, TEXT("[GameMode] 紐⑤뱺 ?뚮젅?댁뼱 以鍮??꾨즺! %f珥???寃뚯엫 ?쒖옉"), StartCountdownTime);
-
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 	{
 		StartGameAfterCountdown();
@@ -204,6 +205,7 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 		{
 			FName StageKey = GS->GetSelectedStage();
 			FString MapName;
+
 			if (StageMapPaths.Contains(StageKey))
 			{
 				MapName = StageMapPaths[StageKey];
@@ -213,8 +215,9 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 				MapName = StageKey.ToString();
 			}
 
-			//FString TravelURL = FString::Printf(TEXT("/Game/%s?listen"), *MapName);
-			FString TravelURL = FString::Printf(TEXT("/Game/%s"), *MapName);
+			FString TravelURL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
+			UE_LOG(LogTemp, Log, TEXT("[GameMode] ServerTravel to %s"), *TravelURL);
+
 			GetWorld()->ServerTravel(TravelURL);
 		}
 
@@ -226,7 +229,7 @@ void APolyPalsGameMode::HandleStateGameOver()
 	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 寃뚯엫 ?ㅻ쾭 泥섎━ ?쒖옉"));
 
 	//GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
-	GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel"));
+	GetWorld()->ServerTravel(TEXT("/Game/Maps/EmptyLevel"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)

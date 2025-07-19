@@ -80,14 +80,12 @@ void ULobbyUIWidget::UpdatePlayerSlotReadyState(APolyPalsPlayerState* PlayerStat
         }
     }
 
-    // 珥?以鍮????띿뒪??媛깆떊
     if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
     {
         int32 ReadyCount = GS->GetReadyPlayers();
         TotalReadyText->SetText(FText::FromString(FString::Printf(TEXT("%d"), ReadyCount)));
     }
 }
-
 
 void ULobbyUIWidget::OnExitGameClicked()
 {

@@ -25,7 +25,7 @@ public class PolyPalsDefense : ModuleRules
             Path.Combine(ModuleDirectory, "Public/Map")
         });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem", "Niagara"  });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "NetCore", "NavigationSystem", "Niagara", "HTTP" });
 
 		// Uncomment if you are using Slate UI
 		PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore", "OnlineSubsystem", "OnlineSubsystemUtils" });

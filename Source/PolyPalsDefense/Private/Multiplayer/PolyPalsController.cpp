@@ -1,7 +1,7 @@
 #include "PolyPalsController.h"
 #include "PolyPalsGameMode.h"
-#include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
+#include "PolyPalsPlayerState.h"
 #include "PolyPalsGamePawn.h"
 #include "PolyPalsGameInstance.h"
 #include "EnhancedInputComponent.h"
@@ -11,16 +11,11 @@
 #include "PolyPalsGamePawn/TowerHandleComponent.h"
 #include "MainUIWidget.h"
 #include "StageSelectUIWidget.h"
-#include "LobbyListWidget.h"
 #include "LobbyUIWidget.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "OnlineSubsystem.h"
-#include "OnlineSubsystemUtils.h"
-#include "OnlineSessionSettings.h"  
-#include "Interfaces/OnlineSessionInterface.h"
 #include "Interfaces/OnlineIdentityInterface.h"
-#include "OnlineSubsystemTypes.h" 
 #include "Net/UnrealNetwork.h"
 
 APolyPalsController::APolyPalsController()
@@ -42,29 +37,24 @@ void APolyPalsController::BeginPlay()
 	SetupInitialUIWidgets();
 
 	const FString MapName = UGameplayStatics::GetCurrentLevelName(this, true);
+	ENetMode NetMode = GetNetMode();
+	UE_LOG(LogTemp, Log, TEXT("APolyPalsController::BeginPlay - MapName: %s, NetMode: %d"), *MapName, static_cast<int32>(NetMode));
 
 	if (MapName.Equals(TEXT("EmptyLevel")))
 	{
-		// 1) 이미 세션에 참가된 상태인지 체크
-		bool bInSession = false;
-
-		if (IOnlineSubsystem* OSS = IOnlineSubsystem::Get())
+		
+		if (NetMode == NM_Client)
 		{
-			IOnlineSessionPtr Sess = OSS->GetSessionInterface();
 
-			if (Sess.IsValid())
-			{
-				bInSession = (Sess->GetNamedSession(NAME_GameSession) != nullptr);
-			}
+			ShowLobbyUI();
 		}
-
-		if (bInSession)
+		else if (NetMode == NM_Standalone)
 		{
-			ShowLobbyUI();   // 네트워크 연결 직후
+			ShowMainUI();
 		}
 		else
 		{
-			ShowMainUI();    // 최초 실행 시 메인 메뉴
+			HideAllUI();
 		}
 	}
 	else
@@ -87,40 +77,16 @@ void APolyPalsController::InitializeAndShowLobbyUI(FName InStageName, const FStr
 	RefreshLobbyUI();							// 숫자·슬롯 재갱신
 }
 
-void APolyPalsController::Server_SetSelectedStage_Implementation(FName StageName)
-{
-	if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
-	{
-		GS->SetSelectedStage(StageName);
-	}
-}
-
-void APolyPalsController::Server_CreateLobby_Implementation(FName StageName, const FString& HostName)
-{
-	if (APolyPalsGameMode* GM = GetWorld()->GetAuthGameMode<APolyPalsGameMode>())
-	{
-		GM->ConfigureLobby(StageName, HostName);
-	}
-}
-
-void APolyPalsController::Client_ShowLobbyUI_Implementation(const FString& InHostName, FName InStageName, const FString& InLobbyName)
-{
-	if (!IsLocalController())
-	{
-		return;
-	}
-
-	InitializeAndShowLobbyUI(InStageName, InHostName);
-}
-
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
 {
 	APolyPalsPlayerState* MyState = GetPlayerState<APolyPalsPlayerState>();
+
 	if (MyState)
 	{
 		MyState->SetReadyState(bReady);
 
 		APolyPalsState* GameState = GetWorld()->GetGameState<APolyPalsState>();
+
 		if (GameState)
 		{
 			GameState->UpdateReadyPlayers();
@@ -192,7 +158,6 @@ void APolyPalsController::HideAllUI()
 {
 	if (MainUIWidgetInstance) MainUIWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 	if (StageSelectWidgetInstance) StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-	if (LobbyListWidgetInstance) LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 	if (LobbyUIInstance) LobbyUIInstance->SetVisibility(ESlateVisibility::Hidden);
 }
 
@@ -215,16 +180,6 @@ void APolyPalsController::SetupInitialUIWidgets()
 		{
 			StageSelectWidgetInstance->AddToViewport();
 			StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-
-	if (!LobbyListWidgetInstance && LobbyListWidgetClass)
-	{
-		LobbyListWidgetInstance = CreateWidget<ULobbyListWidget>(this, LobbyListWidgetClass);
-		if (LobbyListWidgetInstance)
-		{
-			LobbyListWidgetInstance->AddToViewport();
-			LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -280,31 +235,10 @@ void APolyPalsController::ShowStageSelectUI()
 {
 	SetupInitialUIWidgets();
 	HideAllUI();
+
 	if (StageSelectWidgetInstance)
 	{
 		StageSelectWidgetInstance->SetVisibility(ESlateVisibility::Visible);
-	}
-}
-
-void APolyPalsController::ShowLobbyListUI()
-{
-	SetupInitialUIWidgets();
-	HideAllUI();
-	if (LobbyListWidgetInstance)
-	{
-		LobbyListWidgetInstance->SetVisibility(ESlateVisibility::Visible);
-	}
-}
-
-void APolyPalsController::HostLobby(FName StageName, const FString& PlayerName)
-{
-	Server_CreateLobby(StageName, PlayerName);
-
-	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
-	{
-		GI->SetPendingLobbyName(PlayerName);
-		InitializeAndShowLobbyUI(StageName, PlayerName);
-		GI->CreateSteamSession(StageName);
 	}
 }
 
@@ -331,11 +265,6 @@ void APolyPalsController::ConfigureLobbyUI(FName InStageName, const FString& Hos
 
 void APolyPalsController::LeaveLobby()
 {
-	if (auto GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
-	{
-		GI->LeaveSteamSession();
-	}
-
 	ShowMainUI();
 }
 

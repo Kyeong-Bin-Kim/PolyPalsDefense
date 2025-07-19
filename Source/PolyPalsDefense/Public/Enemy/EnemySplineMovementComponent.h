@@ -27,6 +27,8 @@ public:
 
     USplineComponent* GetSpline() const { return Spline; }
 
+    float GetCurrentDistance() const { return CurrentDistance; }
+
 protected:
     virtual void BeginPlay() override;
 

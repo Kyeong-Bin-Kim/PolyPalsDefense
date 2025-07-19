@@ -213,81 +213,103 @@ void UTowerAttackComponent::ServerSetCurrentTarget_Implementation(AEnemyPawn* Ne
 
 void UTowerAttackComponent::OnAttack()
 {
+	// 유효하지 않은 포인터 제거
 	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
 		return !IsValid(Candidate);
 		});
 
+	// 대상이 없으면 LostTarget
 	if (SpottedEnemy_Server.IsEmpty())
 	{
 		SetTowerState(ETowerState::LostTarget);
 		return;
 	}
 
-	if (IsValid(SpottedEnemy_Server[0]))
+	// 스플라인 진행 거리가 가장 큰 적 찾기
+	AEnemyPawn* Best = nullptr;
+	float MaxDist = -1.f;
+	for (AActor* Candidate : SpottedEnemy_Server)
 	{
-		if (TowerAbility != ETowerAbility::None)
+		AEnemyPawn* EnemyCandidate = Cast<AEnemyPawn>(Candidate);
+		if (IsValid(EnemyCandidate))
 		{
-			FCollisionShape Sphere = FCollisionShape::MakeSphere(250.f);
-			TArray<FOverlapResult> OverlapResults;
-
-			FCollisionQueryParams Params;
-			Params.AddIgnoredActor(GetOwner());
-			FCollisionResponseParams ResParams;
-			ResParams.CollisionResponse = ECR_Overlap;
-
-			GetWorld()->OverlapMultiByChannel(OverlapResults,
-				SpottedEnemy_Server[0]->GetActorLocation(), FQuat::Identity, ECollisionChannel::ECC_Pawn,
-				Sphere, Params, ResParams);
-
-			switch (TowerAbility)
+			float D = EnemyCandidate->GetDistanceAlongPath();
+			if (D > MaxDist)
 			{
-			case ETowerAbility::Slow:
-				for (const auto& Iter : OverlapResults)
-				{
-					USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent());
-					if (Collision)
-					{
-						AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner());
-						if (Enemy)
-						{
-							FString Name = Enemy->GetName();
-							UE_LOG(LogTemp, Log, TEXT("Slow AOE overlapped with enemy: %s "), *Name);
-							Enemy->ApplySlow(AbilityIntensity, AbilityDuration);
-						}
-					}
-				}
-				break;
-			case ETowerAbility::Stun:
-				for (const auto& Iter : OverlapResults)
-				{
-					USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent());
-					if (Collision)
-					{
-						AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner());
-						if (Enemy)
-						{
-							FString Name = Enemy->GetName();
-							UE_LOG(LogTemp, Log, TEXT("Stun AOE overlapped with enemy: %s "), *Name);
-							Enemy->ApplyStun(AbilityDuration);
-						}
-					}
-				}
-				break;
+				MaxDist = D;
+				Best = EnemyCandidate;
 			}
-			Multicast_PlayAoeEffect(SpottedEnemy_Server[0]->GetActorLocation());
 		}
-		Multicast_PlayMuzzleEffect();
-
-		FVector BoxExtent = FVector(35.f, 35.f, 35.f);
-
-		ServerSetCurrentTarget(SpottedEnemy_Server[0]);
-		SpottedEnemy_Server[0]->ReceiveDamage(Damage);
-		bMuzzleEffect = !bMuzzleEffect;
-
-		SetTowerState(ETowerState::Delay);
 	}
-	else
+
+	// 못 찾았으면 LostTarget
+	if (!IsValid(Best))
+	{
 		SetTowerState(ETowerState::LostTarget);
+		return;
+	}
+
+	// 슬로우/스턴 AOE
+	if (TowerAbility != ETowerAbility::None)
+	{
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(250.f);
+		TArray<FOverlapResult> OverlapResults;
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(GetOwner());
+		FCollisionResponseParams ResParams;
+		ResParams.CollisionResponse = ECR_Overlap;
+
+		GetWorld()->OverlapMultiByChannel(
+			OverlapResults,
+			Best->GetActorLocation(),
+			FQuat::Identity,
+			ECollisionChannel::ECC_Pawn,
+			Sphere,
+			Params,
+			ResParams
+		);
+
+		switch (TowerAbility)
+		{
+		case ETowerAbility::Slow:
+			for (const auto& Iter : OverlapResults)
+			{
+				if (USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent()))
+					if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner()))
+					{
+						UE_LOG(LogTemp, Log, TEXT("Slow applied to %s"), *Enemy->GetName());
+						Enemy->ApplySlow(AbilityIntensity, AbilityDuration);
+					}
+			}
+			break;
+
+		case ETowerAbility::Stun:
+			for (const auto& Iter : OverlapResults)
+			{
+				if (USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent()))
+					if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner()))
+					{
+						UE_LOG(LogTemp, Log, TEXT("Stun applied to %s"), *Enemy->GetName());
+						Enemy->ApplyStun(AbilityDuration);
+					}
+			}
+			break;
+		}
+
+		Multicast_PlayAoeEffect(Best->GetActorLocation());
+	}
+
+	// 총구 이펙트
+	Multicast_PlayMuzzleEffect();
+
+	// 데미지 & 타겟 설정
+	ServerSetCurrentTarget(Best);
+	Best->ReceiveDamage(Damage);
+	bMuzzleEffect = !bMuzzleEffect;
+
+	// 다음 상태로 전환
+	SetTowerState(ETowerState::Delay);
 }
 
 void UTowerAttackComponent::OnDelay()

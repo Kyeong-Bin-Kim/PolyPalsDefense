@@ -1,11 +1,11 @@
 #include "UI/MainUIWidget.h"
 #include "PolyPalsController.h"
+#include "IPInputWidget.h"
 #include "Components/Button.h"
 #include "Components/VerticalBox.h"
 #include "Components/TextBlock.h"
 #include "StageSelectUIWidget.h"
 #include "LobbyUIWidget.h"
-#include "LobbyListWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
@@ -13,6 +13,29 @@
 void UMainUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
+
+    if (UWorld* World = GetWorld())
+    {
+        ENetMode Mode = World->GetNetMode();
+        switch (Mode)
+        {
+        case NM_Standalone:
+            UE_LOG(LogTemp, Log, TEXT("## NetMode: Standalone"));
+            break;
+        case NM_DedicatedServer:
+            UE_LOG(LogTemp, Log, TEXT("## NetMode: DedicatedServer"));
+            break;
+        case NM_ListenServer:
+            UE_LOG(LogTemp, Log, TEXT("## NetMode: ListenServer"));
+            break;
+        case NM_Client:
+            UE_LOG(LogTemp, Log, TEXT("## NetMode: Client"));
+            break;
+        default:
+            UE_LOG(LogTemp, Log, TEXT("## NetMode: Unknown(%d)"), (int32)Mode);
+            break;
+        }
+    }
 
     if (ExitGame) ExitGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnExitGameClicked);
     //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); 추후 추가 예정
@@ -119,8 +142,19 @@ void UMainUIWidget::OnCreateRoomClicked()
 
 void UMainUIWidget::OnSearchRoomClicked()
 {
-    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
+    if (APlayerController* PC = GetOwningPlayer())
     {
-        PC->ShowLobbyListUI();
+        if (IPInputWidgetClass)
+        {
+            if (UIPInputWidget* IPWidget = CreateWidget<UIPInputWidget>(PC, IPInputWidgetClass))
+            {
+                const int32 OverlayZOrder = 100;
+                IPWidget->AddToViewport(OverlayZOrder);
+            }
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("IPInputWidgetClass 가 설정되지 않았습니다."));
+        }
     }
 }

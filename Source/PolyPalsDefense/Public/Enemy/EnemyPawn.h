@@ -26,6 +26,8 @@ public:
     // ?붾뱶???ㅽ룿????珥덇린???묒뾽
     virtual void BeginPlay() override;
 
+    virtual void Tick(float DeltaTime) override;
+
     // ?곗씠???먯뀑?쇰줈 珥덇린??
     void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
@@ -79,6 +81,10 @@ public:
 
 	// ?ㅽ꽩 ?곹깭 ?щ?
     bool IsSlowed() const;
+
+    UEnemyStatusComponent* GetStatus() const { return Status; }
+
+    float GetDistanceAlongPath() const { return DistanceAlongPath; }
 
 protected:
     // 蹂듭젣???쒖꽦???곹깭 諛섏쓳
@@ -137,6 +143,9 @@ protected:
     // 援ъ껜 肄쒕━??諛섏?由?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	float SphereRadius = 120.f;
+
+    UPROPERTY(VisibleAnywhere, Category = "Movement")
+    float DistanceAlongPath = 0.f;
 
     // === 蹂듭젣 ?곹깭 ===
 
