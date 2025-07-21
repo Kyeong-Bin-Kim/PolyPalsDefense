@@ -37,25 +37,12 @@ void UTowerHandleComponent::HandleLeftClick()
     if (ClickedTower && ClickedTower->GetOwner() == PC)
     {
         if (FocusedTower)
+        {
             FocusedTower->SetWidgetHidden(true);
-
+        }
+            
         FocusedTower = ClickedTower;
         FocusedTower->SetWidgetHidden(false);
-
-        if (UpgradeWidgetInstance)
-        {
-            UpgradeWidgetInstance->RemoveFromParent();
-            UpgradeWidgetInstance = nullptr;
-        }
-        if (TowerUpgradeWidgetClass)
-        {
-            UpgradeWidgetInstance = CreateWidget<UTowerUpgradeWidget>(PC, TowerUpgradeWidgetClass);
-            if (UpgradeWidgetInstance)
-            {
-                UpgradeWidgetInstance->SetTargetTower(FocusedTower);
-                UpgradeWidgetInstance->AddToViewport();
-            }
-        }
     }
     else
     {
@@ -63,11 +50,6 @@ void UTowerHandleComponent::HandleLeftClick()
         {
             FocusedTower->SetWidgetHidden(true);
             FocusedTower = nullptr;
-        }
-        if (UpgradeWidgetInstance)
-        {
-            UpgradeWidgetInstance->RemoveFromParent();
-            UpgradeWidgetInstance = nullptr;
         }
     }
 }

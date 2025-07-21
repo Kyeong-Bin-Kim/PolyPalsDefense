@@ -371,9 +371,9 @@ void UTowerAttackComponent::Server_OnTowerLevelUp_Implementation()
 	if (!GetWorld()) return;
 
 	CurrentLevel++;
+
 	UTowerDataManager* DataManager = GetWorld()->GetSubsystem<UTowerDataManager>();
 	UTowerPropertyData* Data = DataManager->GetTowerPropertyData(TowerId);
-
 	FTowerUpgradeValue* UpgradeData = Data->UpgradeData.Find(ELevelValue::Level1);
 
 	switch (CurrentLevel)
@@ -467,9 +467,10 @@ void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQu
 void UTowerAttackComponent::ClientOnClickedUpgrade()
 {
 	uint8 MaxLevel = static_cast<uint8>(ELevelValue::MaxLevel);
+
 	if (CurrentLevel >= MaxLevel) return;
 
-	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);	// Already +1 by enum
+	ELevelValue NextLevel = static_cast<ELevelValue>(CurrentLevel);
 	int32 Cost = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerCost(TowerId, NextLevel);
 
 	APolyPalsController* ProjectController = GetOwner()->GetOwner<APolyPalsController>();
@@ -477,12 +478,15 @@ void UTowerAttackComponent::ClientOnClickedUpgrade()
 	if (ProjectController)
 	{
 		APolyPalsPlayerState* ProjectPlayerState = ProjectController->GetPlayerState<APolyPalsPlayerState>();
+
 		int32 CurrentGold = ProjectPlayerState->GetPlayerGold();
 
 		if (CurrentGold >= Cost)
 		{
 			ProjectPlayerState->AddGold(-Cost);
+
 			Server_OnTowerLevelUp();
+
 			OwnerTower->TowerUpWidgetComponent->SetHiddenInGame(true);
 		}
 		else
