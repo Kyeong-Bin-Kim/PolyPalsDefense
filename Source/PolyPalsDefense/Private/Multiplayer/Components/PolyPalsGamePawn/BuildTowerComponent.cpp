@@ -57,16 +57,24 @@ void UBuildTowerComponent::OnSelectTower(uint8 InTowerId)
 
     APolyPalsGamePawn* OwnerPawn = Cast<APolyPalsGamePawn>(GetOwner());
 
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OwnerPawn Check"));
+
     if (OwnerPawn)
     {
+        UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OwnerPawn Check:True"));
+
         APolyPalsController* OwnerController = Cast<APolyPalsController>(OwnerPawn->GetController());
 
         if (OwnerController)
         {
+            UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:OwnerController Check: True"));
+
             APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(OwnerController->PlayerState);
 
             if (PS)
             {
+                UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:PS Check: True"));
+
                 int32 Cost = TowerDataManager->GetTowerCost(InTowerId, ELevelValue::Level1);
 
                 if (PS->GetPlayerGold() < Cost)

@@ -24,6 +24,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	virtual void OnRep_Pawn() override;
+
+	virtual void SetupInputComponent() override;
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(Server, Reliable)
@@ -55,9 +59,6 @@ public:
 	void ShowLobbyUI();
 	void InitializeAndShowLobbyUI(FName InStageName, const FString& HostName);
 	void ConfigureLobbyUI(FName InStageName, const FString& HostName);
-
-protected:
-	virtual void OnPossess(APawn* InPawn) override;
 
 private:
 	// 마우스 클릭 확정 시 이 ID로 빌드 RPC 호출

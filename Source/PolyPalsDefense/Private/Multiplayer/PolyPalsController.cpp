@@ -63,6 +63,83 @@ void APolyPalsController::BeginPlay()
 	}
 }
 
+void APolyPalsController::OnRep_Pawn()
+{
+	Super::OnRep_Pawn();
+
+	if (!IsLocalController() || !GetPawn())
+		return;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: 델리게이트 바인딩 시작"));
+
+	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
+	{
+		APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(GetPawn());
+		UBuildTowerComponent* BuildComp = MyPawn ? MyPawn->GetBuildTowerComponent() : nullptr;
+		UTowerHandleComponent* HandleComp = MyPawn ? MyPawn->GetTowerHandleComponent() : nullptr;
+
+		if (BuildComp && HandleComp)
+		{
+			// 1,2,3 키 → 프리뷰
+			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower1);
+			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower2);
+			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower3);
+
+			// 우클릭 → 프리뷰 취소
+			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::OnInputRightClick);
+
+			// 좌클릭
+			InputComp->OnInputLeftClick.Clear();
+
+			//   - 빌드 모드일 땐 설치 확정
+			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::OnInputLeftClick);
+
+			//   - 빌드 모드 아닐 땐 기존 타워 클릭 처리
+			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
+
+			UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: 델리게이트 바인딩 완료"));
+		}
+	}
+
+}
+
+void APolyPalsController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (!IsLocalController()) return;
+
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
+
+	UE_LOG(LogTemp, Warning, TEXT(">>> SetupInputComponent called, has UPolyPalsInputComponent=%s"), FindComponentByClass<UPolyPalsInputComponent>() ? TEXT("YES") : TEXT("NO"));
+
+	// EnhancedInput 세팅
+	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
+	{
+		// 바인딩 중복 방지
+		// 싱글캐스트 델리게이트는 Unbind()
+		InputComp->OnInputTower1.Unbind();
+		InputComp->OnInputTower2.Unbind();
+		InputComp->OnInputTower3.Unbind();
+		InputComp->OnInputRightClick.Unbind();
+
+		// 멀티캐스트 델리게이트는 Clear()
+		InputComp->OnInputLeftClick.Clear();
+
+		// 향상된 입력 셋팅
+		InputComp->SetupEnhancedInput(this);
+	}
+
+	// 커서 보이게
+	bShowMouseCursor = true;
+
+	// 게임 & UI 모드 설정
+	FInputModeGameAndUI InputMode;
+	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(InputMode);
+}
+
 void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -281,64 +358,6 @@ void APolyPalsController::BeginSelectTower(int32 TowerIndex)
 			BuildComp->ClientBeginSelectTower(static_cast<uint8>(TowerIndex));
 		}
 	}
-}
-
-void APolyPalsController::OnPossess(APawn* InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	if (!IsLocalController()) return;
-
-	bEnableClickEvents = true;
-	bEnableMouseOverEvents = true;
-
-	UE_LOG(LogTemp, Warning, TEXT(">>> OnPossess called, has UPolyPalsInputComponent=%s"), FindComponentByClass<UPolyPalsInputComponent>() ? TEXT("YES") : TEXT("NO"));
-
-	// EnhancedInput 세팅
-	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
-	{
-		// 바인딩 중복 방지
-		// 싱글캐스트 델리게이트는 Unbind()
-		InputComp->OnInputTower1.Unbind();
-		InputComp->OnInputTower2.Unbind();
-		InputComp->OnInputTower3.Unbind();
-		InputComp->OnInputRightClick.Unbind();
-
-		// 멀티캐스트 델리게이트는 Clear()
-		InputComp->OnInputLeftClick.Clear();
-
-		// 향상된 입력 셋팅
-		InputComp->SetupEnhancedInput(this);
-
-		// Pawn, BuildComp, HandleComp 캐스트
-		if (APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(InPawn))
-		{
-			UBuildTowerComponent* BuildComp = MyPawn->GetBuildTowerComponent();
-			UTowerHandleComponent* HandleComp = MyPawn->GetTowerHandleComponent();
-
-			// 1,2,3 키 → 프리뷰 모드
-			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower1);
-			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower2);
-			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower3);
-			
-			// 우클릭 → 프리뷰 취소
-			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::OnInputRightClick);
-			
-			// 좌클릭
-			//   - 빌드 모드일 땐 설치 확정
-			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::OnInputLeftClick);
-			//   - 빌드 모드 아닐 땐 기존 타워 클릭 처리
-			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
-		}
-	}
-
-	// 커서 보이게
-	bShowMouseCursor = true;
-
-	// UI와 게임 모두 클릭을 받도록 모드 설정
-	FInputModeGameAndUI InputMode;
-	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	SetInputMode(InputMode);
 }
 
 bool APolyPalsController::Server_BuildTower_Validate(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)

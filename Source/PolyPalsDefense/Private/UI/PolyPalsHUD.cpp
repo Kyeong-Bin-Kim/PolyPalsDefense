@@ -13,19 +13,13 @@ void APolyPalsHUD::TryBindToWaveManager()
     if (bIsWaveManagerBound)
         return;
 
-    AWaveManager* WaveManager = Cast<AWaveManager>(
-        UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass())
-    );
+    AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
+
     if (!WaveManager)
     {
-        // 아직 WaveManager가 없으면 0.5초 후 다시 시도
-        GetWorldTimerManager().SetTimer(
-            TimerHandle_FindWaveManager,
-            this,
-            &APolyPalsHUD::TryBindToWaveManager,
-            0.5f,
-            false
-        );
+        // WaveManager가 없으면 0.5초 후 다시 시도
+        GetWorldTimerManager().SetTimer(TimerHandle_FindWaveManager, this, &APolyPalsHUD::TryBindToWaveManager, 1.0f, false);
+
         return;
     }
 
@@ -34,17 +28,11 @@ void APolyPalsHUD::TryBindToWaveManager()
     // 웨이브 정보 자동 업데이트
     WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
 
-    GetWorldTimerManager().SetTimer(
-        TimerHandle_UpdateWaveInfo,
-        this,
-        &APolyPalsHUD::UpdateWaveInfoOnUI,
-        0.5f,
-        true
-    );
+    GetWorldTimerManager().SetTimer( TimerHandle_UpdateWaveInfo, this, &APolyPalsHUD::UpdateWaveInfoOnUI, 0.5f, true);
 
     // 첫 타이머 초기화
-    float TargetTime = WaveManager->GetWorld()->GetTimeSeconds()
-        + WaveManager->GetPreparationTime();
+    float TargetTime = WaveManager->GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
+
     NextWaveTargetTimestamp = TargetTime;
 }
 
@@ -66,7 +54,11 @@ void APolyPalsHUD::BeginPlay()
         {
             if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
             {
-                GamePlayingWidget->SetGold(PS->GetPlayerGold());
+                int32 Gold = PS->GetPlayerGold();
+
+                UE_LOG(LogTemp, Warning, TEXT("[HUD::BeginPlay] Read PlayerGold from PS: %d"), Gold);
+
+                GamePlayingWidget->SetGold(Gold);
             }
         }
 

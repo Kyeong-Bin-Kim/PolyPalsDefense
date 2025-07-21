@@ -17,23 +17,31 @@ APolyPalsGameMode::APolyPalsGameMode()
 
 void APolyPalsGameMode::BeginPlay()
 {
-	if (UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
+	const FString Map = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
+
+	UE_LOG(LogTemp, Log, TEXT("BeginPlay:Map-%s"), *Map);
+
+	if (Map.Equals(TEXT("EmptyLevel"), ESearchCase::IgnoreCase))
 	{
-		SetMaxPlayerSlots(GI->GetMaxPlayerCount());
-		UE_LOG(LogTemp, Log, TEXT("GameMode: MaxPlayerSlots set from GameInstance = %d"), MaxPlayerSlots);
-
-		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+		if (UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
 		{
-			if (GI->GetPendingStageName() != NAME_None)
-			{
-				GS->SetSelectedStage(GI->GetPendingStageName());
-			}
+			SetMaxPlayerSlots(GI->GetMaxPlayerCount());
 
-			const FString& SavedName = GI->GetPendingLobbyName();
+			UE_LOG(LogTemp, Log, TEXT("GameMode: MaxPlayerSlots set from GameInstance = %d"), MaxPlayerSlots);
 
-			if (!SavedName.IsEmpty())
+			if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 			{
-				GS->SetLobbyName(SavedName);
+				if (GI->GetPendingStageName() != NAME_None)
+				{
+					GS->SetSelectedStage(GI->GetPendingStageName());
+				}
+
+				const FString& SavedName = GI->GetPendingLobbyName();
+
+				if (!SavedName.IsEmpty())
+				{
+					GS->SetLobbyName(SavedName);
+				}
 			}
 		}
 	}
@@ -57,7 +65,7 @@ void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options,
 
 void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
-	UE_LOG(LogTemp, Log, TEXT("PreLogin from %s"), *Address);
+	UE_LOG(LogTemp, Log, TEXT("[PreLogin] Options=%s"), *Options);
 
 	if (ConnectedPlayers >= MaxPlayerSlots)
 	{
@@ -97,56 +105,70 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if (!NewPlayer->IsLocalController())
+	const FString CurrentMap = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
+
+	UE_LOG(LogTemp, Log, TEXT("[PostLogin] Player=%s, ConnectedPlayers=%d, Map=%s"), *NewPlayer->PlayerState->GetPlayerName(), ConnectedPlayers + 1, *CurrentMap);
+
+	if (CurrentMap.Equals(TEXT("EmptyLevel"), ESearchCase::IgnoreCase))
 	{
-		FString ConnectedName = NewPlayer->PlayerState
-			? NewPlayer->PlayerState->GetPlayerName()
-			: TEXT("Unknown");
-
-		UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
-
-		// 1) 색상 할당
-		if (!PreparedColors.IsEmpty())
+		if (!NewPlayer->IsLocalController())
 		{
-			if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
+			FString ConnectedName = NewPlayer->PlayerState
+				? NewPlayer->PlayerState->GetPlayerName()
+				: TEXT("Unknown");
+
+			UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
+
+			// 1) 색상 할당
+			if (!PreparedColors.IsEmpty())
 			{
-				ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
-				PreparedColors.RemoveAt(0);
+				if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
+				{
+					ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
+					PreparedColors.RemoveAt(0);
+				}
 			}
 		}
-	}
 
-	// 슬롯 인덱스 할당
-	if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
-	{
-		PS->SetSlotIndex(ConnectedPlayers);
-		UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
-	}
+		// 슬롯 인덱스 할당
+		if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
+		{
+			PS->SetSlotIndex(ConnectedPlayers);
+			UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
+		}
 
-	ConnectedPlayers++;
+		ConnectedPlayers++;
 
-	UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
+		UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
-	if (ConnectedPlayers == 1)
-	{
+		if (ConnectedPlayers == 1)
+		{
+			if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+			{
+				GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
+				GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
+			}
+		}
+
 		if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 		{
-			GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
-			GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
+			GS->UpdateConnectedPlayers(ConnectedPlayers);
 		}
 	}
-
-	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	else
 	{
-		GS->UpdateConnectedPlayers(ConnectedPlayers);
+		if (HasAuthority() && GetWorld())
+		{
+			UE_LOG(LogTemp, Log, TEXT("GameMode:DistributeStartingGold()"));
+
+			DistributeStartingGold();
+		}
 	}
 }
 
 void APolyPalsGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	DistributeStartingGold();
 }
 
 void APolyPalsGameMode::TriggerGameOver()
@@ -168,22 +190,25 @@ void APolyPalsGameMode::ConfigureLobby(FName StageName, const FString& LobbyName
 	}
 }
 
-void APolyPalsGameMode::DistributeStartingGold()
-{
-	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
-	{
-		int32 PlayerCount = GS->PlayerArray.Num();
-		int32 StartingGold = CalculateStartingGold(PlayerCount);
+void APolyPalsGameMode::DistributeStartingGold()  
+{  
+    if (APolyPalsState* GS = GetGameState<APolyPalsState>())  
+    {  
+        int32 PlayerCount = GS->PlayerArray.Num();  
+        int32 StartingGold = CalculateStartingGold(PlayerCount);  
 
-		for (APlayerState* PS : GS->PlayerArray)
-		{
-			if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[Gold] Distribute to %s : %d"), *PPS->GetPlayerName(), StartingGold);
-				PPS->SetInitialGold(StartingGold);
-			}
-		}
-	}
+        UE_LOG(LogTemp, Warning, TEXT("[DistributeStartingGold] PlayerCount=%d, CalculatedGold=%d"), PlayerCount, StartingGold);  
+
+        for (APlayerState* PS : GS->PlayerArray)  
+        {  
+            if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))  
+            {  
+                UE_LOG(LogTemp, Warning, TEXT("[Distribute] To=%s,  NewGold=%d"), *PPS->GetPlayerName(), StartingGold);  
+
+                PPS->SetInitialGold(StartingGold);  
+            }  
+        }  
+    }  
 }
 
 void APolyPalsGameMode::HandleAllPlayersReady()
@@ -216,7 +241,8 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 				MapName = StageKey.ToString();
 			}
 
-			FString TravelURL = FString::Printf(TEXT("/Game/Maps/%s?listen"), *MapName);
+			FString TravelURL = FString::Printf(TEXT("/Game/Maps/%s"), *MapName);
+
 			UE_LOG(LogTemp, Log, TEXT("[GameMode] ServerTravel to %s"), *TravelURL);
 
 			GetWorld()->ServerTravel(TravelURL);
@@ -227,9 +253,6 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 void APolyPalsGameMode::HandleStateGameOver()
 {
-	UE_LOG(LogTemp, Warning, TEXT("[GameMode] 寃뚯엫 ?ㅻ쾭 泥섎━ ?쒖옉"));
-
-	//GetWorld()->ServerTravel(TEXT("/Game/EmptyLevel?listen"));
 	GetWorld()->ServerTravel(TEXT("/Game/Maps/EmptyLevel"));
 }
 
