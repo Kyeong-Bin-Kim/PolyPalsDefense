@@ -156,6 +156,11 @@ void ULobbyUIWidget::HandleLobbyCountdownUpdated(int32 SecondsRemaining)
         if (SecondsRemaining > 0)
         {
             CountdownText->SetText(FText::FromString(FString::Printf(TEXT("%d"), SecondsRemaining)));
+
+            if (ExitGame)
+            {
+                ExitGame->SetVisibility(ESlateVisibility::Collapsed);
+            }
         }
         else
         {
