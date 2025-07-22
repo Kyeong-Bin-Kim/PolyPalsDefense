@@ -19,15 +19,12 @@ AEnemyPawn::AEnemyPawn()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // ??쎈뱜??곌쾿 癰귣벊????쇱젟
     bReplicates = true;
     SetReplicateMovement(true);
 
-    // ?룐뫂???뚮똾猷??곕뱜
     Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
     RootComponent = Root;
 
-    // ??쇳렩??딄퉱 筌롫뗄??
     Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
     Mesh->SetupAttachment(RootComponent);
     Mesh->SetRelativeRotation(MeshRotation);
@@ -35,7 +32,6 @@ AEnemyPawn::AEnemyPawn()
     Mesh->SetCollisionResponseToAllChannels(ECR_Overlap);
     Mesh->SetGenerateOverlapEvents(true);
 
-    // 筌롫뗄????륁맄???닌딄퍥 ?꾩뮆???
     CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
     CollisionSphere->SetupAttachment(Mesh);
     CollisionSphere->SetSphereRadius(SphereRadius);
@@ -43,27 +39,22 @@ AEnemyPawn::AEnemyPawn()
     CollisionSphere->SetCollisionResponseToAllChannels(ECR_Overlap);
     CollisionSphere->SetGenerateOverlapEvents(true);
 
-    // 獄쎻뫚堉???뽯뻻
     DirectionIndicator = CreateDefaultSubobject<UArrowComponent>(TEXT("Direction"));
     DirectionIndicator->SetupAttachment(RootComponent);
 
-    // ??猷?獄??怨밴묶 ?뚮똾猷??곕뱜
     SplineMovement = CreateDefaultSubobject<UEnemySplineMovementComponent>(TEXT("SplineMovement"));
     Status = CreateDefaultSubobject<UEnemyStatusComponent>(TEXT("Status"));
 
-    // 筌ｋ??계쳸???뽮쉐
     HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
     HealthBarWidget->SetupAttachment(Mesh);
     HealthBarWidget->SetWidgetSpace(EWidgetSpace::World);
     HealthBarWidget->SetDrawAtDesiredSize(true);
-    HealthBarWidget->SetWidgetClass(EnemyHealthBarWidgetClass); // ???????쇱젟 ?袁⑹뒄
+    HealthBarWidget->SetWidgetClass(EnemyHealthBarWidgetClass);
 
-    // ??볥젃 獄??λ뜃由???쑵????怨밴묶
     Tags.Add(FName(TEXT("Enemy")));
     bIsActive = false;
     SetActorHiddenInGame(true);
 
-    // ??쎈뱜?귐됱빪 餓λ쵐肉????살쒔???醫?
     bGenerateOverlapEventsDuringLevelStreaming = true;
 }
 
@@ -109,34 +100,24 @@ void AEnemyPawn::OnRep_EnemyData()
 {
     if (!EnemyData) return;
 
-    // 筌롫뗄???믪눘? ??쇱젟
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
-        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 筌롫뗄????쇱젟?? %s"), *EnemyData->Visual.Mesh->GetName());
     }
 
-    // ?醫딅빍筌롫뗄????됰뗀竊?袁ⓥ뵛????쇱젟
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
-        //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] 筌롫뗄????쇱젟?? %s"), *EnemyData->Visual.Mesh->GetName());
         Mesh->InitAnim(true);
 
-        // ?醫딅뻷 ?紐꾨뮞??곷뮞????얜즲 ?袁⑤뼎
         if (UEnemyAnimInstance* EnemyAnim = Cast<UEnemyAnimInstance>(Mesh->GetAnimInstance()))
         {
-            EnemyAnim->SetSpeed(ReplicatedMoveSpeed); // 癰귣벊?????얜즲 ?袁⑤뼎
+            EnemyAnim->SetSpeed(ReplicatedMoveSpeed);
         }
     }
 
-    // 癰귣벊????????곕즲 ?怨몄뒠
     Mesh->SetRelativeScale3D(ReplicatedScale);
 	CollisionSphere->SetRelativeScale3D(ReplicatedScale);
-
-    //UE_LOG(LogTemp, Warning, TEXT("[EnemyPawn] OnRep_EnemyData ??쎈뻬??- ?醫딅빍筌롫뗄??? %s, ????? %s"),
-    //    EnemyData->Visual.AnimBPClass ? *EnemyData->Visual.AnimBPClass->GetName() : TEXT("None"),
-    //    *ReplicatedScale.ToString());
 }
 
 void AEnemyPawn::OnRep_Scale()
@@ -167,19 +148,16 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
 
     ReplicatedMoveSpeed = RuntimeStats.MoveSpeed;
 
-    // 筌롫뗄????쇱젟
     if (EnemyData->Visual.Mesh)
     {
         Mesh->SetSkeletalMesh(EnemyData->Visual.Mesh);
     }
 
-    // ?醫딅빍筌롫뗄????됰뗀竊?袁ⓥ뵛????쇱젟
     if (EnemyData->Visual.AnimBPClass)
     {
         Mesh->SetAnimInstanceClass(EnemyData->Visual.AnimBPClass);
     }
 
-    // ??????怨몄뒠
     Mesh->SetRelativeScale3D(ReplicatedScale);
 
     if (Mesh && CollisionSphere)
@@ -191,12 +169,9 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
             FVector BoneLocation = Mesh->GetSocketLocation(CenterBoneName);
             FVector LocalLocation = Mesh->GetComponentTransform().InverseTransformPosition(BoneLocation);
             CollisionSphere->SetRelativeLocation(LocalLocation);
-
-            //UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] 餓λ쵐??癰?疫꿸퀣? ?袁⑺뒄 ?怨몄뒠: %s"), *LocalLocation.ToString());
         }
     }
 
-    // ?怨밴묶 ?뚮똾猷??곕뱜 ?λ뜃由??
     if (Status)
     {
         Status->Initialize(RuntimeStats.MaxHealth, RuntimeStats.MoveSpeed);
@@ -210,21 +185,19 @@ void AEnemyPawn::InitializeWithData(UEnemyDataAsset* InDataAsset, USplineCompone
 
 void AEnemyPawn::RewardGoldToPlayer()
 {
-    if (!HasAuthority()) return; // 獄쏆꼶諭????뺤쒔?癒?퐣筌???쎈뻬
+    if (!HasAuthority()) return;
 
     if (!EnemyData) return;
 
     int32 RewardGold = EnemyData->Reward.Gold;
 
-    // ??뺤쒔?癒?퐣 筌뤴뫀諭?PlayerController?癒?쓺 ?ⓥ뫀諭?筌왖疫?
     for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
         if (APlayerController* PC = It->Get())
         {
             if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
             {
-                PS->AddGold(RewardGold); // ?ⓥ뫀諭?筌왖疫?
-                UE_LOG(LogTemp, Log, TEXT("[EnemyPawn] %s?癒?쓺 %d ?ⓥ뫀諭?筌왖疫뀀맧留?), *PS->GetPlayerName(), RewardGold);
+                PS->AddGold(RewardGold);
             }
         }
     }

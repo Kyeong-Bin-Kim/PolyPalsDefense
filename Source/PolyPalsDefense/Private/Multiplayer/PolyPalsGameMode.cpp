@@ -119,7 +119,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 
 			UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
 
-			// 1) ?됱긽 ?좊떦
 			if (!PreparedColors.IsEmpty())
 			{
 				if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
@@ -130,7 +129,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			}
 		}
 
-		// ?щ’ ?몃뜳???좊떦
 		if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 		{
 			PS->SetSlotIndex(ConnectedPlayers);
@@ -162,6 +160,15 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			UE_LOG(LogTemp, Log, TEXT("GameMode:DistributeStartingGold()"));
 
 			DistributeStartingGold();
+
+			if (!PreparedColors.IsEmpty())
+			{
+				if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
+				{
+					ProjectController->InitializeControllerDataByGameMode(PreparedColors[0]);
+					PreparedColors.RemoveAt(0);
+				}
+			}
 		}
 	}
 }
@@ -190,25 +197,28 @@ void APolyPalsGameMode::ConfigureLobby(FName StageName, const FString& LobbyName
 	}
 }
 
-void APolyPalsGameMode::DistributeStartingGold()  
-{  
-    if (APolyPalsState* GS = GetGameState<APolyPalsState>())  
-    {  
-        int32 PlayerCount = GS->PlayerArray.Num();  
-        int32 StartingGold = CalculateStartingGold(PlayerCount);  
+void APolyPalsGameMode::DistributeStartingGold()
+{
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		// 현재 접속된 플레이어 수
+		int32 PlayerCount = GS->PlayerArray.Num();
 
-        UE_LOG(LogTemp, Warning, TEXT("[DistributeStartingGold] PlayerCount=%d, CalculatedGold=%d"), PlayerCount, StartingGold);  
+		// 플레이어 수 기준으로 골드 계산
+		int32 StartingGold = CalculateStartingGold(PlayerCount);
 
-        for (APlayerState* PS : GS->PlayerArray)  
-        {  
-            if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))  
-            {  
-                UE_LOG(LogTemp, Warning, TEXT("[Distribute] To=%s,  NewGold=%d"), *PPS->GetPlayerName(), StartingGold);  
+		UE_LOG(LogTemp, Warning, TEXT("[DistributeStartingGold] PlayerCount=%d, StartingGold=%d"), PlayerCount, StartingGold);
 
-                PPS->SetInitialGold(StartingGold);  
-            }  
-        }  
-    }  
+		// 모든 플레이어에게 동일하게 설정
+		for (APlayerState* PS : GS->PlayerArray)
+		{
+			if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
+			{
+				PPS->SetInitialGold(StartingGold);
+				UE_LOG(LogTemp, Warning, TEXT(" → To %s: Gold=%d"), *PPS->GetPlayerName(), StartingGold);
+			}
+		}
+	}
 }
 
 void APolyPalsGameMode::HandleAllPlayersReady()
