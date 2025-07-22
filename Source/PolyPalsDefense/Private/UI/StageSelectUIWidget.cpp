@@ -40,7 +40,7 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
 {
     LastSelectedStage = StageName;
 
-    // 로비 이름 생성
+    // 濡쒕퉬 ?대쫫 ?앹꽦
     FString LobbyName = TEXT("Host");
 
     if (APlayerState* PS = GetOwningPlayer()->PlayerState)
@@ -48,20 +48,20 @@ void UStageSelectUIWidget::HandleStageSelected(FName StageName)
         LobbyName = PS->GetPlayerName();
     }
 
-    // URL‑encode (공백이나 특수문자 처리를 위해)
+    // URL?멷ncode (怨듬갚?대굹 ?뱀닔臾몄옄 泥섎━瑜??꾪빐)
     FString EncodedLobby = FGenericPlatformHttp::UrlEncode(LobbyName);
     FString EncodedStage = FGenericPlatformHttp::UrlEncode(StageName.ToString());
 
-    // 옵션 붙이기
+    // ?듭뀡 遺숈씠湲?
     FString URL = FString::Printf(
         TEXT("127.0.0.1:7777?SelectedStage=%s?LobbyName=%s"),
         *EncodedStage,
         *EncodedLobby
     );
 
-    UE_LOG(LogTemp, Warning, TEXT("[HOST] 서버 연결 URL: %s"), *URL);
+    UE_LOG(LogTemp, Warning, TEXT("[HOST] ?쒕쾭 ?곌껐 URL: %s"), *URL);
 
-    // 4) ClientTravel 호출
+    // 4) ClientTravel ?몄텧
     if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         PC->ClientTravel(*URL, ETravelType::TRAVEL_Absolute);

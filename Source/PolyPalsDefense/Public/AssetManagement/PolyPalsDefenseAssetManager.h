@@ -12,35 +12,35 @@ class POLYPALSDEFENSE_API UPolyPalsDefenseAssetManager : public UAssetManager
     GENERATED_BODY()
 
 public:
-    // 珥덇린???⑥닔
+    // ?λ뜃由????λ땾
     virtual void StartInitialLoading() override;
 
-    // ?숆린 濡쒕뱶
+    // ??녿┛ 嚥≪뮆諭?
     UPrimaryDataAsset* LoadPrimaryDataAsset(const FPrimaryAssetId& AssetId);
 
-    // 鍮꾨룞湲?濡쒕뱶
+    // ??쑬猷욄묾?嚥≪뮆諭?
     void LoadPrimaryDataAssetAsync(const FPrimaryAssetId& AssetId, TFunction<void(UPrimaryDataAsset*)> OnLoadedCallback);
 
-    // ?쇱슜 諛⑹떇: 鍮꾨룞湲??ㅽ뙣 ???숆린 濡쒕뱶濡??泥?
+    // ??깆뒠 獄쎻뫗?? ??쑬猷욄묾???쎈솭 ????녿┛ 嚥≪뮆諭뜻에???筌?
     UPrimaryDataAsset* LoadDataAssetWithFallback(const FPrimaryAssetId& AssetId, TFunction<void(UPrimaryDataAsset*)> OnLoadedCallback);
 
-    // 罹먯떆???먯궛 媛?몄삤湲?
+    // 筌?Ŋ????癒?텦 揶쎛?紐꾩궎疫?
     UPrimaryDataAsset* GetCachedAsset(const FPrimaryAssetId& AssetId);
 
-    // 罹먯떆?먯꽌 ?먯궛 ?쒓굅
+    // 筌?Ŋ??癒?퐣 ?癒?텦 ??볤탢
     void ClearCachedAsset(const FPrimaryAssetId& AssetId);
 
-    // ?대뵒?쒕뱺 ?묎렐?????덈룄濡?static ?⑥닔濡??좎뼵
+    // ??逾??뺣군 ?臾롫젏??????덈즲嚥?static ??λ땾嚥??醫롫섧
     static UPolyPalsDefenseAssetManager& Get();
 
 private:
-    // 罹먯떆???먯궛 紐⑸줉
+    // 筌?Ŋ????癒?텦 筌뤴뫖以?
     TMap<FPrimaryAssetId, UPrimaryDataAsset*> CachedAssets;
 
-    // PrimaryAssetId???곕Ⅸ 寃쎈줈 媛?몄삤湲?
+    // PrimaryAssetId???怨뺚뀲 野껋럥以?揶쎛?紐꾩궎疫?
     FSoftObjectPath GetPrimaryDataAssetPath(const FPrimaryAssetId& AssetId) const;
 
-    // ?ㅽ듃由щ㉧ 留ㅻ땲? 媛?몄삤湲?
+    // ??쎈뱜?귐됥돢 筌띲끇??? 揶쎛?紐꾩궎疫?
     FStreamableManager& GetStreamableManager();
 	
 };

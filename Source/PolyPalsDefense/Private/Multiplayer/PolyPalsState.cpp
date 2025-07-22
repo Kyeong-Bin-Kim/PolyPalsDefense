@@ -1,7 +1,7 @@
 #include "PolyPalsState.h"
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsController.h"
-#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 
 APolyPalsState::APolyPalsState()
@@ -124,11 +124,6 @@ void APolyPalsState::OnRep_ConnectedPlayers()
     NotifyLobbyStateChanged();
 }
 
-void APolyPalsState::OnRep_ReadyPlayers()
-{
-    NotifyLobbyStateChanged();
-}
-
 void APolyPalsState::OnRep_SelectedStage()
 {
     NotifyLobbyStateChanged();
@@ -137,6 +132,43 @@ void APolyPalsState::OnRep_SelectedStage()
 void APolyPalsState::OnRep_LobbyName()
 {
     NotifyLobbyStateChanged();
+}
+
+void APolyPalsState::OnRep_ReadyPlayers()
+{
+    NotifyLobbyStateChanged();
+}
+
+void APolyPalsState::OnRep_LobbyCountdown()
+{
+    OnLobbyCountdownUpdated.Broadcast(LobbyCountdown);
+}
+
+void APolyPalsState::StartLobbyCountdown(int32 InSeconds)
+{
+    if (!HasAuthority())
+        return;
+
+    LobbyCountdown = InSeconds;
+    OnRep_LobbyCountdown();
+    OnLobbyCountdownStarted.Broadcast();
+
+    GetWorldTimerManager().ClearTimer(LobbyCountdownTimerHandle);
+    GetWorldTimerManager().SetTimer(LobbyCountdownTimerHandle, this, &APolyPalsState::UpdateLobbyCountdown, 1.0f, true);
+}
+
+void APolyPalsState::UpdateLobbyCountdown()
+{
+    if (LobbyCountdown > 0)
+    {
+        LobbyCountdown--;
+        OnRep_LobbyCountdown();
+
+        if (LobbyCountdown <= 0)
+        {
+            GetWorldTimerManager().ClearTimer(LobbyCountdownTimerHandle);
+        }
+    }
 }
 
 void APolyPalsState::OnRep_GameOver()
@@ -149,9 +181,10 @@ void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
     DOREPLIFETIME(APolyPalsState, ConnectedPlayers);
-    DOREPLIFETIME(APolyPalsState, ReadyPlayers);
     DOREPLIFETIME(APolyPalsState, SelectedStage);
     DOREPLIFETIME(APolyPalsState, LobbyName);
+    DOREPLIFETIME(APolyPalsState, ReadyPlayers);
+    DOREPLIFETIME(APolyPalsState, LobbyCountdown);
     DOREPLIFETIME(APolyPalsState, CurrentRound);
     DOREPLIFETIME(APolyPalsState, bIsGameOver);
 }

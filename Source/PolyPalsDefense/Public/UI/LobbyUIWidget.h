@@ -47,6 +47,9 @@ protected:
     class UVerticalBox* PlayerSlotBox;
 
     UPROPERTY(meta = (BindWidget))
+    class UTextBlock* CountdownText;
+
+    UPROPERTY(meta = (BindWidget))
     class UButton* ExitGame;
 
     UFUNCTION()
@@ -54,6 +57,12 @@ protected:
 
     UFUNCTION()
     void HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot);
+
+    UFUNCTION()
+    void HandleLobbyCountdownUpdated(int32 SecondsRemaining);
+
+    UFUNCTION()
+    void HandleLobbyCountdownStarted();
 
     UPROPERTY(meta = (BindWidgetOptional), BlueprintReadOnly, Category = "Lobby", meta = (AllowPrivateAccess = "true"))
     TArray<UPlayerSlotWidget*> PlayerSlotWidgets;

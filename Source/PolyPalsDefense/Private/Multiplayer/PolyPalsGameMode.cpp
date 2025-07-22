@@ -81,7 +81,7 @@ void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address,
 		UE_LOG(LogTemp, Warning, TEXT("PreLogin failed: %s"), *ErrorMessage);
 	}
 
-	// ParseOption 으로 자동 디코딩 + & 분리
+	// ParseOption ?쇰줈 ?먮룞 ?붿퐫??+ & 遺꾨━
 	FString RawStage = UGameplayStatics::ParseOption(Options, TEXT("SelectedStage"));
 	FString RawLobby = UGameplayStatics::ParseOption(Options, TEXT("LobbyName"));
 
@@ -90,7 +90,7 @@ void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address,
 
 	UE_LOG(LogTemp, Log, TEXT("[PreLogin] Options -> Stage=%s, Lobby=%s"), *Stage, *Lobby);
 
-	// GameState에 저장 (Replicated property)
+	// GameState?????(Replicated property)
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		if (!Stage.IsEmpty())
@@ -119,7 +119,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 
 			UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
 
-			// 1) 색상 할당
+			// 1) ?됱긽 ?좊떦
 			if (!PreparedColors.IsEmpty())
 			{
 				if (APolyPalsController* ProjectController = Cast<APolyPalsController>(NewPlayer))
@@ -130,7 +130,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			}
 		}
 
-		// 슬롯 인덱스 할당
+		// ?щ’ ?몃뜳???좊떦
 		if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 		{
 			PS->SetSlotIndex(ConnectedPlayers);
@@ -213,6 +213,11 @@ void APolyPalsGameMode::DistributeStartingGold()
 
 void APolyPalsGameMode::HandleAllPlayersReady()
 {
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		GS->StartLobbyCountdown(static_cast<int32>(StartCountdownTime));
+	}
+
 	GetWorld()->GetTimerManager().SetTimerForNextTick([this]()
 	{
 		StartGameAfterCountdown();

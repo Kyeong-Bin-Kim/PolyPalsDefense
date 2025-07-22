@@ -4,7 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "EnemyStatusComponent.generated.h"
 
-// ?щ쭩 ?대깽??
+// ??彛???源??
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyDied);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -15,15 +15,15 @@ class POLYPALSDEFENSE_API UEnemyStatusComponent : public UActorComponent
 public:
     UEnemyStatusComponent();
 
-    // 珥덇린??
+    // ?λ뜃由??
     void Initialize(float InMaxHealth, float InBaseMoveSpeed);
 
-    // ?곕?吏 諛??곹깭 ?댁긽
+    // ?怨?筌왖 獄??怨밴묶 ??곴맒
     void TakeDamage(float DamageAmount);
     void ApplyStun(float Duration);
     void ApplySlow(float Ratio, float Duration);
 
-    // === Getter (UI ?곕룞?? ===
+    // === Getter (UI ?怨뺣짗?? ===
     float GetCurrentHealth() const { return CurrentHealth; }
     float GetMaxHealth() const { return MaxHealth; }
     float GetHealthRatio() const { return MaxHealth > 0.f ? CurrentHealth / MaxHealth : 0.f; }
@@ -34,7 +34,7 @@ public:
 
     float GetEffectiveMoveSpeed() const;
 
-    // ?щ쭩 ?대깽??諛붿씤?⑹슜
+    // ??彛???源??獄쏅뗄???뱀뒠
     UPROPERTY(BlueprintAssignable)
     FOnEnemyDied OnEnemyDied;
 
@@ -52,7 +52,7 @@ private:
     void ClearStun();
     void ClearSlow();
 
-    // === ?곹깭 ?곗씠??===
+    // === ?怨밴묶 ?怨쀬뵠??===
     UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere)
     float CurrentHealth;
 

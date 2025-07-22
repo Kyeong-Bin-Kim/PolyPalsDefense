@@ -11,7 +11,7 @@ void UGamePlayingUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // 버튼 바인딩
+    // 踰꾪듉 諛붿씤??
     if (ToggleTowerButton)
     {
         UE_LOG(LogTemp, Log, TEXT("ToggleTowerButton bound"));
@@ -52,7 +52,7 @@ void UGamePlayingUIWidget::NativeConstruct()
         UE_LOG(LogTemp, Warning, TEXT("Tower3Button is null"));
     }
 
-    // 초기에는 타워 패널 숨김
+    // 珥덇린?먮뒗 ????⑤꼸 ?④?
     if (TowerIconsBox)
     {
         TowerIconsBox->SetVisibility(ESlateVisibility::Collapsed);

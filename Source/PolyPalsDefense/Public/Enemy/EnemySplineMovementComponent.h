@@ -16,13 +16,13 @@ public:
 
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-    // ?대룞 珥덇린??(?ㅽ뵆?쇱씤, ?띾룄)
+    // ??猷??λ뜃由??(??쎈탣??깆뵥, ??얜즲)
     void Initialize(USplineComponent* InSpline, float InMoveSpeed);
 
-    // ?대룞?띾룄 蹂寃?(?щ줈??
+    // ??猷??얜즲 癰궰野?(??以??
     void SetMoveSpeed(float NewSpeed);
 
-    // ?대룞 ?뺤? ?щ? ?ㅼ젙 (?ㅽ꽩)
+    // ??猷??類? ??? ??쇱젟 (??쎄쉘)
     void SetPaused(bool bPause);
 
     USplineComponent* GetSpline() const { return Spline; }

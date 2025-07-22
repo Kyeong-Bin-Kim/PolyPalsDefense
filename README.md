@@ -1,23 +1,23 @@
 # PolyPals Defense
 
-## 1. 프로젝트 개요 (Project Overview)
-- **게임 장르·목표**: 4인 협동 카툰풍 타워디펜스  
-- **핵심 특징**: 멀티플레이, 커스텀 타워 시스템, 데이터 주도 밸런싱, 카툰풍 그래픽  
+## 1. ?꾨줈?앺듃 媛쒖슂 (Project Overview)
+- **寃뚯엫 ?λⅤ쨌紐⑺몴**: 4???묐룞 移댄댆????뚮뵒?쒖뒪  
+- **?듭떖 ?뱀쭠**: 硫?고뵆?덉씠, 而ㅼ뒪? ????쒖뒪?? ?곗씠??二쇰룄 諛몃윴?? 移댄댆??洹몃옒?? 
 
-## 2. 주요 기능 (Key Features)
-- 멀티플레이어 모드 (최대 4명)  
-- 다양한 타워(근거리·원거리) & 업그레이드 시스템  
-- 라운드별 웨이브 관리 & 버프/디버프 효과  
-- UMG 기반 HUD·메뉴 
+## 2. 二쇱슂 湲곕뒫 (Key Features)
+- 硫?고뵆?덉씠??紐⑤뱶 (理쒕? 4紐?  
+- ?ㅼ뼇?????洹쇨굅由?룹썝嫄곕━) & ?낃렇?덉씠???쒖뒪?? 
+- ?쇱슫?쒕퀎 ?⑥씠釉?愿由?& 踰꾪봽/?붾쾭???④낵  
+- UMG 湲곕컲 HUD쨌硫붾돱 
 
-## 3. 요구사항 및 환경 (Prerequisites)
-- **엔진 버전**: Unreal Engine 5.5.x  
-- **플랫폼**: Windows 10 이상 (게임 서버는 Dedicated Server 모드)  
-- **온라인 서브시스템**: Null or Steam/EOS (`DefaultEngine.ini` 설정 참고)  
-- **컴파일 도구**: Visual Studio 2022 (C++17), Windows SDK  
+## 3. ?붽뎄?ы빆 諛??섍꼍 (Prerequisites)
+- **?붿쭊 踰꾩쟾**: Unreal Engine 5.5.x  
+- **?뚮옯??*: Windows 10 ?댁긽 (寃뚯엫 ?쒕쾭??Dedicated Server 紐⑤뱶)  
+- **?⑤씪???쒕툕?쒖뒪??*: Null or Steam/EOS (`DefaultEngine.ini` ?ㅼ젙 李멸퀬)  
+- **而댄뙆???꾧뎄**: Visual Studio 2022 (C++17), Windows SDK  
 
-## 4. 설치·빌드 방법 (Setup & Build)
-1. 소스코드 클론  
+## 4. ?ㅼ튂쨌鍮뚮뱶 諛⑸쾿 (Setup & Build)
+1. ?뚯뒪肄붾뱶 ?대줎  
    ```bash
    git clone https://github.com/YourOrg/PolyPalsDefense.git
    cd PolyPalsDefense

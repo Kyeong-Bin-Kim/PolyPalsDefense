@@ -15,11 +15,11 @@ class POLYPALSDEFENSE_API UTowerUpgradeWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 
-	// 타워 정보 등록 함수
+	// ????뺣낫 ?깅줉 ?⑥닔
 	void SetTargetTower(APlacedTower* InTower);
 
 protected:
-	// 버튼 클릭 처리
+	// 踰꾪듉 ?대┃ 泥섎━
 	UFUNCTION()
 	void OnUpgradeClicked();
 
@@ -27,7 +27,7 @@ protected:
 	UButton* UpgradeButton;
 
 private:
-	// 현재 업그레이드 대상 타워
+	// ?꾩옱 ?낃렇?덉씠????????
 	UPROPERTY()
 	APlacedTower* TargetTower;
 };

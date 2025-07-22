@@ -31,9 +31,9 @@ enum class EAttackMethod : uint8
 UENUM()
 enum class ELevelValue : uint8
 {
-	Level1			UMETA(DisplayName = "1?덈꺼"),
-	Level2			UMETA(DisplayName = "2?덈꺼"),
-	Level3			UMETA(DisplayName = "3?덈꺼"),
+	Level1			UMETA(DisplayName = "1??덇볼"),
+	Level2			UMETA(DisplayName = "2??덇볼"),
+	Level3			UMETA(DisplayName = "3??덇볼"),
 	MaxLevel		UMETA(Hidden)
 };
 UENUM()

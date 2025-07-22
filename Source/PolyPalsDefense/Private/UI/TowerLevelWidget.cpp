@@ -5,7 +5,7 @@ void UTowerLevelWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	UpdateLevelUI(1); // 기본 테스트용
+	UpdateLevelUI(1); // 湲곕낯 ?뚯뒪?몄슜
 }
 
 void UTowerLevelWidget::UpdateLevelUI(int32 CurrentLevel)

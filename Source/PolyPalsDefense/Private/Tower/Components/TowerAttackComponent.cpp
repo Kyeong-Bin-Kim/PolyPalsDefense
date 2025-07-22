@@ -33,7 +33,7 @@ void UTowerAttackComponent::BeginPlay()
 
 	ENetMode Mode = GetWorld()->GetNetMode();
 
-	// 서버에서는 틱 꺼두기
+	// ?쒕쾭?먯꽌????爰쇰몢湲?
 	if (Mode == NM_DedicatedServer)
 	{
 		PrimaryComponentTick.SetTickFunctionEnable(false);
@@ -213,19 +213,19 @@ void UTowerAttackComponent::ServerSetCurrentTarget_Implementation(AEnemyPawn* Ne
 
 void UTowerAttackComponent::OnAttack()
 {
-	// 유효하지 않은 포인터 제거
+	// ?좏슚?섏? ?딆? ?ъ씤???쒓굅
 	SpottedEnemy_Server.RemoveAll([](AActor* Candidate) {
 		return !IsValid(Candidate);
 		});
 
-	// 대상이 없으면 LostTarget
+	// ??곸씠 ?놁쑝硫?LostTarget
 	if (SpottedEnemy_Server.IsEmpty())
 	{
 		SetTowerState(ETowerState::LostTarget);
 		return;
 	}
 
-	// 스플라인 진행 거리가 가장 큰 적 찾기
+	// ?ㅽ뵆?쇱씤 吏꾪뻾 嫄곕━媛 媛??????李얘린
 	AEnemyPawn* Best = nullptr;
 	float MaxDist = -1.f;
 	for (AActor* Candidate : SpottedEnemy_Server)
@@ -242,14 +242,14 @@ void UTowerAttackComponent::OnAttack()
 		}
 	}
 
-	// 못 찾았으면 LostTarget
+	// 紐?李얠븯?쇰㈃ LostTarget
 	if (!IsValid(Best))
 	{
 		SetTowerState(ETowerState::LostTarget);
 		return;
 	}
 
-	// 슬로우/스턴 AOE
+	// ?щ줈???ㅽ꽩 AOE
 	if (TowerAbility != ETowerAbility::None)
 	{
 		FCollisionShape Sphere = FCollisionShape::MakeSphere(250.f);
@@ -300,15 +300,15 @@ void UTowerAttackComponent::OnAttack()
 		Multicast_PlayAoeEffect(Best->GetActorLocation());
 	}
 
-	// 총구 이펙트
+	// 珥앷뎄 ?댄럺??
 	Multicast_PlayMuzzleEffect();
 
-	// 데미지 & 타겟 설정
+	// ?곕?吏 & ?寃??ㅼ젙
 	ServerSetCurrentTarget(Best);
 	Best->ReceiveDamage(Damage);
 	bMuzzleEffect = !bMuzzleEffect;
 
-	// 다음 상태로 전환
+	// ?ㅼ쓬 ?곹깭濡??꾪솚
 	SetTowerState(ETowerState::Delay);
 }
 
@@ -444,7 +444,7 @@ void UTowerAttackComponent::Multicast_PlayMuzzleEffect_Implementation()
 {
 	if (!MuzzleEffect)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect가 null입니다!"));
+		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect媛 null?낅땲??"));
 		return;
 	}
 
@@ -457,7 +457,7 @@ void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQu
 {
 	if (!AoeEffect)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect가 null입니다!"));
+		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect媛 null?낅땲??"));
 		return;
 	}
 

@@ -23,7 +23,7 @@ void USettingUIWidget::NativeConstruct()
 
 void USettingUIWidget::OnMasterVolumeChanged(float Value)
 {
-    // ?덉떆: Master SoundClass 蹂쇰ⅷ 議곗젅
+    // ??됰뻻: Master SoundClass 癰귥눖??鈺곌퀣??
     if (USoundClass* MasterClass = LoadObject<USoundClass>(nullptr, TEXT("/Game/Audio/Master.Master")))
     {
         MasterClass->Properties.Volume = Value;

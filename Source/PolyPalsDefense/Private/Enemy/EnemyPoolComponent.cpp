@@ -17,7 +17,7 @@ void UEnemyPoolComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    // ?쒕쾭 沅뚰븳???꾨땲硫??留?濡쒖쭅 ?ㅽ궢
+    // ??뺤쒔 亦낅슦釉???袁⑤빍筌???筌?嚥≪뮇彛???쎄땁
     if (!GetOwner() || !GetOwner()->HasAuthority())
         return;
 }
@@ -26,23 +26,23 @@ AEnemyPawn* UEnemyPoolComponent::AcquireEnemy(const FPrimaryAssetId& AssetId, US
 {
     AEnemyPawn* EnemyPawn = nullptr;
 
-    // ????⑥? ?몄뒪?댁뒪媛 ?덉쑝硫??ы솢??
+    // ??????? ?紐꾨뮞??곷뮞揶쎛 ??됱몵筌??????
     if (EnemyPool.Contains(AssetId) && EnemyPool[AssetId].Num() > 0)
     {
         EnemyPawn = EnemyPool[AssetId].Pop();
 
-        // ?ы솢???쒖뿉???꾩쟾 珥덇린??
+        // ???????뽯퓠???袁⑹읈 ?λ뜃由??
         EnemyPawn->InitializeFromAssetId(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, Scale);
     }
     else
     {
-        // ????놁쑝硫??덈줈 ?앹꽦
+        // ??????곸몵筌???덉쨮 ??밴쉐
         EnemyPawn = CreateNewEnemy(AssetId, InSpline, HealthMultiplier, SpeedMultiplier, bIsBoss, Scale);
     }
 
     if (EnemyPawn)
     {
-        // ?곹깭 ?쒖꽦??泥섎━ (媛?쒖꽦/異⑸룎/???ы븿)
+        // ?怨밴묶 ??뽮쉐??筌ｌ꼶??(揶쎛??뽮쉐/?겸뫖猷?????釉?
         EnemyPawn->SetIsActive(true);
     }
 
@@ -54,10 +54,10 @@ void UEnemyPoolComponent::ReleaseEnemy(AEnemyPawn* Enemy)
     if (!Enemy)
         return;
 
-    // ?곹깭 鍮꾪솢?깊솕 泥섎━ (媛?쒖꽦/異⑸룎/???ы븿)
+    // ?怨밴묶 ??쑵??源딆넅 筌ｌ꼶??(揶쎛??뽮쉐/?겸뫖猷?????釉?
     Enemy->SetIsActive(false);
 
-    // ???諛섑솚
+    // ????獄쏆꼹??
     if (UEnemyDataAsset* Data = Enemy->GetEnemyData())
     {
         EnemyPool.FindOrAdd(Data->GetPrimaryAssetId()).Add(Enemy);

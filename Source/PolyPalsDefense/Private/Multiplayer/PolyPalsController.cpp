@@ -70,7 +70,7 @@ void APolyPalsController::OnRep_Pawn()
 	if (!IsLocalController() || !GetPawn())
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: 델리게이트 바인딩 시작"));
+	UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: ?몃━寃뚯씠??諛붿씤???쒖옉"));
 
 	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
 	{
@@ -80,24 +80,24 @@ void APolyPalsController::OnRep_Pawn()
 
 		if (BuildComp && HandleComp)
 		{
-			// 1,2,3 키 → 프리뷰
+			// 1,2,3 ?????꾨━酉?
 			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower1);
 			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower2);
 			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower3);
 
-			// 우클릭 → 프리뷰 취소
+			// ?고겢由????꾨━酉?痍⑥냼
 			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::OnInputRightClick);
 
-			// 좌클릭
+			// 醫뚰겢由?
 			InputComp->OnInputLeftClick.Clear();
 
-			//   - 빌드 모드일 땐 설치 확정
+			//   - 鍮뚮뱶 紐⑤뱶?????ㅼ튂 ?뺤젙
 			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::OnInputLeftClick);
 
-			//   - 빌드 모드 아닐 땐 기존 타워 클릭 처리
+			//   - 鍮뚮뱶 紐⑤뱶 ?꾨땺 ??湲곗〈 ????대┃ 泥섎━
 			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
 
-			UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: 델리게이트 바인딩 완료"));
+			UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: ?몃━寃뚯씠??諛붿씤???꾨즺"));
 		}
 	}
 
@@ -114,27 +114,27 @@ void APolyPalsController::SetupInputComponent()
 
 	UE_LOG(LogTemp, Warning, TEXT(">>> SetupInputComponent called, has UPolyPalsInputComponent=%s"), FindComponentByClass<UPolyPalsInputComponent>() ? TEXT("YES") : TEXT("NO"));
 
-	// EnhancedInput 세팅
+	// EnhancedInput ?명똿
 	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
 	{
-		// 바인딩 중복 방지
-		// 싱글캐스트 델리게이트는 Unbind()
+		// 諛붿씤??以묐났 諛⑹?
+		// ?깃?罹먯뒪???몃━寃뚯씠?몃뒗 Unbind()
 		InputComp->OnInputTower1.Unbind();
 		InputComp->OnInputTower2.Unbind();
 		InputComp->OnInputTower3.Unbind();
 		InputComp->OnInputRightClick.Unbind();
 
-		// 멀티캐스트 델리게이트는 Clear()
+		// 硫?곗틦?ㅽ듃 ?몃━寃뚯씠?몃뒗 Clear()
 		InputComp->OnInputLeftClick.Clear();
 
-		// 향상된 입력 셋팅
+		// ?μ긽???낅젰 ?뗮똿
 		InputComp->SetupEnhancedInput(this);
 	}
 
-	// 커서 보이게
+	// 而ㅼ꽌 蹂댁씠寃?
 	bShowMouseCursor = true;
 
-	// 게임 & UI 모드 설정
+	// 寃뚯엫 & UI 紐⑤뱶 ?ㅼ젙
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
@@ -149,9 +149,9 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void APolyPalsController::InitializeAndShowLobbyUI(FName InStageName, const FString& HostName)
 {
-	ShowLobbyUI();								// UI 보이기 + RefreshLobbyUI
-	ConfigureLobbyUI(InStageName, HostName);	// 방 제목, 스테이지 세팅
-	RefreshLobbyUI();							// 숫자·슬롯 재갱신
+	ShowLobbyUI();								// UI 蹂댁씠湲?+ RefreshLobbyUI
+	ConfigureLobbyUI(InStageName, HostName);	// 諛??쒕ぉ, ?ㅽ뀒?댁? ?명똿
+	RefreshLobbyUI();							// ?レ옄쨌?щ’ ?ш갚??
 }
 
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
@@ -204,7 +204,7 @@ void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance가 없습니다. Ready 상태를 UI에 반영할 수 없습니다."));
+		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance媛 ?놁뒿?덈떎. Ready ?곹깭瑜?UI??諛섏쁺?????놁뒿?덈떎."));
 	}
 }
 
@@ -220,11 +220,11 @@ void APolyPalsController::RefreshLobbyUI()
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// 방 제목, 스테이지도 갱신
+		// 諛??쒕ぉ, ?ㅽ뀒?댁???媛깆떊
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// 기존 로직: 접속/준비 수, 슬롯 갱신
+		// 湲곗〈 濡쒖쭅: ?묒냽/以鍮??? ?щ’ 媛깆떊
 		LobbyUIInstance->UpdateLobbyInfo(GS->GetConnectedPlayers(), GS->GetReadyPlayers(), GS->GetSelectedStage(), HasAuthority());
 
 		LobbyUIInstance->RefreshPlayerSlots(GS->PlayerArray);
@@ -362,13 +362,13 @@ void APolyPalsController::BeginSelectTower(int32 TowerIndex)
 
 bool APolyPalsController::Server_BuildTower_Validate(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
 {
-	// TowerIndex  체크
+	// TowerIndex  泥댄겕
 	return TowerIndex >= 1 && TowerIndex <= 3;
 }
 
 void APolyPalsController::Server_BuildTower_Implementation(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
 {
-	// 내 Pawn 과 BuildComp 얻기
+	// ??Pawn 怨?BuildComp ?산린
 	APolyPalsGamePawn * MyPawn = Cast<APolyPalsGamePawn>(GetPawn());
 
 	if (!MyPawn) return;

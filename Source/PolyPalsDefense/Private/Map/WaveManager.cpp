@@ -9,7 +9,7 @@
 AWaveManager::AWaveManager()
 {
     PrimaryActorTick.bCanEverTick = false;
-    bReplicates = true; // 由ы뵆由ъ??댁뀡 ?쒖꽦??
+    bReplicates = true; // ?귐뗫탣?귐???곷???뽮쉐??
 }
 
 void AWaveManager::NotifyWaveInfoChanged()
@@ -170,21 +170,21 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
         WaveSpawner->OnEnemyKilled();
     }
 
-    NotifyWaveInfoChanged(); // ?쒕쾭??Broadcast
+    NotifyWaveInfoChanged(); // ??뺤쒔??Broadcast
 
     Enemy->Destroy();
 }
 
-// 由ы뵆由ъ??댁뀡 ?띿꽦 ?ㅼ젙
+// ?귐뗫탣?귐???곷???욧쉐 ??쇱젟
 void AWaveManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(AWaveManager, PlayerLife); // 湲곗〈
-    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // 異붽?
+    DOREPLIFETIME(AWaveManager, PlayerLife); // 疫꿸퀣??
+    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // ?곕떽?
 }
 
-// ?대씪?댁뼵?몄뿉??媛?蹂듭젣 ???ㅽ뻾
+// ?????곷섧?紐꾨퓠??揶?癰귣벊??????쎈뻬
 void AWaveManager::OnRep_PlayerLife()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_PlayerLife: %d"), PlayerLife);
@@ -202,5 +202,5 @@ void AWaveManager::OnRep_CurrentRound()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_CurrentRound: %d"), CurrentRoundIndex);
 
-    NotifyWaveInfoChanged(); // UI??諛섏쁺?섎룄濡??몃━寃뚯씠???몄텧
+    NotifyWaveInfoChanged(); // UI??獄쏆꼷???롫즲嚥??紐꺿봺野껊슣????紐꾪뀱
 }

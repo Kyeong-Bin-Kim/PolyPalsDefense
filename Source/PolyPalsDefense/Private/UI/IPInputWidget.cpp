@@ -33,6 +33,6 @@ void UIPInputWidget::OnConnectClicked()
         PC->ClientTravel(*Address, ETravelType::TRAVEL_Absolute);
     }
 
-    // â �ݱ�
+    // 창 닫기
     RemoveFromParent();
 }

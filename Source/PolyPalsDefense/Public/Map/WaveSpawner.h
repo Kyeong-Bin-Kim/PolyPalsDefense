@@ -23,13 +23,13 @@ public:
 protected:
     virtual void BeginPlay() override;
 
-    // 寃뚯엫 ?ㅻ쾭 ?대깽???몃뱾??
+    // 野껊슣????살쒔 ??源???紐껊굶??
     UFUNCTION()
     void HandleGameOver();
 
 
 public:
-    // ?쇱슫?쒕? ?쒖옉?섎뒗 ?⑥닔
+    // ??깆뒲??? ??뽰삂??롫뮉 ??λ땾
     UFUNCTION(BlueprintCallable, Category = "Wave")
     void StartWave(int32 RoundIndex);
 
@@ -40,25 +40,25 @@ public:
     int32 TotalEnemiesThisWave = 0;
     int32 RemainingEnemies = 0;
 protected:
-    // ?먮뵒?곗뿉??吏?뺥븯嫄곕굹 ?먮룞 寃?됰맆 StageActor 李몄“
+    // ?癒?탵?怨쀫퓠??筌왖?類λ릭椰꾧퀡援??癒?짗 野꺜??곕쭍 StageActor 筌〓챷??
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
     AStageActor* StageRef;
 
-    // ?留??쒖뒪??而댄룷?뚰듃
+    // ??筌???뽯뮞???뚮똾猷??곕뱜
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UEnemyPoolComponent* EnemyPool;
 
 private:
-    // ?ㅽ뵆?쇱씤 寃쎈줈 諛?DataTable
+    // ??쎈탣??깆뵥 野껋럥以?獄?DataTable
     USplineComponent* SplinePath;
     UDataTable* WavePlanTable;
 
-    // ?ㅽ룿 濡쒖쭅 愿??
+    // ??쎈？ 嚥≪뮇彛??온??
     TArray<FEnemySpawnEntry> CurrentSpawnList;
     int32 SpawnIndex;
     FTimerHandle SpawnTimerHandle;
 
-    // SpawnNextEnemy ?몄텧
+    // SpawnNextEnemy ?紐꾪뀱
     void SpawnNextEnemy();
 
 };

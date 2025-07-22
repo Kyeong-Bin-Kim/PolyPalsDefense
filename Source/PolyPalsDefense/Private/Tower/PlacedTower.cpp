@@ -61,11 +61,11 @@ APlacedTower::APlacedTower()
 
 	LevelWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LevelWidgetComponent"));
 	LevelWidgetComponent->SetupAttachment(RootComponent);
-	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // 타워 아래쪽
-	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // 타워 위쪽을 바라보도록 회전
-	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // 또는 World
-	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // 크기 조절
-	LevelWidgetComponent->SetVisibility(true); // 초기엔 숨겨두기
+	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // ????꾨옒履?
+	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // ????꾩そ??諛붾씪蹂대룄濡??뚯쟾
+	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // ?먮뒗 World
+	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // ?ш린 議곗젅
+	LevelWidgetComponent->SetVisibility(true); // 珥덇린???④꺼?먭린
 
 }
 
@@ -144,13 +144,13 @@ void APlacedTower::Multicast_InitializeVisuals_Implementation(uint8 InTowerId, E
 
 void APlacedTower::Multicast_UpdateLevelVisuals_Implementation(uint8 InTowerId, EPlayerColor InColor, int32 InNewLevel)
 {
-	// 모든 클라이언트에서 실행
+	// 紐⑤뱺 ?대씪?댁뼵?몄뿉???ㅽ뻾
 	TowerId = InTowerId;
 	PlayerColor = InColor;
 	Level = InNewLevel;
 
-	SetupVisuals();   // 메시,머티어얼 업데이트
-	UpdateLevel();    // 레벨, 이펙트 등 업데이트
+	SetupVisuals();   // 硫붿떆,癒명떚?댁뼹 ?낅뜲?댄듃
+	UpdateLevel();    // ?덈꺼, ?댄럺?????낅뜲?댄듃
 }
 
 void APlacedTower::OnRep_PlayerColor()
@@ -256,16 +256,16 @@ void APlacedTower::Server_RequestUpgradeTower_Implementation()
 
 	if (PS && PS->GetPlayerGold() >= UpgradeCost)
 	{
-		// 골드 차감
+		// 怨⑤뱶 李④컧
 		PS->AddGold(-UpgradeCost);
 
-		// 레벨 증가
+		// ?덈꺼 利앷?
 		Level++;
 
-		// 외형 변경 및 레벨 갱신
+		// ?명삎 蹂寃?諛??덈꺼 媛깆떊
 		Multicast_UpdateLevelVisuals(TowerId, PlayerColor, Level);
 
-		// 로컬 클라이언트라면 HUD도 갱신
+		// 濡쒖뺄 ?대씪?댁뼵?몃씪硫?HUD??媛깆떊
 		if (PC->IsLocalController())
 		{
 			if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
@@ -290,7 +290,7 @@ void APlacedTower::UpdateLevel()
 
 	if (LevelWidget)
 	{
-		LevelWidget->UpdateLevelUI(Level); // 현재 타워 레벨 전달
+		LevelWidget->UpdateLevelUI(Level); // ?꾩옱 ????덈꺼 ?꾨떖
 	}
 }
 
@@ -314,12 +314,12 @@ void APlacedTower::SetupVisuals()
 		return;
 	}
 
-	// 타워, 총, 이펙트 설정
+	// ??? 珥? ?댄럺???ㅼ젙
 	TowerMeshComponent->SetStaticMesh(PD->TowerMesh);
 	GunMeshComponent->SetStaticMesh(PD->GunMesh);
 	MuzzleEffectComponent->SetAsset(PD->MuzzleEffect);
 
-	// 플레이어 컬러(Material)
+	// ?뚮젅?댁뼱 而щ윭(Material)
 	ClientSetTowerMeshComponent(TowerId, PlayerColor);
 }
 

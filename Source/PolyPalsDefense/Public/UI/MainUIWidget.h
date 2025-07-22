@@ -14,7 +14,7 @@ class POLYPALSDEFENSE_API UMainUIWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
 
-    // 외부에서 닉네임 또는 Steam ID를 설정
+    // ?몃??먯꽌 ?됰꽕???먮뒗 Steam ID瑜??ㅼ젙
     UFUNCTION(BlueprintCallable)
     void SetPlayerNameText(const FString& Name);
 
@@ -32,7 +32,7 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* SearchRoom;
 
-    // 추후 추가 예정
+    // 異뷀썑 異붽? ?덉젙
     //UPROPERTY(meta = (BindWidget))
     //class UButton* Settings;
 

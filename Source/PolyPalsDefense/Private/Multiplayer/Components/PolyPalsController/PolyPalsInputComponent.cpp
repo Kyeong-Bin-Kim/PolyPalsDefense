@@ -24,7 +24,7 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 
 	PolyPalsController = InController;
 
-    // ÂüÁ¶¿¡¼­ ¿¡¼ÂÀ» µ¿±â ·Îµå
+    // ì°¸ì¡°ì—ì„œ ì—ì…‹ì„ ë™ê¸° ë¡œë“œ
     if (!InputConfig && InputConfigAsset.IsValid())
     {
         InputConfig = InputConfigAsset.LoadSynchronous();
@@ -36,23 +36,23 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
         return;
     }
 
-    // ¸ÅÇÎ ÄÁÅØ½ºÆ® µî·Ï
+    // ë§¤í•‘ ì»¨í…ìŠ¤íŠ¸ ë“±ë¡
     if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(InController->GetLocalPlayer()))
     {
         Subsystem->ClearAllMappings();
         Subsystem->AddMappingContext(InputConfig->DefaultMapping, 0);
     }
 
-    // ¾×¼Ç ¹ÙÀÎµù
+    // ì•¡ì…˜ ë°”ì¸ë”©
     if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InController->InputComponent))
     {
-        // ÁÂÅ¬¸¯
+        // ì¢Œí´ë¦­
         EIC->BindAction(InputConfig->InputLeftClick, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputLeftClick);
 
-        // ¿ìÅ¬¸¯
+        // ìš°í´ë¦­
         EIC->BindAction(InputConfig->InputRightClick, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputRightClick);
 
-        // 1,2,3 Å°
+        // 1,2,3 í‚¤
         EIC->BindAction(InputConfig->InputTower1, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower1);
 
         if (ensure(InputConfig->InputTower1))
@@ -89,7 +89,7 @@ void UPolyPalsInputComponent::InputTower1(const FInputActionValue& Value)
 {  
     bool bIsPressed = Value.Get<bool>();  
 
-    UE_LOG(LogTemp, Warning, TEXT("[InputTower1] È£ÃâµÊ! Value=%s"), bIsPressed ? TEXT("Pressed") : TEXT("Released"));  
+    UE_LOG(LogTemp, Warning, TEXT("[InputTower1] í˜¸ì¶œë¨! Value=%s"), bIsPressed ? TEXT("Pressed") : TEXT("Released"));  
 
     OnInputTower1.ExecuteIfBound();  
 }

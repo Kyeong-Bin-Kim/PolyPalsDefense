@@ -30,14 +30,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-	// ¼­¹ö°¡ Å¸¿ö »ı¼º Á÷ÈÄ È£ÃâÇÏ¿© ID, »ö»ó ¼¼ÆÃ
+	// ì„œë²„ê°€ íƒ€ì›Œ ìƒì„± ì§í›„ í˜¸ì¶œí•˜ì—¬ ID, ìƒ‰ìƒ ì„¸íŒ…
 	void ExternalInitializeTower(uint8 InTowerId, EPlayerColor InColor, APolyPalsController* const InController);
 
-	// Å¬¶óÀÌ¾ğÆ® Æ÷ÇÔ Àü¿ø¿¡°Ô ¼³Ä¡ ½Ã ¿ÜÇü ¼¼ÆÃ
+	// í´ë¼ì´ì–¸íŠ¸ í¬í•¨ ì „ì›ì—ê²Œ ì„¤ì¹˜ ì‹œ ì™¸í˜• ì„¸íŒ…
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_InitializeVisuals(uint8 InTowerId, EPlayerColor InColor);
 
-	// Å¬¶óÀÌ¾ğÆ® Æ÷ÇÔ Àü¿ø¿¡°Ô ¾÷±×·¹ÀÌµå ½Ã ¿ÜÇü, ·¹º§ ¼¼ÆÃ
+	// í´ë¼ì´ì–¸íŠ¸ í¬í•¨ ì „ì›ì—ê²Œ ì—…ê·¸ë ˆì´ë“œ ì‹œ ì™¸í˜•, ë ˆë²¨ ì„¸íŒ…
 	UFUNCTION(NetMulticast, Reliable)
 	void Multicast_UpdateLevelVisuals(uint8 InTowerId, EPlayerColor InColor, int32 InNewLevel);
 
@@ -55,11 +55,11 @@ public:
 
 	void SetWidgetHidden(bool bIsDeactice);
 
-	// ¾÷±×·¹ÀÌµå UI ¹öÆ°¿¡¼­ È£Ãâ
+	// ì—…ê·¸ë ˆì´ë“œ UI ë²„íŠ¼ì—ì„œ í˜¸ì¶œ
 	UFUNCTION()
 	void UpgradeTower();
 
-	// Å¬¶óÀÌ¾ğÆ® ¡æ ¼­¹ö ¾÷±×·¹ÀÌµå ¿äÃ»
+	// í´ë¼ì´ì–¸íŠ¸ â†’ ì„œë²„ ì—…ê·¸ë ˆì´ë“œ ìš”ì²­
 	UFUNCTION(Server, Reliable)
 	void Server_RequestUpgradeTower();
 

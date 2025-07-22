@@ -10,20 +10,20 @@ void UPolyPalsGameInstance::Init()
 {
     Super::Init();
 
-    // World 컨텍스트 기반 OnlineSubsystem 가져오기
+    // World 而⑦뀓?ㅽ듃 湲곕컲 OnlineSubsystem 媛?몄삤湲?
     IOnlineSubsystem* OSS = Online::GetSubsystem(GetWorld());
 
     if (OSS)
     {
         IdentityInterface = OSS->GetIdentityInterface();
-        UE_LOG(LogTemp, Log, TEXT("Init(): Using OSS from world, Interface 초기화 완료"));
+        UE_LOG(LogTemp, Log, TEXT("Init(): Using OSS from world, Interface 珥덇린???꾨즺"));
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Init(): World OSS를 찾을 수 없습니다."));
+        UE_LOG(LogTemp, Warning, TEXT("Init(): World OSS瑜?李얠쓣 ???놁뒿?덈떎."));
     }
 
-    // 델리게이트 바인딩
+    // ?몃━寃뚯씠??諛붿씤??
     if (IdentityInterface.IsValid())
     {
         OnLoginCompleteHandle = IdentityInterface->AddOnLoginCompleteDelegate_Handle(

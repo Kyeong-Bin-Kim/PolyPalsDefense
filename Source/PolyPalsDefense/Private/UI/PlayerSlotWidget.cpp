@@ -6,7 +6,7 @@ void UPlayerSlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Ready 踰꾪듉???대┃ ?대깽??諛붿씤??
+    // Ready 甕곌쑵?????????源??獄쏅뗄???
     if (ReadyButton)
     {
         ReadyButton->OnClicked.AddDynamic(this, &UPlayerSlotWidget::OnReadyButtonClicked);
@@ -24,13 +24,13 @@ void UPlayerSlotWidget::OnReadyButtonClicked()
 
         if (bIsReady)
         {
-            // ?뚮┝ ?곹깭: 紐⑤뱺 ?대?吏 ?뚮┝?쇰줈 怨좎젙
+            // ???뵝 ?怨밴묶: 筌뤴뫀諭????筌왖 ???뵝??곗쨮 ?⑥쥙??
             Style.Normal = Style.Pressed;
             Style.Hovered = Style.Pressed;
         }
         else
         {
-            // 珥덇린 ?곹깭 蹂듦?
+            // ?λ뜃由??怨밴묶 癰귣벀?
             Style.Normal = DefaultStyle.Normal;
             Style.Hovered = DefaultStyle.Hovered;
         }

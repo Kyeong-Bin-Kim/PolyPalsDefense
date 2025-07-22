@@ -17,15 +17,15 @@ public:
         return FPrimaryAssetId("EnemyDataAsset", GetFName());
     }
 
-    // ?꾪닾 ?λ젰移?
+    // ?袁る떮 ?貫?곁㎉?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyStatData Stats;
 
-    // 蹂댁긽 諛??⑤꼸??
+    // 癰귣똻湲?獄???ㅺ섯??
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyRewardData Reward;
 
-    // ?쒓컖???곗텧
+    // ??볦퍟???怨쀭뀱
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FEnemyVisualData Visual;
 };

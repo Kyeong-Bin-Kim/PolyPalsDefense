@@ -39,7 +39,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Build")
 	void BeginSelectTower(int32 TowerIndex);
 
-	// UI 에서 눌러서 타워를 지을 때 서버로 전달할 RPC
+	// UI ?먯꽌 ?뚮윭????뚮? 吏?????쒕쾭濡??꾨떖??RPC
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_BuildTower(int32 TowerIndex, FVector_NetQuantize InSpawnLocation);
 
@@ -61,7 +61,7 @@ public:
 	void ConfigureLobbyUI(FName InStageName, const FString& HostName);
 
 private:
-	// 마우스 클릭 확정 시 이 ID로 빌드 RPC 호출
+	// 留덉슦???대┃ ?뺤젙 ????ID濡?鍮뚮뱶 RPC ?몄텧
 	int32 PendingTowerIndex = 0;
 
 protected:
@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
 	UPolyPalsInputComponent* PolyPalsInputComponent;
 
-	// UI 위젯 클래스
+	// UI ?꾩젽 ?대옒??
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
 
@@ -81,7 +81,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UStageSelectUIWidget> StageSelectWidgetInstance;
 
-	// UI 인스턴스
+	// UI ?몄뒪?댁뒪
 	UPROPERTY()
 	TObjectPtr<UUserWidget> MainUIWidgetInstance;
 

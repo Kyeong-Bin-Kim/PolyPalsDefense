@@ -12,13 +12,11 @@ void ULobbyUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // ?댁옣 踰꾪듉 諛붿씤??
     if (ExitGame)
     {
         ExitGame->OnClicked.AddDynamic(this, &ULobbyUIWidget::OnExitGameClicked);
     }
 
-    // PlayerSlotBox ?덉쓽 PlayerSlot?ㅼ쓣 紐⑤몢 ?섏쭛
     if (PlayerSlotBox)
     {
         for (UWidget* Child : PlayerSlotBox->GetAllChildren())
@@ -29,6 +27,12 @@ void ULobbyUIWidget::NativeConstruct()
                 PlayerSlot->OnReadyClicked.AddDynamic(this, &ULobbyUIWidget::HandleSlotReadyClicked);
             }
         }
+    }
+
+    if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+    {
+        GS->OnLobbyCountdownUpdated.AddDynamic(this, &ULobbyUIWidget::HandleLobbyCountdownUpdated);
+        GS->OnLobbyCountdownStarted.AddDynamic(this, &ULobbyUIWidget::HandleLobbyCountdownStarted);
     }
 }
 
@@ -87,14 +91,6 @@ void ULobbyUIWidget::UpdatePlayerSlotReadyState(APolyPalsPlayerState* PlayerStat
     }
 }
 
-void ULobbyUIWidget::OnExitGameClicked()
-{
-    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
-    {
-        PC->LeaveLobby();
-    }
-}
-
 void ULobbyUIWidget::HandleSlotReadyClicked(UPlayerSlotWidget* ClickedSlot)
 {
     if (APlayerController* PC = ClickedSlot->GetOwningPlayer())
@@ -150,5 +146,36 @@ void ULobbyUIWidget::RefreshPlayerSlots(const TArray<APlayerState*>& PlayerState
 
         PlayerSlot->ConfigureSlot(TargetState, bLocal);
         ++Index;
+    }
+}
+
+void ULobbyUIWidget::HandleLobbyCountdownUpdated(int32 SecondsRemaining)
+{
+    if (CountdownText)
+    {
+        if (SecondsRemaining > 0)
+        {
+            CountdownText->SetText(FText::FromString(FString::Printf(TEXT("%d"), SecondsRemaining)));
+        }
+        else
+        {
+            CountdownText->SetText(FText::GetEmpty());
+        }
+    }
+}
+
+void ULobbyUIWidget::HandleLobbyCountdownStarted()
+{
+    if (ExitGame)
+    {
+        ExitGame->SetVisibility(ESlateVisibility::Collapsed);
+    }
+}
+
+void ULobbyUIWidget::OnExitGameClicked()
+{
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayer()))
+    {
+        PC->LeaveLobby();
     }
 }

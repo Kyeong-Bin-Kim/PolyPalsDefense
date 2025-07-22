@@ -5,8 +5,9 @@
 #include "PolyPalsState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameOver);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllPlayersReady);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLobbyCountdownStarted);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyCountdownUpdated, int32, SecondsRemaining);
 
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsState : public AGameStateBase
@@ -17,10 +18,16 @@ public:
     APolyPalsState();
 
     UPROPERTY(BlueprintAssignable, Category = "Game")
-    FOnGameOver OnGameOver;
+    FOnAllPlayersReady OnAllPlayersReady;
+
+    UPROPERTY(BlueprintAssignable, Category = "Lobby")
+    FOnLobbyCountdownStarted OnLobbyCountdownStarted;
+
+    UPROPERTY(BlueprintAssignable, Category = "Lobby")
+    FOnLobbyCountdownUpdated OnLobbyCountdownUpdated;
 
     UPROPERTY(BlueprintAssignable, Category = "Game")
-    FOnAllPlayersReady OnAllPlayersReady;
+    FOnGameOver OnGameOver;
 
     UFUNCTION(BlueprintPure, Category = "Lobby")
     int32 GetConnectedPlayers() const { return ConnectedPlayers; }
@@ -45,6 +52,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Game")
     void SetGameOver();
 
+    UFUNCTION(BlueprintPure, Category = "Lobby")
+    FString GetLobbyName() const { return LobbyName; }
+
     void UpdateConnectedPlayers(int32 Count);
 
     void UpdateReadyPlayers();
@@ -53,12 +63,13 @@ public:
 
     void SetLobbyName(const FString& Name);
 
-    UFUNCTION(BlueprintPure, Category = "Lobby")
-    FString GetLobbyName() const { return LobbyName; }
-
     virtual void AddPlayerState(APlayerState* PlayerState) override;
 
     virtual void RemovePlayerState(APlayerState* PlayerState) override;
+
+    void StartLobbyCountdown(int32 InSeconds);
+
+    void UpdateLobbyCountdown();
 
 private:
     void NotifyLobbyStateChanged();
@@ -70,16 +81,19 @@ protected:
     void OnRep_ConnectedPlayers();
 
     UFUNCTION()
-    void OnRep_ReadyPlayers();
-
-    UFUNCTION()
     void OnRep_SelectedStage();
 
     UFUNCTION()
     void OnRep_LobbyName();
 
     UFUNCTION()
+    void OnRep_ReadyPlayers();
+
+    UFUNCTION()
     void OnRep_CurrentRound();
+
+    UFUNCTION()
+    void OnRep_LobbyCountdown();
 
     UFUNCTION()
     void OnRep_GameOver();
@@ -97,8 +111,13 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_LobbyName)
     FString LobbyName;
 
+    UPROPERTY(ReplicatedUsing = OnRep_LobbyCountdown)
+    int32 LobbyCountdown = 0;
+
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)
     bool bIsGameOver;
+
+    FTimerHandle LobbyCountdownTimerHandle;
 
 protected:
     UPROPERTY(ReplicatedUsing = OnRep_CurrentRound)

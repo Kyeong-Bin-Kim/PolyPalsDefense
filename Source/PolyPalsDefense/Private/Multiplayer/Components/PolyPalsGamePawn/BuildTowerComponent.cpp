@@ -41,7 +41,7 @@ void UBuildTowerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void UBuildTowerComponent::ClientBeginSelectTower_Implementation(uint8 InTowerId)
 {
-    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:Clinent 선택된 타워 ID = %d"), InTowerId);
+    UE_LOG(LogTemp, Warning, TEXT("BuildTowerComponent:Clinent ?좏깮?????ID = %d"), InTowerId);
     OnSelectTower(InTowerId);
 }
 
@@ -91,19 +91,19 @@ void UBuildTowerComponent::OnSelectTower(uint8 InTowerId)
         }
     }
 
-    // PreviewBuilding 이 아직 없으면 스폰 시도
+    // PreviewBuilding ???꾩쭅 ?놁쑝硫??ㅽ룿 ?쒕룄
     if (!PreviewBuilding)
     {
         SpawnPreviewBuilding();
 
         if (!PreviewBuilding)
         {
-            UE_LOG(LogTemp, Error, TEXT("OnSelectTower: PreviewBuilding 스폰에 실패했습니다."));
+            UE_LOG(LogTemp, Error, TEXT("OnSelectTower: PreviewBuilding ?ㅽ룿???ㅽ뙣?덉뒿?덈떎."));
             return;
         }
     }
 
-    // 선택된 타워 ID 저장 및 상태 전환
+    // ?좏깮?????ID ???諛??곹깭 ?꾪솚
     TowerOnSearchingQue = InTowerId;
     SetBuildState(EBuildState::SearchingPlace);
 }
@@ -131,11 +131,11 @@ void UBuildTowerComponent::OnDecidePlacementLocation()
 
     bool bCanBuild = PreviewBuilding->IsBuildable();
 
-    UE_LOG(LogTemp, Warning, TEXT("OnDecidePlacementLocation → bCanBuild=%d, Loc=%s"),  bCanBuild, *PreviewBuilding->GetActorLocation().ToString());
+    UE_LOG(LogTemp, Warning, TEXT("OnDecidePlacementLocation ??bCanBuild=%d, Loc=%s"),  bCanBuild, *PreviewBuilding->GetActorLocation().ToString());
 
     if (bCanBuild)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Decide→Server RPC 호출"));
+        UE_LOG(LogTemp, Warning, TEXT("Decide?뭆erver RPC ?몄텧"));
         Server_RequestSpawnTower(PreviewBuilding->GetActorLocation(), TowerOnSearchingQue);
         SetBuildState(EBuildState::None);
     }
@@ -245,23 +245,23 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(FVector_NetQu
 {
     UE_LOG(LogTemp, Warning, TEXT("[Server_Impl] Tower=%d Loc=%s"), InTargetTower, *InLocation.ToString());
 
-    // Spawn 파라미터 세팅
+    // Spawn ?뚮씪誘명꽣 ?명똿
     FActorSpawnParameters SpawnParams;
     SpawnParams.SpawnCollisionHandlingOverride =
         ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-    // 실제 위치 오프셋
+    // ?ㅼ젣 ?꾩튂 ?ㅽ봽??
     FVector SpawnLocation = InLocation;
     SpawnLocation.Z += 80.f;
 
-    // 타워 스폰
+    // ????ㅽ룿
     APlacedTower* Tower = GetWorld()->SpawnActor<APlacedTower>(
         PlacedTowerBlueClass,
         SpawnLocation,
         FRotator::ZeroRotator,
         SpawnParams);
 
-    // 내 Pawn 과 컨트롤러 얻기
+    // ??Pawn 怨?而⑦듃濡ㅻ윭 ?산린
     APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(GetOwner());
     if (!MyPawn)
         return;
@@ -271,10 +271,10 @@ void UBuildTowerComponent::Server_RequestSpawnTower_Implementation(FVector_NetQu
     if (!OwnerController)
         return;
 
-    // 초기화 (색상·소유자 전달)
+    // 珥덇린??(?됱긽쨌?뚯쑀???꾨떖)
     Tower->ExternalInitializeTower(InTargetTower, PlayerColor, OwnerController);
 
-    // 골드 차감
+    // 怨⑤뱶 李④컧
     if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(OwnerController->PlayerState))
     {
         UTowerPropertyData* Data = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerPropertyData(InTargetTower);

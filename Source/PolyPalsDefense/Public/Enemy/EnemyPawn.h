@@ -23,63 +23,63 @@ class POLYPALSDEFENSE_API AEnemyPawn : public APawn
 public:
     AEnemyPawn();
 
-    // ?붾뱶???ㅽ룿????珥덇린???묒뾽
+    // ?遺얜굡????쎈？?????λ뜃由???臾믩씜
     virtual void BeginPlay() override;
 
     virtual void Tick(float DeltaTime) override;
 
-    // ?곗씠???먯뀑?쇰줈 珥덇린??
+    // ?怨쀬뵠???癒???곗쨮 ?λ뜃由??
     void InitializeWithData(UEnemyDataAsset* InDataAsset, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
     void RewardGoldToPlayer();
 
-    // AssetManager濡쒕????먯뀑 ID濡?珥덇린??
+    // AssetManager嚥≪뮆????癒??ID嚥??λ뜃由??
     void InitializeFromAssetId(const FPrimaryAssetId& AssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale);
 
-    // ?몃??먯꽌 ?곕?吏 ?곸슜 ?붿껌???ъ슜??以묎컻 ?⑥닔
+    // ?紐??癒?퐣 ?怨?筌왖 ?怨몄뒠 ?遺욧퍕???????餓λ쵌而???λ땾
     UFUNCTION(BlueprintCallable, Category = "Enemy")
     void ReceiveDamage(float DamageAmount);
 
-    // 蹂댁뒪 ?щ?
+    // 癰귣똻?????
     bool IsBoss() const;
 
-    // ?щ줈???곹깭 ?곸슜
+    // ??以???怨밴묶 ?怨몄뒠
     void ApplySlow(float Ratio, float Duration);
 
-    // ?ㅽ꽩 ?곹깭 ?곸슜
+    // ??쎄쉘 ?怨밴묶 ?怨몄뒠
     void ApplyStun(float Duration);
 
-    // 紐⑺몴 吏???꾨떖 ???몄텧
+    // 筌뤴뫚紐?筌왖???袁⑤뼎 ???紐꾪뀱
     void ReachGoal();
 
-    // ?앸챸?μ씠 0???섏뿀????泥섎━
+    // ??몄구?關??0????뤿?????筌ｌ꼶??
     UFUNCTION()
     void HandleEnemyDeath();
 
-    // ?쒖꽦???곹깭 ?ㅼ젙 諛?蹂듭젣 ?몃━嫄?
+    // ??뽮쉐???怨밴묶 ??쇱젟 獄?癰귣벊???紐꺿봺椰?
     void SetIsActive(bool bNewActive);
 
-    // ?꾩옱 ?쒖꽦???곹깭 議고쉶
+    // ?袁⑹삺 ??뽮쉐???怨밴묶 鈺곌퀬??
     bool GetIsActive() const;
 
-    // ?먮꼫誘??곗씠???ㅼ젙
+    // ?癒?섐沃??怨쀬뵠????쇱젟
     void SetEnemyData(UEnemyDataAsset* InData);
 
-    // ?꾩옱 ?먮꼫誘??곗씠??議고쉶
+    // ?袁⑹삺 ?癒?섐沃??怨쀬뵠??鈺곌퀬??
     UEnemyDataAsset* GetEnemyData() const;
 
 public:
     // === UI??Getter ===
-    // 理쒕? 泥대젰
+    // 筌ㅼ뮆? 筌ｋ???
     float GetMaxHealth() const;
 
-    // ?꾩옱 泥대젰
+    // ?袁⑹삺 筌ｋ???
     float GetHealth() const;
 
-    // ?щ줈???곹깭 ?щ?
+    // ??以???怨밴묶 ???
     bool IsStunned() const;
 
-	// ?ㅽ꽩 ?곹깭 ?щ?
+	// ??쎄쉘 ?怨밴묶 ???
     bool IsSlowed() const;
 
     UEnemyStatusComponent* GetStatus() const { return Status; }
@@ -87,85 +87,85 @@ public:
     float GetDistanceAlongPath() const { return DistanceAlongPath; }
 
 protected:
-    // 蹂듭젣???쒖꽦???곹깭 諛섏쓳
+    // 癰귣벊?????뽮쉐???怨밴묶 獄쏆꼷??
     UFUNCTION()
     void OnRep_IsActive();
 
-    // 蹂듭젣???곗씠???먯궛 諛섏쓳
+    // 癰귣벊????怨쀬뵠???癒?텦 獄쏆꼷??
     UFUNCTION()
     void OnRep_EnemyData();
 
-	// 蹂듭젣??援ъ껜 肄쒕━??諛섏쓳
+	// 癰귣벊????닌딄퍥 ?꾩뮆???獄쏆꼷??
     UFUNCTION()
     void OnRep_Scale();
 
-	// 蹂듭젣???대룞 ?띾룄 諛섏쓳
+	// 癰귣벊?????猷???얜즲 獄쏆꼷??
     UFUNCTION()
     void OnRep_MoveSpeed();
 
-    // 蹂듭젣 ?깅줉
+    // 癰귣벊???源낆쨯
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-    // === 而댄룷?뚰듃 ===
+    // === ?뚮똾猷??곕뱜 ===
 
-    // 猷⑦듃 而댄룷?뚰듃
+    // ?룐뫂???뚮똾猷??곕뱜
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USceneComponent* Root;
 
-    // ?ㅼ펷?덊깉 硫붿떆 (?쒓컖, ?좊땲硫붿씠??
+    // ??쇳렩??딄퉱 筌롫뗄??(??볦퍟, ?醫딅빍筌롫뗄???
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USkeletalMeshComponent* Mesh;
 
-    // 援ъ껜 肄쒕━??
+    // ?닌딄퍥 ?꾩뮆???
     UPROPERTY(VisibleAnywhere, Category = "Components")
     USphereComponent* CollisionSphere;
 
-    // 諛⑺뼢 ?쒖떆???붿궡??
+    // 獄쎻뫚堉???뽯뻻???遺욧땀??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UArrowComponent* DirectionIndicator;
 
-    // ?ㅽ뵆?쇱씤 ?대룞 泥섎━
+    // ??쎈탣??깆뵥 ??猷?筌ｌ꼶??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemySplineMovementComponent* SplineMovement;
 
-    // 泥대젰, ?щ줈?? ?ㅽ꽩 ?곹깭 愿由?
+    // 筌ｋ??? ??以?? ??쎄쉘 ?怨밴묶 ?온??
     UPROPERTY(VisibleAnywhere, Category = "Components")
     UEnemyStatusComponent* Status;
 
-    // 泥대젰諛?
+    // 筌ｋ??계쳸?
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<class UEnemyHealthBarWidget> EnemyHealthBarWidgetClass;
 
-    // 硫붿떆 ?뚯쟾 湲곕낯媛?
+    // 筌롫뗄?????읈 疫꿸퀡??첎?
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
     FRotator MeshRotation = FRotator(0.f, -90.f, 0.f);
 
-    // 援ъ껜 肄쒕━??諛섏?由?
+    // ?닌딄퍥 ?꾩뮆???獄쏆꼷???
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy")
 	float SphereRadius = 120.f;
 
     UPROPERTY(VisibleAnywhere, Category = "Movement")
     float DistanceAlongPath = 0.f;
 
-    // === 蹂듭젣 ?곹깭 ===
+    // === 癰귣벊???怨밴묶 ===
 
-    // ?留??쒖꽦???щ?
+    // ??筌???뽮쉐?????
     UPROPERTY(ReplicatedUsing = OnRep_IsActive)
     bool bIsActive;
 
-    // ?먯뀑 ?곗씠??(硫붿떆, ?좊땲硫붿씠???ы븿)
+    // ?癒???怨쀬뵠??(筌롫뗄?? ?醫딅빍筌롫뗄?????釉?
     UPROPERTY(ReplicatedUsing = OnRep_EnemyData)
     UEnemyDataAsset* EnemyData;
 
-    // 硫붿떆 ?ш린
+    // 筌롫뗄????由?
     UPROPERTY(ReplicatedUsing = OnRep_Scale)
     FVector ReplicatedScale;
 
-    // ?대룞?띾룄
+    // ??猷??얜즲
     UPROPERTY(ReplicatedUsing = OnRep_MoveSpeed)
     float ReplicatedMoveSpeed;
 
-    // 蹂댁뒪 ?щ?
+    // 癰귣똻?????
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
     bool bIsBoss = false;
 public:
@@ -174,6 +174,6 @@ public:
     UWidgetComponent* HealthBarWidget;
 
 private:
-    // ?ㅼ떆媛??ㅽ꺈 (泥대젰, ?띾룄 ??
+    // ??쇰뻻揶???쎄틛 (筌ｋ??? ??얜즲 ??
     FEnemyRuntimeStats RuntimeStats;
 };

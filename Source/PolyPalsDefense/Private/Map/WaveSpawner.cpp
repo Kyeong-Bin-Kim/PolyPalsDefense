@@ -22,13 +22,13 @@ void AWaveSpawner::BeginPlay()
     if (!HasAuthority())
         return;
 
-    // GameOver ?대깽??援щ룆
+    // GameOver ??源???닌됰즴
     if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
     {
         PState->OnGameOver.AddDynamic(this, &AWaveSpawner::HandleGameOver);
     }
 
-    // StageActor 李얘린/諛붿씤??
+    // StageActor 筌≪뼐由?獄쏅뗄???
     if (!StageRef)
     {
         StageRef = Cast<AStageActor>(
@@ -41,7 +41,7 @@ void AWaveSpawner::BeginPlay()
     }
     UE_LOG(LogTemp, Log, TEXT("[WaveSpawner] Found StageActor: %s"), *StageRef->GetName());
 
-    // ?ㅽ뵆?쇱씤 諛?DataTable 珥덇린??
+    // ??쎈탣??깆뵥 獄?DataTable ?λ뜃由??
     SplinePath = StageRef->GetSpline();
     WavePlanTable = StageRef->GetWavePlanTable();
 
@@ -66,7 +66,7 @@ void AWaveSpawner::BeginPlay()
 
 void AWaveSpawner::HandleGameOver()
 {
-    // 寃뚯엫 ?ㅻ쾭 ???ㅽ룿 ??대㉧ ?뺣━ 諛??≫꽣 鍮꾪솢?깊솕
+    // 野껊슣????살쒔 ????쎈？ ???????類ｂ봺 獄???リ숲 ??쑵??源딆넅
     GetWorld()->GetTimerManager().ClearTimer(SpawnTimerHandle);
     SetActorTickEnabled(false);
     SetActorEnableCollision(false);
@@ -88,7 +88,7 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // ?대쾲 ?쇱슫??怨꾪쉷 濡쒕뱶
+    // ??苡???깆뒲???④쑵??嚥≪뮆諭?
     FString Context;
     FName RowName = FName(*FString::Printf(TEXT("Round_%d"), RoundIndex));
     const FWavePlanRow* Plan = WavePlanTable->FindRow<FWavePlanRow>(RowName, Context);
@@ -98,7 +98,7 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // ?꾩껜 ?ㅽ룿 ???紐⑸줉 ?묒꽦
+    // ?袁⑷퍥 ??쎈？ ????筌뤴뫖以??臾믨쉐
     CurrentSpawnList.Empty();
     for (const FEnemySpawnEntry& Entry : Plan->SpawnList)
         for (int32 i = 0; i < Entry.Count; ++i)
@@ -111,25 +111,25 @@ void AWaveSpawner::StartWave(int32 RoundIndex)
         return;
     }
 
-    // SpawnWindow 湲곕컲 ?명꽣踰?怨꾩궛
+    // SpawnWindow 疫꿸퀡而??紐낃숲甕??④쑴沅?
     float SpawnInterval = Plan->SpawnWindow / float(TotalToSpawn);
     UE_LOG(LogTemp, Log,
         TEXT("[WaveSpawner] Wave %d: will spawn %d enemies over %.2f sec ??interval=%.3f sec"),
         RoundIndex, TotalToSpawn, Plan->SpawnWindow, SpawnInterval);
 
-    // ?몃뜳??珥덇린??
+    // ?紐껊쑔???λ뜃由??
     SpawnIndex = 0;
 
-    // 利됱떆 泥????ㅽ룿
+    // 筌앸맩??筌?????쎈？
     SpawnNextEnemy();
 
-    // ?댄썑 ?명꽣踰뚮쭏???ㅽ룿
+    // ??꾩뜎 ?紐낃숲甕곕슢彛????쎈？
     GetWorld()->GetTimerManager().SetTimer(
         SpawnTimerHandle,
         this, &AWaveSpawner::SpawnNextEnemy,
         SpawnInterval,
         true,            // bLoop
-        SpawnInterval    // InitialDelay: ?ㅼ쓬 ?몄텧源뚯? 湲곕떎由??쒓컙
+        SpawnInterval    // InitialDelay: ??쇱벉 ?紐꾪뀱繹먮슣? 疫꿸퀡?롧뵳???볦퍢
     );
 
 
@@ -175,5 +175,5 @@ void AWaveSpawner::SpawnNextEnemy()
         : FVector::ZeroVector;
 
     Enemy->SetActorLocation(SpawnLocation);
-    Enemy->ForceNetUpdate(); // 蹂듭젣 ?숆린??
+    Enemy->ForceNetUpdate(); // 癰귣벊????녿┛??
 }

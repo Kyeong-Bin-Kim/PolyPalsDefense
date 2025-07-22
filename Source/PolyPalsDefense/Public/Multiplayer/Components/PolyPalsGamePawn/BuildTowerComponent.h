@@ -25,15 +25,15 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 public:
-	// Preview 모드 진입
+	// Preview 紐⑤뱶 吏꾩엯
 	UFUNCTION(Client, Unreliable)
 	void ClientBeginSelectTower(uint8 InTowerId);
 
-	// Preview 위치를 읽어오는 Getter
+	// Preview ?꾩튂瑜??쎌뼱?ㅻ뒗 Getter
 	UFUNCTION(BlueprintCallable, Category = "Build")
 	FVector GetPreviewLocation() const;
 
-	// 최종 설치 요청 RPC
+	// 理쒖쥌 ?ㅼ튂 ?붿껌 RPC
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_RequestSpawnTower(FVector_NetQuantize InLocation, uint8 InTargetTower);
 
@@ -51,7 +51,7 @@ public:
 
 	void OnInputTower3();
 
-	// PreviewBuilding 스폰
+	// PreviewBuilding ?ㅽ룿
 	void SpawnPreviewBuilding();
 
 public:

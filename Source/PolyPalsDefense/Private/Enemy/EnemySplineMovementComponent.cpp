@@ -18,7 +18,7 @@ void UEnemySplineMovementComponent::BeginPlay()
 {  
    Super::BeginPlay();  
 
-   // ¼­¹ö°¡ ¾Æ´Ñ Å¬¶óÀÌ¾ğÆ®¿¡¼­´Â Æ½ ºñÈ°¼º
+   // ì„œë²„ê°€ ì•„ë‹Œ í´ë¼ì´ì–¸íŠ¸ì—ì„œëŠ” í‹± ë¹„í™œì„±
    if (!GetOwner()->HasAuthority())
    {
        PrimaryComponentTick.SetTickFunctionEnable(false);
@@ -47,28 +47,28 @@ void UEnemySplineMovementComponent::TickComponent(float DeltaTime, ELevelTick Ti
 {  
    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-   // ½ºÇÃ¶óÀÎÀÌ ¾øÀ¸¸é ÆĞ½º
+   // ìŠ¤í”Œë¼ì¸ì´ ì—†ìœ¼ë©´ íŒ¨ìŠ¤
    if (!Spline) return;
 
-   // ¼ÒÀ¯ÀÚ¿Í »óÅÂ ÄÄÆ÷³ÍÆ® °¡Á®¿À±â
+   // ì†Œìœ ìì™€ ìƒíƒœ ì»´í¬ë„ŒíŠ¸ ê°€ì ¸ì˜¤ê¸°
    AEnemyPawn* OwnerPawn = Cast<AEnemyPawn>(GetOwner());
 
    if (!OwnerPawn || !OwnerPawn->GetStatus()) return;
 
    UEnemyStatusComponent* Status = OwnerPawn->GetStatus();
 
-   // ½ºÅÏ »óÅÂ¸é ÀÌµ¿ ÁßÁö
+   // ìŠ¤í„´ ìƒíƒœë©´ ì´ë™ ì¤‘ì§€
    if (Status->IsStunned())
    {
-       return;  // ½ºÅÏ ÇØÁ¦ Àü±îÁö ¸ØÃã
+       return;  // ìŠ¤í„´ í•´ì œ ì „ê¹Œì§€ ë©ˆì¶¤
    }
 
-   // ½½·Î¿ì ºñÀ² Àû¿ë ¼Óµµ °è»ê
+   // ìŠ¬ë¡œìš° ë¹„ìœ¨ ì ìš© ì†ë„ ê³„ì‚°
    float EffectiveSpeed = Status->GetEffectiveMoveSpeed();
 
    CurrentDistance += EffectiveSpeed * DeltaTime;
 
-   // µµÂø Ã³¸®
+   // ë„ì°© ì²˜ë¦¬
    const float SplineLength = Spline->GetSplineLength();
    if (CurrentDistance >= SplineLength - EndTolerance)
    {
@@ -76,14 +76,14 @@ void UEnemySplineMovementComponent::TickComponent(float DeltaTime, ELevelTick Ti
        return;
    }
 
-   // À§Ä¡/È¸Àü °»½Å
+   // ìœ„ì¹˜/íšŒì „ ê°±ì‹ 
    FVector Location = Spline->GetLocationAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
    FVector Tangent = Spline->GetTangentAtDistanceAlongSpline(CurrentDistance, ESplineCoordinateSpace::World);
 
    OwnerPawn->SetActorLocation(Location);
    OwnerPawn->SetActorRotation(Tangent.Rotation());
 
-   // ¾Ö´Ï¸ŞÀÌ¼Ç ¼Óµµ¿¡ EffectiveSpeed Àü´Ş
+   // ì• ë‹ˆë©”ì´ì…˜ ì†ë„ì— EffectiveSpeed ì „ë‹¬
    if (USkeletalMeshComponent* MeshComp = OwnerPawn->FindComponentByClass<USkeletalMeshComponent>())
    {
        if (UEnemyAnimInstance* EnemyAnim = Cast<UEnemyAnimInstance>(MeshComp->GetAnimInstance()))

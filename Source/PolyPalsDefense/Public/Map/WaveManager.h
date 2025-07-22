@@ -24,7 +24,7 @@ public:
     UFUNCTION()
     void NotifyWaveInfoChanged();
 
-    // 由ы뵆由ъ??댁뀡 ?ㅼ젙
+    // ?귐뗫탣?귐???곷???쇱젟
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
@@ -36,7 +36,7 @@ protected:
     UFUNCTION()
     void HandleGameOver();
 
-    // 由ы뵆由ъ??댁뀡 ?숆린??肄쒕갚
+    // ?귐뗫탣?귐???곷???녿┛???꾩뮆媛?
     UFUNCTION()
     void OnRep_PlayerLife();
 
@@ -103,7 +103,7 @@ protected:
     UPROPERTY(EditAnywhere, Category = "Wave")
     float RoundDuration = 60.f;
 
-    // ?대씪?댁뼵???숆린?붾? ?꾪븳 由ы뵆由ъ??댁뀡 ?ㅼ젙
+    // ?????곷섧????녿┛?遺? ?袁る립 ?귐뗫탣?귐???곷???쇱젟
     UPROPERTY(ReplicatedUsing = OnRep_PlayerLife, VisibleAnywhere, Category = "Game")
     int32 PlayerLife = 50;
 

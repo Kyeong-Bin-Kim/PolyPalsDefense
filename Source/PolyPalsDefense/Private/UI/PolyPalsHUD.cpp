@@ -17,7 +17,7 @@ void APolyPalsHUD::TryBindToWaveManager()
 
     if (!WaveManager)
     {
-        // WaveManager°¡ ¾øÀ¸¸é 0.5ÃÊ ÈÄ ´Ù½Ã ½Ãµµ
+        // WaveManagerê°€ ì—†ìœ¼ë©´ 0.5ì´ˆ í›„ ë‹¤ì‹œ ì‹œë„
         GetWorldTimerManager().SetTimer(TimerHandle_FindWaveManager, this, &APolyPalsHUD::TryBindToWaveManager, 1.0f, false);
 
         return;
@@ -25,12 +25,12 @@ void APolyPalsHUD::TryBindToWaveManager()
 
     bIsWaveManagerBound = true;
 
-    // ¿şÀÌºê Á¤º¸ ÀÚµ¿ ¾÷µ¥ÀÌÆ®
+    // ì›¨ì´ë¸Œ ì •ë³´ ìë™ ì—…ë°ì´íŠ¸
     WaveManager->OnWaveInfoChanged.AddDynamic(this, &APolyPalsHUD::UpdateWaveInfoOnUI);
 
     GetWorldTimerManager().SetTimer( TimerHandle_UpdateWaveInfo, this, &APolyPalsHUD::UpdateWaveInfoOnUI, 0.5f, true);
 
-    // Ã¹ Å¸ÀÌ¸Ó ÃÊ±âÈ­
+    // ì²« íƒ€ì´ë¨¸ ì´ˆê¸°í™”
     float TargetTime = WaveManager->GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
 
     NextWaveTargetTimestamp = TargetTime;
@@ -43,13 +43,13 @@ void APolyPalsHUD::BeginPlay()
     if (GetNetMode() == NM_DedicatedServer)
         return;
 
-    // UI À§Á¬ »ı¼º, ÃÊ±â °ª ¼¼ÆÃ
+    // UI ìœ„ì ¯ ìƒì„±, ì´ˆê¸° ê°’ ì„¸íŒ…
     if (!GamePlayingWidget && GamePlayingWidgetClass)
     {
         GamePlayingWidget = CreateWidget<UGamePlayingUIWidget>(GetWorld(), GamePlayingWidgetClass);
         GamePlayingWidget->AddToViewport();
 
-        // ÃÊ±â °ñµå
+        // ì´ˆê¸° ê³¨ë“œ
         if (APlayerController* PC = GetOwningPlayerController())
         {
             if (APolyPalsPlayerState* PS = PC->GetPlayerState<APolyPalsPlayerState>())
@@ -62,14 +62,14 @@ void APolyPalsHUD::BeginPlay()
             }
         }
 
-        // ÃÊ±â ¶ó¿îµå
+        // ì´ˆê¸° ë¼ìš´ë“œ
         if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
         {
             GamePlayingWidget->SetRound(GS->GetRound(), GS->GetTotalRound());
         }
     }
 
-    // WaveManager°¡ ½ºÆùµÇ¸é ¹ÙÀÎµù ½Ãµµ
+    // WaveManagerê°€ ìŠ¤í°ë˜ë©´ ë°”ì¸ë”© ì‹œë„
     GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
 
     UE_LOG(LogTemp, Warning, TEXT("[HUD] BeginPlay - NetMode: %d"), static_cast<int32>(GetNetMode()));

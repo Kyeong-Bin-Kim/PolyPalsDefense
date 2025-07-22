@@ -19,19 +19,19 @@ public:
     virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 protected:
-    // Å¬¸¯ Â÷´Ü¿ë
+    // í´ë¦­ ì°¨ë‹¨ìš©
     UPROPERTY(meta = (BindWidget))
     UBorder* ModalBlock;
 
-    // IP ÀÔ·ÂÃ¢
+    // IP ì…ë ¥ì°½
     UPROPERTY(meta = (BindWidget))
     UEditableTextBox* IPTextBox;
 
-    // Á¢¼Ó ¹öÆ°
+    // ì ‘ì† ë²„íŠ¼
     UPROPERTY(meta = (BindWidget))
     UButton* ConnectButton;
 
-    // Connect Å¬¸¯
+    // Connect í´ë¦­
     UFUNCTION()
     void OnConnectClicked();
 };

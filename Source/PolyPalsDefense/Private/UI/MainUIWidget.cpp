@@ -38,7 +38,7 @@ void UMainUIWidget::NativeConstruct()
     }
 
     if (ExitGame) ExitGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnExitGameClicked);
-    //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); 추후 추가 예정
+    //if (Settings) Settings->OnClicked.AddDynamic(this, &UMainUIWidget::OnSettingsClicked); 異뷀썑 異붽? ?덉젙
     if (StartGame) StartGame->OnClicked.AddDynamic(this, &UMainUIWidget::OnStartGameClicked);
     if (CreateRoom) CreateRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnCreateRoomClicked);
     if (SearchRoom) SearchRoom->OnClicked.AddDynamic(this, &UMainUIWidget::OnSearchRoomClicked);
@@ -50,7 +50,7 @@ void UMainUIWidget::NativeConstruct()
 
     if (StartGame)
     {
-        // 원래 스타일 백업
+        // ?먮옒 ?ㅽ???諛깆뾽
         CachedStartButtonStyle = StartGame->GetStyle();
     }
 }
@@ -87,7 +87,7 @@ void UMainUIWidget::OnStartGameClicked()
     {
         if (bIsMultiplayerMenuOpen)
         {
-            // 눌림 상태처럼 보이게: Pressed 스타일을 Normal/Hovered에 복사
+            // ?뚮┝ ?곹깭泥섎읆 蹂댁씠寃? Pressed ?ㅽ??쇱쓣 Normal/Hovered??蹂듭궗
             FButtonStyle PressedStyle = CachedStartButtonStyle;
             PressedStyle.Normal = PressedStyle.Pressed;
             PressedStyle.Hovered = PressedStyle.Pressed;
@@ -95,7 +95,7 @@ void UMainUIWidget::OnStartGameClicked()
         }
         else
         {
-            StartGame->SetStyle(CachedStartButtonStyle); // 저장해둔 원래 스타일로 변경
+            StartGame->SetStyle(CachedStartButtonStyle); // ??ν빐???먮옒 ?ㅽ??쇰줈 蹂寃?
         }
     }
 }
@@ -104,7 +104,7 @@ FReply UMainUIWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 {
     if (bIsMultiplayerMenuOpen)
     {
-        // MultiplayerButtons 외부 클릭 시 상태 초기화
+        // MultiplayerButtons ?몃? ?대┃ ???곹깭 珥덇린??
         if (!MultiplayerButtons->IsHovered())
         {
             bIsMultiplayerMenuOpen = false;
@@ -116,7 +116,7 @@ FReply UMainUIWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 
             if (StartGame)
             {
-                StartGame->SetStyle(CachedStartButtonStyle); // 저장해둔 원래 스타일로 변경
+                StartGame->SetStyle(CachedStartButtonStyle); // ??ν빐???먮옒 ?ㅽ??쇰줈 蹂寃?
             }
         }
     }
@@ -154,7 +154,7 @@ void UMainUIWidget::OnSearchRoomClicked()
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("IPInputWidgetClass 가 설정되지 않았습니다."));
+            UE_LOG(LogTemp, Warning, TEXT("IPInputWidgetClass 媛 ?ㅼ젙?섏? ?딆븯?듬땲??"));
         }
     }
 }

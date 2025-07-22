@@ -23,13 +23,13 @@ protected:
 
 public:
     /**
-     * 월드 클릭(RPC나 InputComponent 에서 호출) 시,
-     * 클릭된 타워의 업그레이드 위젯을 토글합니다.
+     * ?붾뱶 ?대┃(RPC??InputComponent ?먯꽌 ?몄텧) ??
+     * ?대┃????뚯쓽 ?낃렇?덉씠???꾩젽???좉??⑸땲??
      */
     void HandleLeftClick();
 
 protected:
-    // 업그레이드 UI를 표시할 위젯 클래스
+    // ?낃렇?덉씠??UI瑜??쒖떆???꾩젽 ?대옒??
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UTowerUpgradeWidget> TowerUpgradeWidgetClass;
 
@@ -37,7 +37,7 @@ private:
     UPROPERTY()
     UTowerUpgradeWidget* UpgradeWidgetInstance = nullptr;
 
-    // 마지막으로 포커스된 타워 포인터
+    // 留덉?留됱쑝濡??ъ빱?ㅻ맂 ????ъ씤??
     UPROPERTY()
     APlacedTower* FocusedTower = nullptr;
 };
