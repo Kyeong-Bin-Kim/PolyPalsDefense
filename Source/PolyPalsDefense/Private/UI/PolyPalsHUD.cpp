@@ -1,10 +1,12 @@
 #include "PolyPalsHUD.h"
 #include "UI/GamePlayingUIWidget.h"
+#include "UI/GameResultWidget.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
 #include "WaveManager.h"
+#include "Components/PolyPalsController/PolyPalsInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 
@@ -66,6 +68,9 @@ void APolyPalsHUD::BeginPlay()
         if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
         {
             GamePlayingWidget->SetRound(GS->GetRound(), GS->GetTotalRound());
+
+            GS->OnGameOver.AddDynamic(this, &APolyPalsHUD::HandleGameOver);
+            GS->OnGameClear.AddDynamic(this, &APolyPalsHUD::HandleGameClear);
         }
     }
 
@@ -120,5 +125,57 @@ void APolyPalsHUD::UpdateWaveInfoOnUI()
         {
             NextWaveTargetTimestamp = GetWorld()->GetTimeSeconds() + WaveManager->GetPreparationTime();
         }
+    }
+}
+
+void APolyPalsHUD::ShowResultWidget(const FText& Message)
+{
+    if (!GameResultWidget && GameResultWidgetClass)
+    {
+        GameResultWidget = CreateWidget<UGameResultWidget>(GetWorld(), GameResultWidgetClass);
+    }
+
+    if (GameResultWidget)
+    {
+        GameResultWidget->AddToViewport(100);
+        GameResultWidget->SetResultText(Message);
+    }
+
+    if (APlayerController* PC = GetOwningPlayerController())
+    {
+        if (UPolyPalsInputComponent* InputComp = PC->FindComponentByClass<UPolyPalsInputComponent>())
+        {
+            InputComp->OnInputConfirm.Unbind();
+            InputComp->OnInputConfirm.BindUObject(this, &APolyPalsHUD::OnConfirm);
+        }
+    }
+}
+
+void APolyPalsHUD::HandleGameOver()
+{
+    ShowResultWidget(FText::FromString(TEXT("Game Over")));
+}
+
+void APolyPalsHUD::HandleGameClear()
+{
+    ShowResultWidget(FText::FromString(TEXT("Game Clear")));
+}
+
+void APolyPalsHUD::OnConfirm()
+{
+    if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
+    {
+        GS->OnGameOver.RemoveDynamic(this, &APolyPalsHUD::HandleGameOver);
+        GS->OnGameClear.RemoveDynamic(this, &APolyPalsHUD::HandleGameClear);
+    }
+
+    if (APlayerController* PC = GetOwningPlayerController())
+    {
+        if (UPolyPalsInputComponent* InputComp = PC->FindComponentByClass<UPolyPalsInputComponent>())
+        {
+            InputComp->OnInputConfirm.Unbind();
+        }
+
+        PC->ClientTravel(TEXT("/Game/Maps/EmptyLevel"), ETravelType::TRAVEL_Absolute);
     }
 }

@@ -268,7 +268,7 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 void APolyPalsGameMode::HandleStateGameOver()
 {
-	GetWorld()->ServerTravel(TEXT("/Game/Maps/EmptyLevel"));
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] GameOver"));
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)

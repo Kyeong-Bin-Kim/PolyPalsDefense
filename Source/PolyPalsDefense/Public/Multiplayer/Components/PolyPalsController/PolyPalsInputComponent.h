@@ -13,6 +13,7 @@ DECLARE_DELEGATE(FOnRightClick);
 DECLARE_DELEGATE(FOnTower1);
 DECLARE_DELEGATE(FOnTower2);
 DECLARE_DELEGATE(FOnTower3);
+DECLARE_DELEGATE(FOnConfirm);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class POLYPALSDEFENSE_API UPolyPalsInputComponent : public UActorComponent
@@ -30,6 +31,7 @@ public:
 	FOnTower1      OnInputTower1;
 	FOnTower2      OnInputTower2;
 	FOnTower3      OnInputTower3;
+	FOnConfirm     OnInputConfirm;
 
 private:
 	void InputLeftClick(const FInputActionValue& Value);
@@ -37,6 +39,7 @@ private:
 	void InputTower1(const FInputActionValue& Value);
 	void InputTower2(const FInputActionValue& Value);
 	void InputTower3(const FInputActionValue& Value);
+	void InputConfirm(const FInputActionValue& Value);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TSoftObjectPtr<UInputConfig> InputConfigAsset;

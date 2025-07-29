@@ -5,6 +5,7 @@
 #include "PolyPalsState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameOver);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameClear);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAllPlayersReady);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLobbyCountdownStarted);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLobbyCountdownUpdated, int32, SecondsRemaining);
@@ -29,6 +30,9 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "Game")
     FOnGameOver OnGameOver;
 
+    UPROPERTY(BlueprintAssignable, Category = "Game")
+    FOnGameClear OnGameClear;
+
     UFUNCTION(BlueprintPure, Category = "Lobby")
     int32 GetConnectedPlayers() const { return ConnectedPlayers; }
 
@@ -49,8 +53,14 @@ public:
     UFUNCTION(BlueprintPure, Category = "Game")
     bool IsGameOver() const { return bIsGameOver; }
 
+    UFUNCTION(BlueprintPure, Category = "Game")
+    bool IsGameClear() const { return bIsGameClear; }
+
     UFUNCTION(BlueprintCallable, Category = "Game")
     void SetGameOver();
+
+    UFUNCTION(BlueprintCallable, Category = "Game")
+    void SetGameClear();
 
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FString GetLobbyName() const { return LobbyName; }
@@ -98,6 +108,9 @@ protected:
     UFUNCTION()
     void OnRep_GameOver();
 
+    UFUNCTION()
+    void OnRep_GameClear();
+
 private:
     UPROPERTY(ReplicatedUsing = OnRep_ConnectedPlayers)
     int32 ConnectedPlayers;
@@ -116,6 +129,9 @@ private:
 
     UPROPERTY(ReplicatedUsing = OnRep_GameOver)
     bool bIsGameOver;
+
+    UPROPERTY(ReplicatedUsing = OnRep_GameClear)
+    bool bIsGameClear;
 
     FTimerHandle LobbyCountdownTimerHandle;
 

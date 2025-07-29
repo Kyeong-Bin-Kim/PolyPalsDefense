@@ -73,10 +73,8 @@ void AWaveManager::HandleGameOver()
 
 void AWaveManager::StartRound(int32 RoundIndex)
 {
-    //if (HasAuthority() || !WaveSpawner)
-    //    return;
-
     bIsPreparingPhase = false;
+
     if (APolyPalsState* GS = GetWorld()->GetGameState<APolyPalsState>())
     {
         GS->SetCurrentRound(RoundIndex);
@@ -116,21 +114,22 @@ int32 AWaveManager::GetRemainingEnemiesThisWave() const
 
 float AWaveManager::GetRoundElapsedTime() const
 {
-    //if (!HasAuthority()) return 0.f;
-
     return GetWorld()->GetTimeSeconds() - RoundStartTimestamp;
 }
 
 void AWaveManager::EndRound()
 {
-    //if (!HasAuthority())
-    //    return;
-
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
 
-    CurrentRoundIndex++;
-    UE_LOG(LogTemp, Log, TEXT("[WaveManager] Round ended. Next Round %d"), CurrentRoundIndex);
+    if (CurrentRoundIndex > TotalRoundCount)
+    {
+        if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
+        {
+            PState->SetGameClear();
+        }
+        return;
+    }
 
     StartRound(CurrentRoundIndex);
 
@@ -142,9 +141,6 @@ void AWaveManager::EndRound()
 
 void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
 {
-    //if (!HasAuthority())
-    //    return;
-
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
 
@@ -170,21 +166,19 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
         WaveSpawner->OnEnemyKilled();
     }
 
-    NotifyWaveInfoChanged(); // ??뺤쒔??Broadcast
+    NotifyWaveInfoChanged();
 
     Enemy->Destroy();
 }
 
-// ?귐뗫탣?귐???곷???욧쉐 ??쇱젟
 void AWaveManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    DOREPLIFETIME(AWaveManager, PlayerLife); // 疫꿸퀣??
-    DOREPLIFETIME(AWaveManager, CurrentRoundIndex); // ?곕떽?
+    DOREPLIFETIME(AWaveManager, PlayerLife);
+    DOREPLIFETIME(AWaveManager, CurrentRoundIndex);
 }
 
-// ?????곷섧?紐꾨퓠??揶?癰귣벊??????쎈뻬
 void AWaveManager::OnRep_PlayerLife()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_PlayerLife: %d"), PlayerLife);
@@ -202,5 +196,5 @@ void AWaveManager::OnRep_CurrentRound()
 {
     UE_LOG(LogTemp, Warning, TEXT("[Client] OnRep_CurrentRound: %d"), CurrentRoundIndex);
 
-    NotifyWaveInfoChanged(); // UI??獄쏆꼷???롫즲嚥??紐꺿봺野껊슣????紐꾪뀱
+    NotifyWaveInfoChanged();
 }

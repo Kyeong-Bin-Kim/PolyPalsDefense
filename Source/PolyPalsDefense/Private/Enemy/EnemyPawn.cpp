@@ -85,6 +85,7 @@ void AEnemyPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 
     DOREPLIFETIME(AEnemyPawn, bIsActive);
     DOREPLIFETIME(AEnemyPawn, EnemyData);
+    DOREPLIFETIME(AEnemyPawn, bIsBoss);
     DOREPLIFETIME(AEnemyPawn, ReplicatedScale);
     DOREPLIFETIME(AEnemyPawn, ReplicatedMoveSpeed);
 }
@@ -207,6 +208,7 @@ void AEnemyPawn::RewardGoldToPlayer()
 void AEnemyPawn::InitializeFromAssetId(const FPrimaryAssetId& InAssetId, USplineComponent* InSpline, float HealthMultiplier, float SpeedMultiplier, FVector Scale)
 {
     UPrimaryDataAsset* Loaded = UPolyPalsDefenseAssetManager::Get().LoadPrimaryDataAsset(InAssetId);
+
     if (UEnemyDataAsset* Casted = Cast<UEnemyDataAsset>(Loaded))
     {
         InitializeWithData(Casted, InSpline, HealthMultiplier, SpeedMultiplier, Scale);

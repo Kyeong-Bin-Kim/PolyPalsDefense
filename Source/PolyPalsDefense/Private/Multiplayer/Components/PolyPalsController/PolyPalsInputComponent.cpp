@@ -54,22 +54,11 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 
         // 1,2,3 키
         EIC->BindAction(InputConfig->InputTower1, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower1);
-
-        if (ensure(InputConfig->InputTower1))
-        {
-            EIC->BindAction(InputConfig->InputTower1, ETriggerEvent::Started,
-                this, &UPolyPalsInputComponent::InputTower1);
-            UE_LOG(LogTemp, Warning,
-                TEXT("[SetupEnhancedInput] Bound InputTower1 action: %s"),
-                *InputConfig->InputTower1->GetName());
-        }
-        else
-        {
-            UE_LOG(LogTemp, Error, TEXT("[SetupEnhancedInput] InputTower1 is NULL!"));
-        }
-
         EIC->BindAction(InputConfig->InputTower2, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower2);
         EIC->BindAction(InputConfig->InputTower3, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputTower3);
+
+        // 결과 창 입력
+        EIC->BindAction(InputConfig->InputConfirm, ETriggerEvent::Started, this, &UPolyPalsInputComponent::InputConfirm);
     }
 }
 
@@ -102,4 +91,9 @@ void UPolyPalsInputComponent::InputTower2(const FInputActionValue& Value)
 void UPolyPalsInputComponent::InputTower3(const FInputActionValue& Value)
 {
 	OnInputTower3.ExecuteIfBound();
+}
+
+void UPolyPalsInputComponent::InputConfirm(const FInputActionValue& Value)
+{
+    OnInputConfirm.ExecuteIfBound();
 }

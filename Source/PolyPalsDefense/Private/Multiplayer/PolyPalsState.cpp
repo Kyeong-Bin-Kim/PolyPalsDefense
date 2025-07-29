@@ -11,6 +11,7 @@ APolyPalsState::APolyPalsState()
     SelectedStage = NAME_None;
     LobbyName = TEXT("");
     bIsGameOver = false;
+    bIsGameClear = false;
 }
 
 void APolyPalsState::SetCurrentRound(int32 NewRound)
@@ -36,6 +37,16 @@ void APolyPalsState::SetGameOver()
     bIsGameOver = true;
 
     OnGameOver.Broadcast();
+}
+
+void APolyPalsState::SetGameClear()
+{
+    if (!HasAuthority() || bIsGameClear)
+        return;
+
+    bIsGameClear = true;
+
+    OnGameClear.Broadcast();
 }
 
 void APolyPalsState::SetSelectedStage(FName Stage)
@@ -176,6 +187,11 @@ void APolyPalsState::OnRep_GameOver()
     OnGameOver.Broadcast();
 }
 
+void APolyPalsState::OnRep_GameClear()
+{
+    OnGameClear.Broadcast();
+}
+
 void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -187,4 +203,5 @@ void APolyPalsState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
     DOREPLIFETIME(APolyPalsState, LobbyCountdown);
     DOREPLIFETIME(APolyPalsState, CurrentRound);
     DOREPLIFETIME(APolyPalsState, bIsGameOver);
+    DOREPLIFETIME(APolyPalsState, bIsGameClear);
 }

@@ -5,6 +5,7 @@
 #include "PolyPalsHUD.generated.h"
 
 class UGamePlayingUIWidget;
+class UGameResultWidget;
 
 UCLASS()
 class POLYPALSDEFENSE_API APolyPalsHUD : public AHUD
@@ -25,9 +26,15 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
     TSubclassOf<UGamePlayingUIWidget> GamePlayingWidgetClass;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+    TSubclassOf<UGameResultWidget> GameResultWidgetClass;
+
 private:
     UPROPERTY()
     UGamePlayingUIWidget* GamePlayingWidget;
+
+    UPROPERTY()
+    UGameResultWidget* GameResultWidget;
 
     UPROPERTY()
     FTimerHandle TimerHandle_UpdateWaveInfo;
@@ -40,6 +47,17 @@ private:
     bool bIsWaveManagerBound = false;
 
     float NextWaveTargetTimestamp = -1.f;
+
+    void ShowResultWidget(const FText& Message);
+
+    UFUNCTION()
+    void HandleGameOver();
+
+    UFUNCTION()
+    void HandleGameClear();
+
+    UFUNCTION()
+    void OnConfirm();
 
 public:
     FORCEINLINE UGamePlayingUIWidget* GetGamePlayingWidget() const { return GamePlayingWidget; }
