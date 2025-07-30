@@ -62,6 +62,9 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Game")
     void SetGameClear();
 
+    UFUNCTION(BlueprintCallable, Category = "Game")
+    void ResetGameState();
+
     UFUNCTION(BlueprintPure, Category = "Lobby")
     FString GetLobbyName() const { return LobbyName; }
 

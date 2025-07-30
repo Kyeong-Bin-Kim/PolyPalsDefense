@@ -362,13 +362,11 @@ void APolyPalsController::BeginSelectTower(int32 TowerIndex)
 
 bool APolyPalsController::Server_BuildTower_Validate(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
 {
-	// TowerIndex  泥댄겕
 	return TowerIndex >= 1 && TowerIndex <= 3;
 }
 
 void APolyPalsController::Server_BuildTower_Implementation(int32 TowerIndex, FVector_NetQuantize InSpawnLocation)
 {
-	// ??Pawn 怨?BuildComp ?산린
 	APolyPalsGamePawn * MyPawn = Cast<APolyPalsGamePawn>(GetPawn());
 
 	if (!MyPawn) return;
@@ -378,6 +376,14 @@ void APolyPalsController::Server_BuildTower_Implementation(int32 TowerIndex, FVe
 	if (BuildComp)
 	{
 		BuildComp->Server_RequestSpawnTower(InSpawnLocation, TowerIndex);
+	}
+}
+
+void APolyPalsController::Server_RequestReturnToLobby_Implementation()
+{
+	if (APolyPalsGameMode* GM = GetWorld()->GetAuthGameMode<APolyPalsGameMode>())
+	{
+		GM->ResetAndReturnToLobby();
 	}
 }
 

@@ -145,6 +145,7 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 			{
 				GS->OnAllPlayersReady.AddDynamic(this, &APolyPalsGameMode::HandleAllPlayersReady);
 				GS->OnGameOver.AddDynamic(this, &APolyPalsGameMode::HandleStateGameOver);
+				GS->OnGameClear.AddDynamic(this, &APolyPalsGameMode::HandleStateGameClear);
 			}
 		}
 
@@ -269,6 +270,26 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 void APolyPalsGameMode::HandleStateGameOver()
 {
 	UE_LOG(LogTemp, Log, TEXT("[GameMode] GameOver"));
+	ResetAndReturnToLobby();
+}
+
+void APolyPalsGameMode::HandleStateGameClear()
+{
+	UE_LOG(LogTemp, Log, TEXT("[GameMode] GameClear"));
+	ResetAndReturnToLobby();
+}
+
+void APolyPalsGameMode::ResetAndReturnToLobby()
+{
+	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
+	{
+		GS->ResetGameState();
+	}
+
+	if (GetWorld())
+	{
+		GetWorld()->ServerTravel(TEXT("/Game/Maps/EmptyLevel"));
+	}
 }
 
 void APolyPalsGameMode::OnEnemyKilled(int32 InGold)

@@ -1,8 +1,7 @@
 #include "PolyPalsHUD.h"
-#include "UI/GamePlayingUIWidget.h"
-#include "UI/GameResultWidget.h"
-#include "GameFramework/PlayerController.h"
-#include "GameFramework/PlayerState.h"
+#include "GamePlayingUIWidget.h"
+#include "GameResultWidget.h"
+#include "PolyPalsController.h"
 #include "PolyPalsPlayerState.h"
 #include "PolyPalsState.h"
 #include "WaveManager.h"
@@ -169,13 +168,20 @@ void APolyPalsHUD::OnConfirm()
         GS->OnGameClear.RemoveDynamic(this, &APolyPalsHUD::HandleGameClear);
     }
 
-    if (APlayerController* PC = GetOwningPlayerController())
+    if (GameResultWidget)
+    {
+        GameResultWidget->RemoveFromParent();
+        GameResultWidget = nullptr;
+    }
+
+    if (APolyPalsController* PC = Cast<APolyPalsController>(GetOwningPlayerController()))
     {
         if (UPolyPalsInputComponent* InputComp = PC->FindComponentByClass<UPolyPalsInputComponent>())
         {
             InputComp->OnInputConfirm.Unbind();
         }
 
+        PC->Server_RequestReturnToLobby();
         PC->ClientTravel(TEXT("/Game/Maps/EmptyLevel"), ETravelType::TRAVEL_Absolute);
     }
 }

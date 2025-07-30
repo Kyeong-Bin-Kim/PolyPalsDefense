@@ -36,10 +36,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void LeaveLobby();
 
+	UFUNCTION(Server, Reliable)
+	void Server_RequestReturnToLobby();
+
 	UFUNCTION(BlueprintCallable, Category = "Build")
 	void BeginSelectTower(int32 TowerIndex);
 
-	// UI ?먯꽌 ?뚮윭????뚮? 吏?????쒕쾭濡??꾨떖??RPC
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_BuildTower(int32 TowerIndex, FVector_NetQuantize InSpawnLocation);
 
@@ -61,7 +63,6 @@ public:
 	void ConfigureLobbyUI(FName InStageName, const FString& HostName);
 
 private:
-	// 留덉슦???대┃ ?뺤젙 ????ID濡?鍮뚮뱶 RPC ?몄텧
 	int32 PendingTowerIndex = 0;
 
 protected:
@@ -71,7 +72,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
 	UPolyPalsInputComponent* PolyPalsInputComponent;
 
-	// UI ?꾩젽 ?대옒??
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UMainUIWidget> MainUIWidgetClass;
 
@@ -81,7 +81,6 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UStageSelectUIWidget> StageSelectWidgetInstance;
 
-	// UI ?몄뒪?댁뒪
 	UPROPERTY()
 	TObjectPtr<UUserWidget> MainUIWidgetInstance;
 

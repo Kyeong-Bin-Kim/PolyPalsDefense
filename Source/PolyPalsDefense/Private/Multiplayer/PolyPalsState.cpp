@@ -49,6 +49,24 @@ void APolyPalsState::SetGameClear()
     OnGameClear.Broadcast();
 }
 
+void APolyPalsState::ResetGameState()
+{
+    if (!HasAuthority())
+        return;
+
+    CurrentRound = 1;
+    ConnectedPlayers = 0;
+    ReadyPlayers = 0;
+    bIsGameOver = false;
+    bIsGameClear = false;
+
+    OnRep_CurrentRound();
+    OnRep_ConnectedPlayers();
+    OnRep_ReadyPlayers();
+    OnRep_GameOver();
+    OnRep_GameClear();
+}
+
 void APolyPalsState::SetSelectedStage(FName Stage)
 {
     if (HasAuthority())

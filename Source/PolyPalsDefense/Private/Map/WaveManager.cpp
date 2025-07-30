@@ -122,6 +122,8 @@ void AWaveManager::EndRound()
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
 
+    CurrentRoundIndex++;
+
     if (CurrentRoundIndex > TotalRoundCount)
     {
         if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
