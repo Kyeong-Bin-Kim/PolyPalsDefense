@@ -45,8 +45,6 @@ void APolyPalsPlayerState::SetInitialGold(int32 Amount)
 {
     if (HasAuthority())
     {
-        UE_LOG(LogTemp, Warning, TEXT("[PlayerState::SetInitialGold] %s Authority! Amount=%d"), *GetPlayerName(), PlayerGold);
-
         PlayerGold = Amount;
 
         OnRep_PlayerGold();
@@ -90,14 +88,10 @@ void APolyPalsPlayerState::OnRep_IsReady()
 
 void APolyPalsPlayerState::OnRep_PlayerGold()
 {
-    UE_LOG(LogTemp, Warning, TEXT("[PlayerState::OnRep_PlayerGold] %s Replicated! NewGold=%d"), *GetPlayerName(), PlayerGold);
-
     if (APlayerController* PC = Cast<APlayerController>(GetOwner()))
     {
         if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
         {
-            UE_LOG(LogTemp, Warning, TEXT("[OnRep_PlayerGold] UpdateGoldOnUI"), *GetPlayerName(), PlayerGold);
-
             HUD->UpdateGoldOnUI(PlayerGold);
         }
     }

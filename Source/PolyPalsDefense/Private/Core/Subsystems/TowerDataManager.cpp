@@ -45,7 +45,7 @@ UTowerPropertyData* UTowerDataManager::GetTowerPropertyData(const uint8 InTowerI
 	else
 	{
 		UTowerPropertyData** ErrorData = TowerProperties.Find(0);
-		UE_LOG(LogTemp, Warning, TEXT("鈺곕똻???? ??낅뮉 ?????怨쀬뵠?怨? ?遺욧퍕??뤿선 ??????? 獄쏆꼹??? ?遺욧퍕: %d"), InTowerId);
+
 		return *ErrorData;
 	}
 }

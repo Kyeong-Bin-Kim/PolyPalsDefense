@@ -23,8 +23,4 @@ void UTowerUpgradeWidget::OnUpgradeClicked()
 	{
 		TargetTower->UpgradeTower();
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("TargetTower is null!"));
-	}
 }

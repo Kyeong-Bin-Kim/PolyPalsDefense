@@ -38,7 +38,6 @@ void APolyPalsController::BeginPlay()
 
 	const FString MapName = UGameplayStatics::GetCurrentLevelName(this, true);
 	ENetMode NetMode = GetNetMode();
-	UE_LOG(LogTemp, Log, TEXT("APolyPalsController::BeginPlay - MapName: %s, NetMode: %d"), *MapName, static_cast<int32>(NetMode));
 
 	if (MapName.Equals(TEXT("EmptyLevel")))
 	{
@@ -70,8 +69,6 @@ void APolyPalsController::OnRep_Pawn()
 	if (!IsLocalController() || !GetPawn())
 		return;
 
-	UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: ?몃━寃뚯씠??諛붿씤???쒖옉"));
-
 	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
 	{
 		APolyPalsGamePawn* MyPawn = Cast<APolyPalsGamePawn>(GetPawn());
@@ -80,24 +77,16 @@ void APolyPalsController::OnRep_Pawn()
 
 		if (BuildComp && HandleComp)
 		{
-			// 1,2,3 ?????꾨━酉?
 			InputComp->OnInputTower1.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower1);
 			InputComp->OnInputTower2.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower2);
 			InputComp->OnInputTower3.BindUObject(BuildComp, &UBuildTowerComponent::OnInputTower3);
 
-			// ?고겢由????꾨━酉?痍⑥냼
 			InputComp->OnInputRightClick.BindUObject(BuildComp, &UBuildTowerComponent::OnInputRightClick);
 
-			// 醫뚰겢由?
 			InputComp->OnInputLeftClick.Clear();
 
-			//   - 鍮뚮뱶 紐⑤뱶?????ㅼ튂 ?뺤젙
 			InputComp->OnInputLeftClick.AddUObject(BuildComp, &UBuildTowerComponent::OnInputLeftClick);
-
-			//   - 鍮뚮뱶 紐⑤뱶 ?꾨땺 ??湲곗〈 ????대┃ 泥섎━
 			InputComp->OnInputLeftClick.AddUObject(HandleComp, &UTowerHandleComponent::HandleLeftClick);
-
-			UE_LOG(LogTemp, Warning, TEXT("[Controller] OnRep_Pawn: ?몃━寃뚯씠??諛붿씤???꾨즺"));
 		}
 	}
 
@@ -112,29 +101,20 @@ void APolyPalsController::SetupInputComponent()
 	bEnableClickEvents = true;
 	bEnableMouseOverEvents = true;
 
-	UE_LOG(LogTemp, Warning, TEXT(">>> SetupInputComponent called, has UPolyPalsInputComponent=%s"), FindComponentByClass<UPolyPalsInputComponent>() ? TEXT("YES") : TEXT("NO"));
-
-	// EnhancedInput ?명똿
 	if (UPolyPalsInputComponent* InputComp = FindComponentByClass<UPolyPalsInputComponent>())
 	{
-		// 諛붿씤??以묐났 諛⑹?
-		// ?깃?罹먯뒪???몃━寃뚯씠?몃뒗 Unbind()
 		InputComp->OnInputTower1.Unbind();
 		InputComp->OnInputTower2.Unbind();
 		InputComp->OnInputTower3.Unbind();
 		InputComp->OnInputRightClick.Unbind();
 
-		// 硫?곗틦?ㅽ듃 ?몃━寃뚯씠?몃뒗 Clear()
 		InputComp->OnInputLeftClick.Clear();
 
-		// ?μ긽???낅젰 ?뗮똿
 		InputComp->SetupEnhancedInput(this);
 	}
 
-	// 而ㅼ꽌 蹂댁씠寃?
 	bShowMouseCursor = true;
 
-	// 寃뚯엫 & UI 紐⑤뱶 ?ㅼ젙
 	FInputModeGameAndUI InputMode;
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
@@ -149,9 +129,9 @@ void APolyPalsController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void APolyPalsController::InitializeAndShowLobbyUI(FName InStageName, const FString& HostName)
 {
-	ShowLobbyUI();								// UI 蹂댁씠湲?+ RefreshLobbyUI
-	ConfigureLobbyUI(InStageName, HostName);	// 諛??쒕ぉ, ?ㅽ뀒?댁? ?명똿
-	RefreshLobbyUI();							// ?レ옄쨌?щ’ ?ш갚??
+	ShowLobbyUI();
+	ConfigureLobbyUI(InStageName, HostName);
+	RefreshLobbyUI();
 }
 
 void APolyPalsController::Server_SetReady_Implementation(bool bReady)
@@ -171,11 +151,11 @@ void APolyPalsController::Server_SetReady_Implementation(bool bReady)
 	}
 }
 
-void APolyPalsController::SetPlayerColor(EPlayerColor InColor) {
+void APolyPalsController::SetPlayerColor(EPlayerColor InColor)
+{
 	uint8 EnumToInt = static_cast<uint8>(InColor);
-	UE_LOG(LogTemp, Log, TEXT("APolyPalsController: Player color set to: %d"), EnumToInt);
-	PlayerColor = InColor; 
 
+	PlayerColor = InColor; 
 }
 
 void APolyPalsController::SetLobbyUIInstance(ULobbyUIWidget* InWidget)
@@ -204,7 +184,7 @@ void APolyPalsController::UpdateReadyUI(APolyPalsPlayerState* ChangedPlayerState
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance媛 ?놁뒿?덈떎. Ready ?곹깭瑜?UI??諛섏쁺?????놁뒿?덈떎."));
+		UE_LOG(LogTemp, Warning, TEXT("LobbyUIInstance is null in UpdateReadyUI!"));
 	}
 }
 
@@ -220,11 +200,9 @@ void APolyPalsController::RefreshLobbyUI()
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// 諛??쒕ぉ, ?ㅽ뀒?댁???媛깆떊
 		LobbyUIInstance->SetRoomTitle(GS->GetLobbyName());
 		LobbyUIInstance->SetSelectedStage(GS->GetSelectedStage());
 
-		// 湲곗〈 濡쒖쭅: ?묒냽/以鍮??? ?щ’ 媛깆떊
 		LobbyUIInstance->UpdateLobbyInfo(GS->GetConnectedPlayers(), GS->GetReadyPlayers(), GS->GetSelectedStage(), HasAuthority());
 
 		LobbyUIInstance->RefreshPlayerSlots(GS->PlayerArray);
@@ -353,8 +331,6 @@ void APolyPalsController::BeginSelectTower(int32 TowerIndex)
 	{
 		if (UBuildTowerComponent* BuildComp = MyPawn->GetBuildTowerComponent())
 		{
-			UE_LOG(LogTemp, Log, TEXT("PolyPalsController BeginSelectTower TowerIndex = %d"), TowerIndex);
-
 			BuildComp->ClientBeginSelectTower(static_cast<uint8>(TowerIndex));
 		}
 	}

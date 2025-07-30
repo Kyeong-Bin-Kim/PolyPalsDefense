@@ -69,8 +69,6 @@ void APreviewBuilding::ExteranlInitialize(APolyPalsController* const InControlle
 
 void APreviewBuilding::ShowPreviewBuilding(bool bShow, uint8 InTowerId)
 {
-	UE_LOG(LogTemp, Warning, TEXT("PreviewBuilding:ShowPreviewBuilding"));
-
 	SetActorHiddenInGame(!bShow);
 	SetActorTickEnabled(bShow);
 
@@ -163,31 +161,11 @@ void APreviewBuilding::UpdateLocationUnderCursor()
 
 		TArray<FOverlapResult> OverlapResults;
 
-		bool bOverlaps = GetWorld()->OverlapMultiByChannel(OverlapResults,
-			NewSnappedLocation, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2,
-			Box, Params, ResParams);
-		
-		//for (const auto& Item : OverlapResults)
-		//{
-		//	FString Who = Item.Component->GetName();
-		//	UE_LOG(LogTemp, Log, TEXT("Overlapped Component: %s"), *Who);
-		//}
-
+		bool bOverlaps = GetWorld()->OverlapMultiByChannel(OverlapResults, NewSnappedLocation, FQuat::Identity, ECollisionChannel::ECC_GameTraceChannel2, Box, Params, ResParams);
 		bool bFlag = false;
+
 		if (!bOverlaps)
 			bFlag = true;
-
-		// test code
-		//if (bFlag)
-		//{
-		//	UE_LOG(LogTemp, Log, TEXT("Flag: true"));
-		//	DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Green, false, 0.1f);
-		//}
-		//else
-		//{
-		//	UE_LOG(LogTemp, Log, TEXT("Flag: false"));
-		//	DrawDebugBox(GetWorld(), NewSnappedLocation, BoxExtent, FColor::Red, false, 0.1f);
-		//}
 
 		if (bIsBuildable != bFlag)
 		{

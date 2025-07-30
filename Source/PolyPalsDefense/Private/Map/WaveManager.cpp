@@ -9,12 +9,11 @@
 AWaveManager::AWaveManager()
 {
     PrimaryActorTick.bCanEverTick = false;
-    bReplicates = true; // ?귐뗫탣?귐???곷???뽮쉐??
+    bReplicates = true;
 }
 
 void AWaveManager::NotifyWaveInfoChanged()
 {
-    UE_LOG(LogTemp, Warning, TEXT("[WaveManager] NotifyWaveInfoChanged() called"));
     OnWaveInfoChanged.Broadcast();
 }
 
@@ -48,8 +47,6 @@ void AWaveManager::BeginPlay()
 
 void AWaveManager::OnPlayersReady()
 {
-    UE_LOG(LogTemp, Log, TEXT("[WaveManager] All players ready. Preparing for %.1f sec"), PreparationTime);
-
     GetWorld()->GetTimerManager().SetTimer(
         RoundTimerHandle,
         this, &AWaveManager::StartFirstRound,
@@ -60,8 +57,6 @@ void AWaveManager::OnPlayersReady()
 
 void AWaveManager::HandleGameOver()
 {
-    UE_LOG(LogTemp, Warning, TEXT("[WaveSpawner] HandleGameOver() fired"));
-
     GetWorld()->GetTimerManager().ClearTimer(RoundTimerHandle);
 
     if (WaveSpawner)
@@ -80,7 +75,6 @@ void AWaveManager::StartRound(int32 RoundIndex)
         GS->SetCurrentRound(RoundIndex);
     }
 
-    UE_LOG(LogTemp, Log, TEXT("[WaveManager] StartRound %d"), RoundIndex);
     WaveSpawner->StartWave(RoundIndex);
 }
 
@@ -107,6 +101,7 @@ int32 AWaveManager::GetRemainingEnemiesThisWave() const
 {
     TArray<AActor*> FoundEnemies;
     UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyPawn::StaticClass(), FoundEnemies);
+
     return FoundEnemies.Num();
 }
 
@@ -122,16 +117,21 @@ void AWaveManager::EndRound()
     if (GetWorld()->GetGameState<APolyPalsState>()->IsGameOver())
         return;
 
-    CurrentRoundIndex++;
-
-    if (CurrentRoundIndex > TotalRoundCount)
+    if (CurrentRoundIndex >= TotalRoundCount)
     {
+        CurrentRoundIndex = TotalRoundCount;
+
+        NotifyWaveInfoChanged();
+
         if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
         {
             PState->SetGameClear();
         }
+
         return;
     }
+
+    CurrentRoundIndex++;
 
     StartRound(CurrentRoundIndex);
 
@@ -150,13 +150,11 @@ void AWaveManager::HandleEnemyReachedGoal(AEnemyPawn* Enemy)
         return;
 
     int32 Damage = Enemy->IsBoss() ? BossDamageToLife : BasicDamageToLife;
+
     PlayerLife -= Damage;
-    UE_LOG(LogTemp, Warning, TEXT("[WaveManager] Player Life: %d"), PlayerLife);
 
     if (PlayerLife <= 0)
     {
-        UE_LOG(LogTemp, Error, TEXT("[WaveManager] Game Over!"));
-
         if (APolyPalsState* PState = GetWorld()->GetGameState<APolyPalsState>())
         {
             PState->SetGameOver();

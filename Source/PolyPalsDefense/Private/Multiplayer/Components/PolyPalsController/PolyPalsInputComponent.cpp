@@ -19,8 +19,7 @@ UPolyPalsInputComponent::UPolyPalsInputComponent()
 void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InController)
 {
 
-    UE_LOG(LogTemp, Warning, TEXT("SetupEnhancedInput: Controller.InputComponent class = %s"),
-        *InController->InputComponent->GetClass()->GetName());
+    UE_LOG(LogTemp, Warning, TEXT("SetupEnhancedInput: Controller.InputComponent class = %s"), *InController->InputComponent->GetClass()->GetName());
 
 	PolyPalsController = InController;
 
@@ -64,8 +63,6 @@ void UPolyPalsInputComponent::SetupEnhancedInput(APolyPalsController* const InCo
 
 void UPolyPalsInputComponent::InputLeftClick(const FInputActionValue& Value)
 {
-    UE_LOG(LogTemp, Warning, TEXT("[UPolyPalsInputComponent] InputLeftClick)"));
-
 	OnInputLeftClick.Broadcast();
 }
 
@@ -77,8 +74,6 @@ void UPolyPalsInputComponent::InputRightClick(const FInputActionValue& Value)
 void UPolyPalsInputComponent::InputTower1(const FInputActionValue& Value)  
 {  
     bool bIsPressed = Value.Get<bool>();  
-
-    UE_LOG(LogTemp, Warning, TEXT("[InputTower1] 호출됨! Value=%s"), bIsPressed ? TEXT("Pressed") : TEXT("Released"));  
 
     OnInputTower1.ExecuteIfBound();  
 }

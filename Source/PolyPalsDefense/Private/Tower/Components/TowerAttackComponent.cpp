@@ -104,7 +104,6 @@ void UTowerAttackComponent::ClientUpdateGunMeshRotation()
 
 	if (!IsValid(CurrentTarget))
 	{
-		UE_LOG(LogTemp, Error, TEXT("CurrentTarget is invalid in rotation update."));
 		return;
 	}
 
@@ -273,42 +272,41 @@ void UTowerAttackComponent::OnAttack()
 		switch (TowerAbility)
 		{
 		case ETowerAbility::Slow:
+
 			for (const auto& Iter : OverlapResults)
 			{
 				if (USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent()))
 					if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner()))
 					{
-						UE_LOG(LogTemp, Log, TEXT("Slow applied to %s"), *Enemy->GetName());
 						Enemy->ApplySlow(AbilityIntensity, AbilityDuration);
 					}
 			}
+
 			break;
 
 		case ETowerAbility::Stun:
+
 			for (const auto& Iter : OverlapResults)
 			{
 				if (USphereComponent* Collision = Cast<USphereComponent>(Iter.GetComponent()))
 					if (AEnemyPawn* Enemy = Cast<AEnemyPawn>(Collision->GetOwner()))
 					{
-						UE_LOG(LogTemp, Log, TEXT("Stun applied to %s"), *Enemy->GetName());
 						Enemy->ApplyStun(AbilityDuration);
 					}
 			}
+
 			break;
 		}
 
 		Multicast_PlayAoeEffect(Best->GetActorLocation());
 	}
 
-	// 珥앷뎄 ?댄럺??
 	Multicast_PlayMuzzleEffect();
 
-	// ?곕?吏 & ?寃??ㅼ젙
 	ServerSetCurrentTarget(Best);
 	Best->ReceiveDamage(Damage);
 	bMuzzleEffect = !bMuzzleEffect;
 
-	// ?ㅼ쓬 ?곹깭濡??꾪솚
 	SetTowerState(ETowerState::Delay);
 }
 
@@ -444,7 +442,7 @@ void UTowerAttackComponent::Multicast_PlayMuzzleEffect_Implementation()
 {
 	if (!MuzzleEffect)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect媛 null?낅땲??"));
+		UE_LOG(LogTemp, Error, TEXT("[Muzzle RPC] MuzzleEffect is null"));
 		return;
 	}
 
@@ -457,7 +455,7 @@ void UTowerAttackComponent::Multicast_PlayAoeEffect_Implementation(FVector_NetQu
 {
 	if (!AoeEffect)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect媛 null?낅땲??"));
+		UE_LOG(LogTemp, Error, TEXT("[AOE RPC] AoeEffect is null"));
 		return;
 	}
 

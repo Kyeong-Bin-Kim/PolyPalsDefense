@@ -61,11 +61,11 @@ APlacedTower::APlacedTower()
 
 	LevelWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LevelWidgetComponent"));
 	LevelWidgetComponent->SetupAttachment(RootComponent);
-	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f)); // ????꾨옒履?
-	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f)); // ????꾩そ??諛붾씪蹂대룄濡??뚯쟾
-	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World); // ?먮뒗 World
-	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f)); // ?ш린 議곗젅
-	LevelWidgetComponent->SetVisibility(true); // 珥덇린???④꺼?먭린
+	LevelWidgetComponent->SetRelativeLocation(FVector(-10.f, 10.f, 150.f));
+	LevelWidgetComponent->SetRelativeRotation(FRotator(90.f, 180.f, 0.f));
+	LevelWidgetComponent->SetWidgetSpace(EWidgetSpace::World);
+	LevelWidgetComponent->SetDrawSize(FVector2D(128.f, 64.f));
+	LevelWidgetComponent->SetVisibility(true);
 
 }
 
@@ -144,20 +144,17 @@ void APlacedTower::Multicast_InitializeVisuals_Implementation(uint8 InTowerId, E
 
 void APlacedTower::Multicast_UpdateLevelVisuals_Implementation(uint8 InTowerId, EPlayerColor InColor, int32 InNewLevel)
 {
-	// 紐⑤뱺 ?대씪?댁뼵?몄뿉???ㅽ뻾
 	TowerId = InTowerId;
 	PlayerColor = InColor;
 	Level = InNewLevel;
 
-	SetupVisuals();   // 硫붿떆,癒명떚?댁뼹 ?낅뜲?댄듃
-	UpdateLevel();    // ?덈꺼, ?댄럺?????낅뜲?댄듃
+	SetupVisuals();
+	UpdateLevel();
 }
 
 void APlacedTower::OnRep_PlayerColor()
 {
 	if (!GetWorld()) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("[APlacedTower] OnRep_PlayerColor fired: TowerId=%d"), TowerId);
 
 	if (TowerId > 0)
 	{
@@ -197,8 +194,6 @@ void APlacedTower::ClientSetTowerMeshComponent(uint8 InTowerId, EPlayerColor InC
 {
 	if (!GetWorld()) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("[APlacedTower] ClientSetTowerMeshComponent called: InTowerId=%d, InColor=%d"), InTowerId, static_cast<int32>(InColor));
-	
 	UTowerMaterialData* MaterialData = GetWorld()->GetSubsystem<UTowerDataManager>()->GetTowerMaterialData();
 	UMaterialInterface* TargetMaterial = nullptr;
 
@@ -256,16 +251,12 @@ void APlacedTower::Server_RequestUpgradeTower_Implementation()
 
 	if (PS && PS->GetPlayerGold() >= UpgradeCost)
 	{
-		// 怨⑤뱶 李④컧
 		PS->AddGold(-UpgradeCost);
 
-		// ?덈꺼 利앷?
 		Level++;
 
-		// ?명삎 蹂寃?諛??덈꺼 媛깆떊
 		Multicast_UpdateLevelVisuals(TowerId, PlayerColor, Level);
 
-		// 濡쒖뺄 ?대씪?댁뼵?몃씪硫?HUD??媛깆떊
 		if (PC->IsLocalController())
 		{
 			if (APolyPalsHUD* HUD = Cast<APolyPalsHUD>(PC->GetHUD()))
@@ -273,12 +264,6 @@ void APlacedTower::Server_RequestUpgradeTower_Implementation()
 				HUD->UpdateGoldOnUI(PS->GetPlayerGold());
 			}
 		}
-
-		UE_LOG(LogTemp, Log, TEXT("Tower upgraded! New Level: %d"), Level);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Upgrade failed: Not enough gold."));
 	}
 }
 
@@ -290,7 +275,7 @@ void APlacedTower::UpdateLevel()
 
 	if (LevelWidget)
 	{
-		LevelWidget->UpdateLevelUI(Level); // ?꾩옱 ????덈꺼 ?꾨떖
+		LevelWidget->UpdateLevelUI(Level);
 	}
 }
 
@@ -314,17 +299,14 @@ void APlacedTower::SetupVisuals()
 		return;
 	}
 
-	// ??? 珥? ?댄럺???ㅼ젙
 	TowerMeshComponent->SetStaticMesh(PD->TowerMesh);
 	GunMeshComponent->SetStaticMesh(PD->GunMesh);
 	MuzzleEffectComponent->SetAsset(PD->MuzzleEffect);
 
-	// ?뚮젅?댁뼱 而щ윭(Material)
 	ClientSetTowerMeshComponent(TowerId, PlayerColor);
 }
 
-void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, 
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->ActorHasTag(AttackTargetTag))
 	{
@@ -332,8 +314,7 @@ void APlacedTower::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	}
 }
 
-void APlacedTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void APlacedTower::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (OtherActor->ActorHasTag(AttackTargetTag))
 	{

@@ -1,4 +1,5 @@
 #include "PlayerSlotWidget.h"
+#include "PolyPalsPlayerState.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
 
@@ -6,7 +7,6 @@ void UPlayerSlotWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Ready 甕곌쑵?????????源??獄쏅뗄???
     if (ReadyButton)
     {
         ReadyButton->OnClicked.AddDynamic(this, &UPlayerSlotWidget::OnReadyButtonClicked);
@@ -24,13 +24,11 @@ void UPlayerSlotWidget::OnReadyButtonClicked()
 
         if (bIsReady)
         {
-            // ???뵝 ?怨밴묶: 筌뤴뫀諭????筌왖 ???뵝??곗쨮 ?⑥쥙??
             Style.Normal = Style.Pressed;
             Style.Hovered = Style.Pressed;
         }
         else
         {
-            // ?λ뜃由??怨밴묶 癰귣벀?
             Style.Normal = DefaultStyle.Normal;
             Style.Hovered = DefaultStyle.Hovered;
         }
@@ -39,7 +37,6 @@ void UPlayerSlotWidget::OnReadyButtonClicked()
     }
 
     OnReadyClicked.Broadcast(this);
-    UE_LOG(LogTemp, Log, TEXT("Ready toggled: %s (%s)"), *GetName(), bIsReady ? TEXT("Ready") : TEXT("Unready"));
 }
 
 void UPlayerSlotWidget::SetPlayerName(const FString& Name)

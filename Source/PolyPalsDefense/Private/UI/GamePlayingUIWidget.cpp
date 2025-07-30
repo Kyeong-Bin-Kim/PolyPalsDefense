@@ -11,48 +11,26 @@ void UGamePlayingUIWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // 踰꾪듉 諛붿씤??
     if (ToggleTowerButton)
     {
-        UE_LOG(LogTemp, Log, TEXT("ToggleTowerButton bound"));
         ToggleTowerButton->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnToggleTowerButtonClicked);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("ToggleTowerButton is null"));
     }
 
     if (Tower1Button)
     {
-        UE_LOG(LogTemp, Log, TEXT("Tower1Button bound"));
         Tower1Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower1ButtonClicked);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Tower1Button is null"));
     }
 
     if (Tower2Button)
     {
-        UE_LOG(LogTemp, Log, TEXT("Tower2Button bound"));
         Tower2Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower2ButtonClicked);
-    }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Tower2Button is null"));
     }
 
     if (Tower3Button)
     {
-        UE_LOG(LogTemp, Log, TEXT("Tower3Button bound"));
         Tower3Button->OnClicked.AddDynamic(this, &UGamePlayingUIWidget::OnTower3ButtonClicked);
     }
-    else
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Tower3Button is null"));
-    }
 
-    // 珥덇린?먮뒗 ????⑤꼸 ?④?
     if (TowerIconsBox)
     {
         TowerIconsBox->SetVisibility(ESlateVisibility::Collapsed);
@@ -113,8 +91,6 @@ void UGamePlayingUIWidget::OnToggleTowerButtonClicked()
 
 void UGamePlayingUIWidget::OnTower1ButtonClicked()
 {
-    UE_LOG(LogTemp, Log, TEXT("Tower1Button clicked"));
-
     if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         PC->BeginSelectTower(1);
@@ -123,8 +99,6 @@ void UGamePlayingUIWidget::OnTower1ButtonClicked()
 
 void UGamePlayingUIWidget::OnTower2ButtonClicked()
 {
-    UE_LOG(LogTemp, Log, TEXT("Tower2Button clicked"));
-
     if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         PC->BeginSelectTower(2);
@@ -133,8 +107,6 @@ void UGamePlayingUIWidget::OnTower2ButtonClicked()
 
 void UGamePlayingUIWidget::OnTower3ButtonClicked()
 {
-    UE_LOG(LogTemp, Log, TEXT("Tower3Button clicked"));
-
     if (auto* PC = Cast<APolyPalsController>(GetOwningPlayer()))
     {
         PC->BeginSelectTower(3);

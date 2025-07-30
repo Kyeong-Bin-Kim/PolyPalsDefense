@@ -19,15 +19,11 @@ void APolyPalsGameMode::BeginPlay()
 {
 	const FString Map = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
 
-	UE_LOG(LogTemp, Log, TEXT("BeginPlay:Map-%s"), *Map);
-
 	if (Map.Equals(TEXT("EmptyLevel"), ESearchCase::IgnoreCase))
 	{
 		if (UPolyPalsGameInstance* GI = Cast<UPolyPalsGameInstance>(GetGameInstance()))
 		{
 			SetMaxPlayerSlots(GI->GetMaxPlayerCount());
-
-			UE_LOG(LogTemp, Log, TEXT("GameMode: MaxPlayerSlots set from GameInstance = %d"), MaxPlayerSlots);
 
 			if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 			{
@@ -65,12 +61,10 @@ void APolyPalsGameMode::InitGame(const FString& MapName, const FString& Options,
 
 void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
-	UE_LOG(LogTemp, Log, TEXT("[PreLogin] Options=%s"), *Options);
-
 	if (ConnectedPlayers >= MaxPlayerSlots)
 	{
 		ErrorMessage = TEXT("Lobby is full.");
-		UE_LOG(LogTemp, Warning, TEXT("PreLogin rejected: lobby full"));
+
 		return;
 	}
 
@@ -81,16 +75,12 @@ void APolyPalsGameMode::PreLogin(const FString& Options, const FString& Address,
 		UE_LOG(LogTemp, Warning, TEXT("PreLogin failed: %s"), *ErrorMessage);
 	}
 
-	// ParseOption ?쇰줈 ?먮룞 ?붿퐫??+ & 遺꾨━
 	FString RawStage = UGameplayStatics::ParseOption(Options, TEXT("SelectedStage"));
 	FString RawLobby = UGameplayStatics::ParseOption(Options, TEXT("LobbyName"));
 
 	FString Stage = FGenericPlatformHttp::UrlDecode(RawStage);
 	FString Lobby = FGenericPlatformHttp::UrlDecode(RawLobby);
 
-	UE_LOG(LogTemp, Log, TEXT("[PreLogin] Options -> Stage=%s, Lobby=%s"), *Stage, *Lobby);
-
-	// GameState?????(Replicated property)
 	if (APolyPalsState* GS = GetGameState<APolyPalsState>())
 	{
 		if (!Stage.IsEmpty())
@@ -107,17 +97,11 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 
 	const FString CurrentMap = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
 
-	UE_LOG(LogTemp, Log, TEXT("[PostLogin] Player=%s, ConnectedPlayers=%d, Map=%s"), *NewPlayer->PlayerState->GetPlayerName(), ConnectedPlayers + 1, *CurrentMap);
-
 	if (CurrentMap.Equals(TEXT("EmptyLevel"), ESearchCase::IgnoreCase))
 	{
 		if (!NewPlayer->IsLocalController())
 		{
-			FString ConnectedName = NewPlayer->PlayerState
-				? NewPlayer->PlayerState->GetPlayerName()
-				: TEXT("Unknown");
-
-			UE_LOG(LogTemp, Log, TEXT("[Server] Player connected: %s"), *ConnectedName);
+			FString ConnectedName = NewPlayer->PlayerState ? NewPlayer->PlayerState->GetPlayerName() : TEXT("Unknown");
 
 			if (!PreparedColors.IsEmpty())
 			{
@@ -132,12 +116,9 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 		if (APolyPalsPlayerState* PS = Cast<APolyPalsPlayerState>(NewPlayer->PlayerState))
 		{
 			PS->SetSlotIndex(ConnectedPlayers);
-			UE_LOG(LogTemp, Log, TEXT("Assigned SlotIndex = %d"), ConnectedPlayers);
 		}
 
 		ConnectedPlayers++;
-
-		UE_LOG(LogTemp, Log, TEXT("Player connected: %d/%d"), ConnectedPlayers, ExpectedPlayerCount);
 
 		if (ConnectedPlayers == 1)
 		{
@@ -158,8 +139,6 @@ void APolyPalsGameMode::PostLogin(APlayerController* NewPlayer)
 	{
 		if (HasAuthority() && GetWorld())
 		{
-			UE_LOG(LogTemp, Log, TEXT("GameMode:DistributeStartingGold()"));
-
 			DistributeStartingGold();
 
 			if (!PreparedColors.IsEmpty())
@@ -208,15 +187,12 @@ void APolyPalsGameMode::DistributeStartingGold()
 		// 플레이어 수 기준으로 골드 계산
 		int32 StartingGold = CalculateStartingGold(PlayerCount);
 
-		UE_LOG(LogTemp, Warning, TEXT("[DistributeStartingGold] PlayerCount=%d, StartingGold=%d"), PlayerCount, StartingGold);
-
 		// 모든 플레이어에게 동일하게 설정
 		for (APlayerState* PS : GS->PlayerArray)
 		{
 			if (APolyPalsPlayerState* PPS = Cast<APolyPalsPlayerState>(PS))
 			{
 				PPS->SetInitialGold(StartingGold);
-				UE_LOG(LogTemp, Warning, TEXT(" → To %s: Gold=%d"), *PPS->GetPlayerName(), StartingGold);
 			}
 		}
 	}
@@ -259,8 +235,6 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 			FString TravelURL = FString::Printf(TEXT("/Game/Maps/%s"), *MapName);
 
-			UE_LOG(LogTemp, Log, TEXT("[GameMode] ServerTravel to %s"), *TravelURL);
-
 			GetWorld()->ServerTravel(TravelURL);
 		}
 
@@ -269,13 +243,11 @@ void APolyPalsGameMode::StartGameAfterCountdown()
 
 void APolyPalsGameMode::HandleStateGameOver()
 {
-	UE_LOG(LogTemp, Log, TEXT("[GameMode] GameOver"));
 	ResetAndReturnToLobby();
 }
 
 void APolyPalsGameMode::HandleStateGameClear()
 {
-	UE_LOG(LogTemp, Log, TEXT("[GameMode] GameClear"));
 	ResetAndReturnToLobby();
 }
 

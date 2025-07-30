@@ -104,8 +104,6 @@ void UPolyPalsDefenseAssetManager::StartInitialLoading()
     }
 
     Super::StartInitialLoading();
-
-    UE_LOG(LogTemp, Log, TEXT("PolyPalsDefenseAssetManager Initialized (with duplicates filtered)"));
 }
 
 UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadPrimaryDataAsset(const FPrimaryAssetId& AssetId)
@@ -120,8 +118,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadPrimaryDataAsset(const FPri
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("Cached asset invalid, reloading: %s"), *AssetId.ToString());
-
             CachedAssets.Remove(AssetId);
         }
     }
@@ -130,7 +126,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadPrimaryDataAsset(const FPri
 
     if (!AssetPath.IsValid())
     {
-        UE_LOG(LogTemp, Error, TEXT("??롢걵??Asset Path: %s"), *AssetId.ToString());
         return nullptr;
     }
 
@@ -142,11 +137,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadPrimaryDataAsset(const FPri
     {
         LoadedAsset->AddToRoot();
         CachedAssets.Add(AssetId, LoadedAsset);
-        UE_LOG(LogTemp, Log, TEXT("??녿┛ 嚥≪뮆諭?獄?筌?Ŋ???袁⑥┷: %s"), *AssetId.ToString());
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("??녿┛ 嚥≪뮆諭???쎈솭: %s"), *AssetId.ToString());
     }
 
     return LoadedAsset;
@@ -167,21 +157,15 @@ void UPolyPalsDefenseAssetManager::LoadPrimaryDataAssetAsync(const FPrimaryAsset
                     LoadedAsset->AddToRoot();
                     CachedAssets.Add(AssetId, LoadedAsset);
 
-                    UE_LOG(LogTemp, Log, TEXT("??쑬猷욄묾?嚥≪뮆諭?獄?筌?Ŋ???袁⑥┷: %s"), *AssetId.ToString());
-
                     OnLoadedCallback(LoadedAsset);
                 }
                 else
                 {
-                    UE_LOG(LogTemp, Error, TEXT("??쑬猷욄묾?嚥≪뮆諭???쎈솭 - 揶쏆빘猿쒐몴?筌≪뼚??????곸벉: %s"), *AssetId.ToString());
-
                     OnLoadedCallback(nullptr);
                 }
             }
             else
             {
-                UE_LOG(LogTemp, Error, TEXT("??쑬猷욄묾?嚥≪뮆諭???쎈솭 - Delegate ?紐꾪뀱 ??쎈솭: %s"), *AssetId.ToString());
-
                 OnLoadedCallback(nullptr);
             }
         });
@@ -205,8 +189,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadDataAssetWithFallback(const
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("??쑬猷욄묾?嚥≪뮆諭???쎈솭, ??녿┛ 嚥≪뮆諭???뺣즲: %s"), *AssetId.ToString());
-
             UPrimaryDataAsset* SyncAsset = LoadPrimaryDataAsset(AssetId);
 
             if (SyncAsset)
@@ -215,8 +197,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::LoadDataAssetWithFallback(const
             }
             else
             {
-                UE_LOG(LogTemp, Error, TEXT("??녿┛ 嚥≪뮆諭????쎈솭: %s"), *AssetId.ToString());
-
                 OnLoadedCallback(nullptr);
             }
         }
@@ -236,8 +216,6 @@ UPrimaryDataAsset* UPolyPalsDefenseAssetManager::GetCachedAsset(const FPrimaryAs
         else
         {
             CachedAssets.Remove(AssetId);
-
-            UE_LOG(LogTemp, Warning, TEXT("?醫륁뒞??? ??? 筌?Ŋ????볤탢: %s"), *AssetId.ToString());
         }
     }
 
@@ -248,11 +226,11 @@ void UPolyPalsDefenseAssetManager::ClearCachedAsset(const FPrimaryAssetId& Asset
 {
     if (CachedAssets.Remove(AssetId) > 0)
     {
-        UE_LOG(LogTemp, Log, TEXT("筌?Ŋ????癒?텦 ??볤탢 ?袁⑥┷: %s"), *AssetId.ToString());
+        UE_LOG(LogTemp, Log, TEXT("Successfully removed the cached asset : %s"), *AssetId.ToString());
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("筌?Ŋ????癒?텦??鈺곕똻???? ??놁벉 ?癒?뮉 ??? ??볤탢?? %s"), *AssetId.ToString());
+        UE_LOG(LogTemp, Warning, TEXT("If the asset was not found in the cache, log a warning : %s"), *AssetId.ToString());
     }
 }
 
@@ -283,8 +261,6 @@ FSoftObjectPath UPolyPalsDefenseAssetManager::GetPrimaryDataAssetPath(const FPri
     {
         return FSoftObjectPath(AssetObject);
     }
-
-    UE_LOG(LogTemp, Error, TEXT("GetPrimaryDataAssetPath ??쎈솭 - ??롢걵??PrimaryAssetId: %s"), *AssetId.ToString());
 
     return FSoftObjectPath();
 }

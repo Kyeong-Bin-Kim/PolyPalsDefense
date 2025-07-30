@@ -57,8 +57,6 @@ void APolyPalsHUD::BeginPlay()
             {
                 int32 Gold = PS->GetPlayerGold();
 
-                UE_LOG(LogTemp, Warning, TEXT("[HUD::BeginPlay] Read PlayerGold from PS: %d"), Gold);
-
                 GamePlayingWidget->SetGold(Gold);
             }
         }
@@ -75,8 +73,6 @@ void APolyPalsHUD::BeginPlay()
 
     // WaveManager가 스폰되면 바인딩 시도
     GetWorldTimerManager().SetTimerForNextTick(this, &APolyPalsHUD::TryBindToWaveManager);
-
-    UE_LOG(LogTemp, Warning, TEXT("[HUD] BeginPlay - NetMode: %d"), static_cast<int32>(GetNetMode()));
 }
 
 void APolyPalsHUD::Tick(float DeltaSeconds)
@@ -103,17 +99,19 @@ void APolyPalsHUD::UpdateWaveInfoOnUI()
     if (!GamePlayingWidget) return;
 
     AWaveManager* WaveManager = Cast<AWaveManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AWaveManager::StaticClass()));
+    
     if (!WaveManager) return;
 
     GamePlayingWidget->SetLife(WaveManager->GetRemainingLives());
 
     const int32 CurrentEnemies = WaveManager->GetRemainingEnemiesThisWave();
     const int32 TotalEnemies = WaveManager->GetTotalEnemiesThisWave();
+    
     GamePlayingWidget->SetEnemiesRemaining(CurrentEnemies, TotalEnemies);
-
     GamePlayingWidget->SetRound(WaveManager->GetCurrentRoundIndex(), WaveManager->GetTotalRoundCount());
 
     float RemainingTime = FMath::Max(0.f, NextWaveTargetTimestamp - GetWorld()->GetTimeSeconds());
+   
     if (RemainingTime <= 0.f)
     {
         if (WaveManager->IsInPreparationPhase())
@@ -129,6 +127,10 @@ void APolyPalsHUD::UpdateWaveInfoOnUI()
 
 void APolyPalsHUD::ShowResultWidget(const FText& Message)
 {
+    GetWorldTimerManager().ClearTimer(TimerHandle_UpdateWaveInfo);
+    
+    NextWaveTargetTimestamp = -1.f;
+
     if (!GameResultWidget && GameResultWidgetClass)
     {
         GameResultWidget = CreateWidget<UGameResultWidget>(GetWorld(), GameResultWidgetClass);
